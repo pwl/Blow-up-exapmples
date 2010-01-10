@@ -26,6 +26,10 @@ project: $(DIRS)
 harmonic: harmonic_mm.o $(DIRS)
 	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_mm.o $(ARCHIVE) -o $@
 
+run:	harmonic_bubbling
+	rm -f log/{snapshot,info,movie}/*
+	time ./harmonic_bubbling
+
 harmonic_bubbling: harmonic_mm_bubbling.o $(DIRS)
 	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_mm_bubbling.o $(ARCHIVE) -o $@
 
