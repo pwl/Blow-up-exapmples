@@ -1,0 +1,8 @@
+log/*
+movie/*
+*.avi
+*.png
+*.tgz
+filelist.txt
+bisection.dat
+TAGS
