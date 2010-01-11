@@ -10,9 +10,9 @@ gsl_vector * fx, * fu, * ftmp;
 int main ( void )
 {
   ODE_solver * s;
-  int M = 0, K = 20, N = 2*(M+K)+1,i;
+  int M = 0, K = 30, N = 2*(M+K)+1,i;
   H_DOUBLE T =1.e100;
-  H_DOUBLE x0 = 0., x1 = PI/2., x;
+  H_DOUBLE x0 = 0., x1 = PI, x;
   H_DOUBLE t_error = 1.e-12;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
@@ -103,7 +103,7 @@ int main ( void )
   for ( i = 0; i < N; i++ ) {
     s->state->f[i+1+N]=x;
     /* s->state->f[i+1]=x/x1*PI+sin(x/x1*PI); */
-    s->state->f[i+1]=(sin(x)+3.*x)*sin(x);
+    s->state->f[i+1]=(sin(3.*x)+3.*x)*sin(x);
     x += (x1-x0)/(N-1);
   }
   s->state->f[0]=0.;
@@ -157,9 +157,13 @@ void ODE_set ( void * solver,
   assert(gt-gt==0.);
   /* assert(!isnan(y[0])); */
 
-  /* warunek na zatrzymanie ewolucji */
+  /* warunek na zamrozenie transf. sundmana */
   if( gt <= 1e-14 || gt-gt!=0.)
     gt=1.e-14;
+
+  /* warunek na zatrzymanie symulacji */
+  if( fabs(ui[1]/sin(xi[1]) - ui[N-2]/sin(xi[N-2])) < 1.e-2)
+    s->state->status=SOLVER_STATUS_STOP;
 
   /* if( gt < 1e-15 || gt-gt!=0.) */
   /*   s->state->status = SOLVER_STATUS_STOP; */
