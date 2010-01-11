@@ -6,3 +6,10 @@ movie/*
 filelist.txt
 bisection.dat
 TAGS
+*.o
+*.a
+*.dat
+harmonic
+harmonic_mm_bubbling
+harmonic_bubbling
+gnuplot*
