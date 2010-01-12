@@ -5,36 +5,35 @@ options1="w l lt 1 " # lt 1 pt 1"
 options2="w p lt 2 pt 2"
 
 name="*.dat"
-path="log/snapshot/"
-files=$(find $path -name "$name" |sort| awk 'NR % 1 == 0')
-DT=.001
+path="log/snapshot2/"
+files=$(find $path -name "$name" |sort| awk 'NR % 800 == 0')
+DT=.05
 T_LAST=0.
+Di=3.1415
+i=0.
 
 mkdir -p movie
 rm -f movie/*.png
 
+cmd="plot"			# initialize cmd
+
 for f in $files; do
-    t=${f:18:17}		# determine time from file name
+    t=${f:19:17}		# determine time from file name
 
     TRIGGER=$(echo "scale=20;$t>$T_LAST"|bc)
+    TRIGGER="1"
     if [ $TRIGGER = "1" ]; then
 	T_LAST=$(echo "scale=20;$T_LAST+$DT"|bc)
 	nmb=$(grep -v \# $f| wc -l)	# determine the number of lines
 	nmb=$((nmb-2))		# before the last data point
-	cmd="plot"			# initialize cmd
-	echo "" > plotter.gp	# clear the temporary file
-	output="movie/m_$t.png"	# output file name
-	title="bubbling off for harmonic maps\\nt=$t" # graph title
-	cmd="set title \"$title\"; $cmd"	      # set the title
-	cmd="set output \"$output\"; $cmd" # set the output file
-        # cmd="$cmd \"$f\" u (log(tan(\$1/2.))):(\$2/sin(\$1)) every ::1::$nmb w lp" # the plot
-	cmd="$cmd \"$f\" u 1:(\$2/sin(\$1)) every ::1::$nmb w l" # the plot
+	# cmd="$cmd \"$f\" u (log(tan(\$1/2.))):(\$2/sin(\$1)) every ::1::$nmb w lp" # the plot
+	cmd="$cmd \"$f\" u (log(tan(\$1/2.))):(\$2/sin(\$1)+$i) every ::1::$nmb w l lw 1 lt 1," # the plot
 	echo "t = $t"		 # some output for user
-	echo "$cmd" > plotter.gp # echo the command to the temporary file
-	./snapshot_to_png_template.gp # execute the template (it loads the temporary file)
+	i=$(echo "scale=20;$i+$Di"|bc)
     fi
 done
 
-./make_movie.sh
-# rm movie/*.png
-gmplayer movie.avi
+cmd=${cmd%,*}
+
+echo "$cmd" > plotter.gp # echo the command to the temporary file
+./snapshot_to_png_template.gp # execute the template (it loads the temporary file)
