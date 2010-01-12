@@ -6,7 +6,7 @@ options2="w p lt 2 pt 2"
 
 name="*.dat"
 path="log/snapshot2/"
-files=$(find $path -name "$name" |sort| awk 'NR % 800 == 0')
+files=$(find $path -name "$name" |sort| awk 'NR % 550 == 1')
 DT=.05
 T_LAST=0.
 Di=3.1415
@@ -15,7 +15,10 @@ i=0.
 mkdir -p movie
 rm -f movie/*.png
 
+echo "" > plotter.gp
+
 cmd="plot"			# initialize cmd
+
 
 for f in $files; do
     t=${f:19:17}		# determine time from file name
@@ -29,11 +32,14 @@ for f in $files; do
 	# cmd="$cmd \"$f\" u (log(tan(\$1/2.))):(\$2/sin(\$1)) every ::1::$nmb w lp" # the plot
 	cmd="$cmd \"$f\" u (log(tan(\$1/2.))):(\$2/sin(\$1)+$i) every ::1::$nmb w l lw 1 lt 1," # the plot
 	echo "t = $t"		 # some output for user
-	i=$(echo "scale=20;$i+$Di"|bc)
+	echo "set label \"t=$t\" at graph .85, first $i+5*pi/2" >> plotter.gp
+      	i=$(echo "scale=20;$i+$Di"|bc)
     fi
 done
 
 cmd=${cmd%,*}
 
-echo "$cmd" > plotter.gp # echo the command to the temporary file
+echo "$cmd" >> plotter.gp # echo the command to the temporary file
 ./snapshot_to_png_template.gp # execute the template (it loads the temporary file)
+
+evince waterfall.ps&

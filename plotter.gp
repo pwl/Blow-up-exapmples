@@ -1,1 +1,33 @@
-set output "movie/m_2.053000192359589.png"; set title "bubbling off for harmonic maps\nt=2.053000192359589"; plot "log/snapshot/snap_2.053000192359589.dat" u 1:($2/sin($1)) every ::1::59 w l
+
+set label "t=0.001539701393417" at graph .85, first 0.+5*pi/2
+set label "t=0.062523351453916" at graph .85, first 3.1415+5*pi/2
+set label "t=0.063461539493200" at graph .85, first 6.2830+5*pi/2
+set label "t=0.063527957564855" at graph .85, first 9.4245+5*pi/2
+set label "t=0.063533717864652" at graph .85, first 12.5660+5*pi/2
+set label "t=0.063533929986683" at graph .85, first 15.7075+5*pi/2
+set label "t=0.063534180920170" at graph .85, first 18.8490+5*pi/2
+set label "t=0.063537065240719" at graph .85, first 21.9905+5*pi/2
+set label "t=0.219374240073516" at graph .85, first 25.1320+5*pi/2
+set label "t=0.228496245367205" at graph .85, first 28.2735+5*pi/2
+set label "t=0.229313064348476" at graph .85, first 31.4150+5*pi/2
+set label "t=0.229412242088674" at graph .85, first 34.5565+5*pi/2
+set label "t=0.229425296981459" at graph .85, first 37.6980+5*pi/2
+set label "t=0.229427124029543" at graph .85, first 40.8395+5*pi/2
+set label "t=0.229427330419157" at graph .85, first 43.9810+5*pi/2
+set label "t=0.229427336754988" at graph .85, first 47.1225+5*pi/2
+set label "t=0.229427337100325" at graph .85, first 50.2640+5*pi/2
+set label "t=0.229427476340726" at graph .85, first 53.4055+5*pi/2
+set label "t=0.229428874312654" at graph .85, first 56.5470+5*pi/2
+set label "t=0.807538238711420" at graph .85, first 59.6885+5*pi/2
+set label "t=0.839662767335416" at graph .85, first 62.8300+5*pi/2
+set label "t=0.842562705001540" at graph .85, first 65.9715+5*pi/2
+set label "t=0.842926855993508" at graph .85, first 69.1130+5*pi/2
+set label "t=0.842977033362633" at graph .85, first 72.2545+5*pi/2
+set label "t=0.842984161696402" at graph .85, first 75.3960+5*pi/2
+set label "t=0.842985180864965" at graph .85, first 78.5375+5*pi/2
+set label "t=0.842985326623695" at graph .85, first 81.6790+5*pi/2
+set label "t=0.842985347418635" at graph .85, first 84.8205+5*pi/2
+set label "t=0.842985350381193" at graph .85, first 87.9620+5*pi/2
+set label "t=0.842985350800075" at graph .85, first 91.1035+5*pi/2
+set label "t=0.842985350908483" at graph .85, first 94.2450+5*pi/2
+plot "log/snapshot2/snap_0.001539701393417.dat" u (log(tan($1/2.))):($2/sin($1)+0.) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.062523351453916.dat" u (log(tan($1/2.))):($2/sin($1)+3.1415) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.063461539493200.dat" u (log(tan($1/2.))):($2/sin($1)+6.2830) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.063527957564855.dat" u (log(tan($1/2.))):($2/sin($1)+9.4245) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.063533717864652.dat" u (log(tan($1/2.))):($2/sin($1)+12.5660) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.063533929986683.dat" u (log(tan($1/2.))):($2/sin($1)+15.7075) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.063534180920170.dat" u (log(tan($1/2.))):($2/sin($1)+18.8490) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.063537065240719.dat" u (log(tan($1/2.))):($2/sin($1)+21.9905) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.219374240073516.dat" u (log(tan($1/2.))):($2/sin($1)+25.1320) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.228496245367205.dat" u (log(tan($1/2.))):($2/sin($1)+28.2735) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.229313064348476.dat" u (log(tan($1/2.))):($2/sin($1)+31.4150) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.229412242088674.dat" u (log(tan($1/2.))):($2/sin($1)+34.5565) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.229425296981459.dat" u (log(tan($1/2.))):($2/sin($1)+37.6980) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.229427124029543.dat" u (log(tan($1/2.))):($2/sin($1)+40.8395) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.229427330419157.dat" u (log(tan($1/2.))):($2/sin($1)+43.9810) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.229427336754988.dat" u (log(tan($1/2.))):($2/sin($1)+47.1225) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.229427337100325.dat" u (log(tan($1/2.))):($2/sin($1)+50.2640) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.229427476340726.dat" u (log(tan($1/2.))):($2/sin($1)+53.4055) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.229428874312654.dat" u (log(tan($1/2.))):($2/sin($1)+56.5470) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.807538238711420.dat" u (log(tan($1/2.))):($2/sin($1)+59.6885) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.839662767335416.dat" u (log(tan($1/2.))):($2/sin($1)+62.8300) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.842562705001540.dat" u (log(tan($1/2.))):($2/sin($1)+65.9715) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.842926855993508.dat" u (log(tan($1/2.))):($2/sin($1)+69.1130) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.842977033362633.dat" u (log(tan($1/2.))):($2/sin($1)+72.2545) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.842984161696402.dat" u (log(tan($1/2.))):($2/sin($1)+75.3960) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.842985180864965.dat" u (log(tan($1/2.))):($2/sin($1)+78.5375) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.842985326623695.dat" u (log(tan($1/2.))):($2/sin($1)+81.6790) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.842985347418635.dat" u (log(tan($1/2.))):($2/sin($1)+84.8205) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.842985350381193.dat" u (log(tan($1/2.))):($2/sin($1)+87.9620) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.842985350800075.dat" u (log(tan($1/2.))):($2/sin($1)+91.1035) every ::1::39 w l lw 1 lt 1, "log/snapshot2/snap_0.842985350908483.dat" u (log(tan($1/2.))):($2/sin($1)+94.2450) every ::1::39 w l lw 1 lt 1
