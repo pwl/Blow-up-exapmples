@@ -14,3 +14,5 @@ harmonic_mm_bubbling
 harmonic_bubbling
 gnuplot*
 plotter.gp
+*.ps
+*.pdf
