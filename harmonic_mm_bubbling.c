@@ -64,39 +64,44 @@ int main ( void )
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 50.) ); */
 
   /* inicjalizacja danych poczatkowych */
-  file = fopen( "bisection.dat", "r" );
 
-  s->state->f[1]=0;
-  s->state->f[1+N]=0.;
-  s->state->f[N]=0;
-  s->state->f[2*N]=PI;
+  /* Z PLIKU */
 
-  for ( i = 1; i < M; i++ ) {
-    fscanf(file, "%lf %lf %lf", s->state->f + i+1+N,s->state->f + i+1, &x);
-    x=s->state->f[i+1+N];
-    s->state->f[N-i]*=sin(x);
-    s->state->f[N-i]=s->state->f[i+1];
-    s->state->f[i+1+N]*=1.e-7;
-    s->state->f[2*N-i]=PI-s->state->f[i+1+N];
-    /* printf("%lf %lf\n", s->state->f[i+1+M],s->state->f[i+1]); */
-  }
+  /* file = fopen( "bisection.dat", "r" ); */
 
-  for ( i = M; i < M+K; i++)
-    {
-      x=s->state->f[M+N]+
-	(PI/2.-s->state->f[M+N])
-	/(pow(.01*(double)(K+1),4))
-	*(pow(.01*(double)(i-M+1),4));
+  /* s->state->f[1]=0; */
+  /* s->state->f[1+N]=0.; */
+  /* s->state->f[N]=0; */
+  /* s->state->f[2*N]=PI; */
 
-      s->state->f[i+1+N]=x;
-      s->state->f[2*N-i]=PI-s->state->f[i+1+N];
-      s->state->f[1+i]=s->state->f[M]*sin(x);
-      s->state->f[N-i]=s->state->f[M]*sin(x);
-    }
-  fclose(file);
+  /* for ( i = 1; i < M; i++ ) { */
+  /*   fscanf(file, "%lf %lf %lf", s->state->f + i+1+N,s->state->f + i+1, &x); */
+  /*   x=s->state->f[i+1+N]; */
+  /*   s->state->f[N-i]*=sin(x); */
+  /*   s->state->f[N-i]=s->state->f[i+1]; */
+  /*   s->state->f[i+1+N]*=1.e-7; */
+  /*   s->state->f[2*N-i]=PI-s->state->f[i+1+N]; */
+  /*   /\* printf("%lf %lf\n", s->state->f[i+1+M],s->state->f[i+1]); *\/ */
+  /* } */
 
-  s->state->f[(N+1)/2]=s->state->f[(N+1)/2-1]*sin(PI/2);
-  s->state->f[(N+1)/2+N]=PI/2.;
+  /* for ( i = M; i < M+K; i++) */
+  /*   { */
+  /*     x=s->state->f[M+N]+ */
+  /* 	(PI/2.-s->state->f[M+N]) */
+  /* 	/(pow(.01*(double)(K+1),4)) */
+  /* 	*(pow(.01*(double)(i-M+1),4)); */
+
+  /*     s->state->f[i+1+N]=x; */
+  /*     s->state->f[2*N-i]=PI-s->state->f[i+1+N]; */
+  /*     s->state->f[1+i]=s->state->f[M]*sin(x); */
+  /*     s->state->f[N-i]=s->state->f[M]*sin(x); */
+  /*   } */
+  /* fclose(file); */
+
+  /* s->state->f[(N+1)/2]=s->state->f[(N+1)/2-1]*sin(PI/2); */
+  /* s->state->f[(N+1)/2+N]=PI/2.; */
+
+  /* PRZEZ FUNKCJE */
 
   x=x0;
 
@@ -108,10 +113,12 @@ int main ( void )
   }
   s->state->f[0]=0.;
 
-  file = fopen ( "test.dat", "w" );
-  for ( i = 0; i < 2*N+1; i++ )
-    fprintf(file, "%i %.15f\n", i, s->state->f[i]);
-  fclose( file );
+  /* test danych poczatkowych */
+
+  /* file = fopen ( "test.dat", "w" ); */
+  /* for ( i = 0; i < 2*N+1; i++ ) */
+  /*   fprintf(file, "%i %.15f\n", i, s->state->f[i]); */
+  /* fclose( file ); */
 
   /* ponizsza funkcja pcha wartosci poczatkowe w czasie i uruchamia
      poszczegolne moduly */
