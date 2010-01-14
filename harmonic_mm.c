@@ -8,7 +8,7 @@ gsl_vector * fx, * fu, * ftmp;
 int main ( void )
 {
   ODE_solver * s;
-  int M = 20, K = 0, N = 2*(M+K)+1,i;
+  int M = 35, K = 0, N = 2*(M+K)+1,i;
   H_DOUBLE T =1.e100;
   H_DOUBLE x0 = 0., x1 = PI, x;
   H_DOUBLE t_error = 1.e-8;
@@ -106,6 +106,7 @@ int main ( void )
   file = fopen ( "test.dat", "w" );
   for ( i = 0; i < 2*N+1; i++ )
     fprintf(file, "%i %.15f\n", i, s->state->f[i]);
+
   fclose( file );
 
   /* ponizsza funkcja pcha wartosci poczatkowe w czasie i uruchamia
@@ -140,7 +141,8 @@ void ODE_set ( void * solver,
      funkcji w odpowiednich punktach */
   H_DOUBLE * ui = y + 1;
   H_DOUBLE * xi = y + 1 + N;
-  H_DOUBLE k = 2.,u,x,du,ddu,Mxi,de,epsilon,gt;
+  H_DOUBLE k = 7.,u,x,du,ddu,Mxi,de,epsilon,gt;
+  H_DOUBLE dt = *(s->state->dt);
 
   /* definicje zmiennych pomocniczych */
   epsilon = 1.e-4;
@@ -154,8 +156,11 @@ void ODE_set ( void * solver,
   assert(!isnan(y[0]));
 
   /* warunek na zatrzymanie ewolucji */
-  if( gt < 1.e-15 /* || fabs(D1(ui, xi, 0, N)) < 10000 */)
-    s->state->status = SOLVER_STATUS_STOP;
+  if( gt*dt < 1.e-15 /* || fabs(D1(ui, xi, 0, N)) < 10000 */)
+    {
+      printf("STOP: gt < 1.e-15\n");
+      s->state->status = SOLVER_STATUS_STOP;
+    }
 
   for ( i = 1; i < N-1; i++) {
     u=ui[i];
@@ -254,7 +259,7 @@ double D2 ( double * u, double * x, int i, int N )
 double g ( double * y, int N )
 {
   /* return 0.01*pow(fabs(D1(y+1,y+1+N,0,N))+fabs(D1(y+1,y+1+N,N-1,N)),-2); */
-  double k = 2.;
+  double k = 7.;
   H_DOUBLE * ui = y + 1;
   H_DOUBLE * xi = y + 1 + N;
   double du=D1(ui,xi,1,N),ddu=D2(ui,xi,1,N);
@@ -274,7 +279,7 @@ void M_calc ( double * u, double * x, double * M, int N )
 
   for ( i = 1; i < N-1; i++)
     {
-      M[i]=fabs( D1( u, x, i, N ) )
+      M[i]=2.*fabs( D1( u, x, i, N ) )
 	+ sqrt( fabs( D2( u, x, i, N ) ) );
       Mtot+=(M[i]*(x[i+1]-x[i-1])/2.);
 
