@@ -16,3 +16,5 @@ gnuplot*
 plotter.gp
 *.ps
 *.pdf
+shooting2
+*.log
