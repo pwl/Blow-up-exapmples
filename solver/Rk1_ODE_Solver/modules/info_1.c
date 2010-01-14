@@ -46,6 +46,7 @@ void info_1_step ( void * solver, void * module )
   int N = (s->params->Nx-1)/2;
   H_DOUBLE tau = *(s->state->t);
   H_DOUBLE * f = s->state->f;
+  H_DOUBLE * df = s->state->df;
   H_DOUBLE * dtau = s->state->dt;
   H_DOUBLE * u = f+1;
   H_DOUBLE * x = f+1+N;
@@ -58,7 +59,7 @@ void info_1_step ( void * solver, void * module )
 
   file = fopen ( data->fileNames[0], "a" );
   fprintf( file, "%.15E %.15E %.15E %.15E %.15E %.15E %.15E %.15E\n",
-  	   tau, t, u[1], x[1], dx, g, *dtau, 0. );
+  	   tau, t, u[1], x[1], dx, g, *dtau, df[2] );
   fclose( file );
 }
 

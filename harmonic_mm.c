@@ -8,8 +8,8 @@ gsl_vector * fx, * fu, * ftmp;
 int main ( void )
 {
   ODE_solver * s;
-  int M = 12, K = 50, N = 2*(M+K)+1,i;
-  H_DOUBLE T =120000.;
+  int M = 20, K = 0, N = 2*(M+K)+1,i;
+  H_DOUBLE T =1.e100;
   H_DOUBLE x0 = 0., x1 = PI, x;
   H_DOUBLE t_error = 1.e-8;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
@@ -49,61 +49,59 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  ODE_modules_add ( s, ODE_module_plot_init( 1. ) );
+  /* ODE_modules_add ( s, ODE_module_plot_init( 1.e-2 ) ); */
   /* modul do drukowania w konsoli czasu symulacji */
-  ODE_modules_add ( s, ODE_module_print_time_init ( 0. ) );
+  ODE_modules_add ( s, ODE_module_print_time_init ( 1. ) );
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
      informacji dot. funkcji, w kolejnosci sa to:
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
-  ODE_modules_add ( s, ODE_module_info_1_init( 1.e-1, N ) );
+  ODE_modules_add ( s, ODE_module_info_1_init( .1, N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
-  /* ODE_modules_add ( s, ODE_module_snapshot_init( 0. )); */
+  ODE_modules_add ( s, ODE_module_snapshot_init( 10. ));
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 
   /* inicjalizacja danych poczatkowych */
-  file = fopen( "bisection.dat", "r" );
+  /* file = fopen( "bisection.dat", "r" ); */
 
-  s->state->f[1]=PI;
-  s->state->f[1+N]=0.;
-  s->state->f[N]=PI;
-  s->state->f[2*N]=PI;
+  /* s->state->f[1]=PI; */
+  /* s->state->f[1+N]=0.; */
+  /* s->state->f[N]=PI; */
+  /* s->state->f[2*N]=PI; */
 
-  for ( i = 1; i < M; i++ ) {
-    fscanf(file, "%lf %lf %lf", s->state->f + i+1+N,s->state->f + i+1, &x);
-    s->state->f[N-i]=s->state->f[i+1];
-    s->state->f[i+1+N]*=1.e-7;
-    s->state->f[2*N-i]=PI-s->state->f[i+1+N];
-    /* printf("%lf %lf\n", s->state->f[i+1+M],s->state->f[i+1]); */
-  }
-
-  for ( i = M; i < M+K; i++)
-    {
-      s->state->f[1+i]=s->state->f[M];
-      s->state->f[N-i]=s->state->f[M];
-	/* s->state->f[M]; */
-      s->state->f[i+1+N]=
-	s->state->f[M+N]+
-	(PI/2.-s->state->f[M+N])
-	/(pow(.01*(double)(K+1),4))
-	*(pow(.01*(double)(i-M+1),4));
-      s->state->f[2*N-i]=PI-s->state->f[i+1+N];
-    }
-
-  s->state->f[(N+1)/2]=s->state->f[(N+1)/2-1];
-  s->state->f[(N+1)/2+N]=PI/2.;
-
-  /* x=x0; */
-
-  /* for ( i = 0; i < N; i++ ) { */
-  /*   s->state->f[i+1+N]=x; */
-  /*   /\* s->state->f[i+1]=x/x1*PI+sin(x/x1*PI); *\/ */
-  /*   s->state->f[i+1]=PI-.5+.5*pow(cos(x),10000); */
-  /*   x += (x1-x0)/(N-1); */
+  /* for ( i = 1; i < M; i++ ) { */
+  /*   fscanf(file, "%lf %lf %lf", s->state->f + i+1+N,s->state->f + i+1, &x); */
+  /*   s->state->f[N-i]=s->state->f[i+1]; */
+  /*   s->state->f[i+1+N]*=1.e-5; */
+  /*   s->state->f[2*N-i]=PI-s->state->f[i+1+N]; */
+  /*   /\* printf("%lf %lf\n", s->state->f[i+1+M],s->state->f[i+1]); *\/ */
   /* } */
-  /* s->state->f[0]=0.; */
 
+  /* for ( i = M; i < M+K; i++) */
+  /*   { */
+  /*     s->state->f[1+i]=s->state->f[M]; */
+  /*     s->state->f[N-i]=s->state->f[M]; */
+  /* 	/\* s->state->f[M]; *\/ */
+  /*     s->state->f[i+1+N]= */
+  /* 	s->state->f[M+N]+ */
+  /* 	(PI/2.-s->state->f[M+N]) */
+  /* 	/(pow(.01*(double)(K+1),4)) */
+  /* 	*(pow(.01*(double)(i-M+1),4)); */
+  /*     s->state->f[2*N-i]=PI-s->state->f[i+1+N]; */
+  /*   } */
 
-  fclose(file);
+  /* s->state->f[(N+1)/2]=s->state->f[(N+1)/2-1]; */
+  /* s->state->f[(N+1)/2+N]=PI/2.; */
+  /* fclose(file); */
+
+  x=x0;
+
+  for ( i = 0; i < N; i++ ) {
+    s->state->f[i+1+N]=x;
+    /* s->state->f[i+1]=x/x1*PI+sin(x/x1*PI); */
+    s->state->f[i+1]=x+sin(x);
+    x += (x1-x0)/(N-1);
+  }
+  s->state->f[0]=0.;
 
   file = fopen ( "test.dat", "w" );
   for ( i = 0; i < 2*N+1; i++ )
@@ -142,21 +140,22 @@ void ODE_set ( void * solver,
      funkcji w odpowiednich punktach */
   H_DOUBLE * ui = y + 1;
   H_DOUBLE * xi = y + 1 + N;
-  H_DOUBLE k = 3,u,x,du,ddu,Mxi,de,epsilon,gt;
+  H_DOUBLE k = 2.,u,x,du,ddu,Mxi,de,epsilon,gt;
 
   /* definicje zmiennych pomocniczych */
   epsilon = 1.e-4;
   de = 1./(N-1);
   M_calc( ui, xi, m, N );
+
   gt = g( y, N );
-  /* gt = 1.; */
+    /* gt = 1.; */
 
   assert(!isnan(gt));
   assert(!isnan(y[0]));
 
   /* warunek na zatrzymanie ewolucji */
-  /* if( gt < 1e-15 || fabs(D1(ui, xi, 0, N)) < 10000) */
-  /*   s->state->status = SOLVER_STATUS_STOP; */
+  if( gt < 1.e-15 /* || fabs(D1(ui, xi, 0, N)) < 10000 */)
+    s->state->status = SOLVER_STATUS_STOP;
 
   for ( i = 1; i < N-1; i++) {
     u=ui[i];
@@ -170,11 +169,11 @@ void ODE_set ( void * solver,
 
     /* prawa strona rownania macierzowego */
     Mxi=((m[i+1]+m[i])*(xi[i+1]-xi[i])-(m[i]+m[i-1])*(xi[i]-xi[i-1]))/2./de/de;
-    /* assert(!isnan(Mxi)); */
+    assert(!isnan(Mxi));
     /* Mxi=0.; */
 
     gsl_vector_set(fu, i,
-  		   gt*(ddu+(k-1.)/tan(x)*du-(k-1.)/2.*sin(2.*u)/sin(x)/sin(x)));
+  		   gt*(ddu+(k-1.)/x*du-(k-1.)/2.*sin(2.*u)/x/x));
     gsl_vector_set(ftmp, i,
   		   gt/epsilon*Mxi);
     gsl_matrix_set(C, i, i, -du);
@@ -254,7 +253,16 @@ double D2 ( double * u, double * x, int i, int N )
    dt/dtau=g(u)=0.01/(du/dx(0,tau))^2 */
 double g ( double * y, int N )
 {
-  return 0.01*pow(fabs(D1(y+1,y+1+N,0,N))+fabs(D1(y+1,y+1+N,N-1,N)),-2);
+  /* return 0.01*pow(fabs(D1(y+1,y+1+N,0,N))+fabs(D1(y+1,y+1+N,N-1,N)),-2); */
+  double k = 2.;
+  H_DOUBLE * ui = y + 1;
+  H_DOUBLE * xi = y + 1 + N;
+  double du=D1(ui,xi,1,N),ddu=D2(ui,xi,1,N);
+  double x=xi[1];
+  double u=ui[1];
+  double ut=(ddu+(k-1.)/tan(x)*du-(k-1.)/2.*sin(2.*u)/sin(x)/sin(x));
+  /* printf("du=%f, ut=%f, x=%f\n",du,ut,x); */
+  return .01*(fabs(x*du/ut));
 }
 
 /* funkcja rozkladu punktow fizycznej siatki (

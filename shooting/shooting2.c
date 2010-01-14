@@ -1,8 +1,11 @@
 #include <stdio.h>
+#include "math.h"
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_odeiv.h>
-#include <math.h>
+
+# define M_PI		3.14159265358979323846	/* pi */
+
 
 int
 func (double t, const double y[], double f[],
@@ -65,7 +68,7 @@ fevol (double L, double A, int print)
 
   if (print)
     {
-      sprintf(name, "profile_df=%.15E.dat", A);
+      sprintf(name, "bisection.dat");
       file = fopen(name, "w");
     }
 
@@ -124,7 +127,7 @@ bisec(double L, double A0, double A1, double e)
 int
 main (void)
 {
-  double A, fA;
+  /* double A, fA; */
   FILE * f;
 
   f=fopen ("test2.dat","w");
