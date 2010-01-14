@@ -2,6 +2,7 @@
 #	Makefile	#
 #			#
 
+export SHELL = /bin/bash
 export CC = cc
 export CFLAGS = -ansi -pedantic -Wall
        # -Wpointer-arith -Wcast-qual -Wcast-align\
@@ -17,6 +18,7 @@ export ARCHIVE = $(PWD)/libyapdes.a
 export MAKEFILES = $(PWD)/Makefile.common
 export INCLUDES = $(PWD)/solver
 DIRS = "solver"
+RM = /bin/rm -f
 # $(patsubst %/,%,$(wildcard */))
 
 .PHONY : clean spectral ODE_solver harmonic_mm harmonic_mm_bubbling
@@ -26,9 +28,12 @@ project: $(DIRS)
 harmonic: harmonic_mm.o $(DIRS)
 	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_mm.o $(ARCHIVE) -o $@
 
-run:	harmonic_bubbling
-	rm -f log/{snapshot,info,movie}/*
-	time ./harmonic_bubbling
+run:	harmonic
+	$(RM) log/{snapshot,info_1,movie}/*
+	time ./harmonic
+
+shooting2:	shooting/shooting2.c
+	$(CC) $(LIBS) $(FLAGS) -o $@ $<
 
 harmonic_bubbling: harmonic_mm_bubbling.o $(DIRS)
 	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_mm_bubbling.o $(ARCHIVE) -o $@
