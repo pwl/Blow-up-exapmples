@@ -24,11 +24,11 @@ void plot_sin_step ( void * solver, void * module )
 
   N=(N-1)/2;
 
-  for(i = 0; i < N-2; i++)
+  for(i = 0; i < N-1; i++)
     {
       x=s->state->f[2+N+i];
-      s->params->Dtemp[0][0][i]=s->state->f[2+i]/sin(x);
-      s->params->Dtemp[0][1][i]=log(tan(x/2.));
+      s->params->Dtemp[0][0][i]=s->state->f[2+i]/x;
+      s->params->Dtemp[0][1][i]=log(x)/log(10.);
     }
 
   gnuplot_resetplot( plotter );
@@ -43,7 +43,7 @@ void plot_sin_step ( void * solver, void * module )
   gnuplot_plot_xy( plotter,
   		   s->params->Dtemp[0][1],
   		   s->params->Dtemp[0][0],
-  		   N-2,
+  		   N-1,
   		   title );
   /* gnuplot_plot_x( plotter, */
   /* 		  s->state->f+1+N, */

@@ -7,7 +7,7 @@ options2="w p lt 2 pt 2"
 name="*.dat"
 path="log/snapshot/"
 # files=$(find $path -name "$name" |sort| head -n 10)
-files=$(find $path -name "$name" |sort| awk 'NR % 1 == 0')
+files=$(find $path -name "$name" |sort -t'_' -k2n| awk 'NR % 1 == 0')
 DT=.001
 T_LAST=0.
 
@@ -28,7 +28,7 @@ for f in $files; do
 	cmd="set title \"$title\"; $cmd"	      # set the title
 	cmd="set output \"$output\"; $cmd" # set the output file
         # cmd="$cmd \"$f\" u (log(tan(\$1/2.))):(\$2/sin(\$1)) every ::1::$nmb w lp" # the plot
-	cmd="$cmd \"$f\" u 1:2 w lp" # the plot
+	cmd="$cmd \"$f\" u 1:2 w lp, pi" # the plot
 	echo "t = $t"		 # some output for user
 	echo "$cmd" > plotter.gp # echo the command to the temporary file
 	./snapshot_to_png_template.gp # execute the template (it loads the temporary file)

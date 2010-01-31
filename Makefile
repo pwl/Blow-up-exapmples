@@ -10,7 +10,7 @@ export CFLAGS = -ansi -pedantic -Wall
        # -fshort-enums -fno-common
        # -Wmissing-prototypes -Wstrict-prototypes
        # -Wconversion -Wshadow
-export OFLAGS = # -O3 # left empty for debuggin reasons
+export OFLAGS = #-pg -g # -O3 # left empty for debuggin reasons
 export GDBFLAGS = #-ggdb
 export FLAGS = $(CFLAGS) $(OFLAGS) $(GDBFLAGS)
 export LIBS = -lm -lgsl -lgslcblas # -lfftw3
@@ -21,7 +21,7 @@ DIRS = "solver"
 RM = /bin/rm -f
 # $(patsubst %/,%,$(wildcard */))
 
-.PHONY : clean spectral ODE_solver harmonic_mm harmonic_mm_bubbling
+.PHONY : clean spectral ODE_solver harmonic_mm harmonic_mm_bubbling shooting1 shooting2
 
 project: $(DIRS)
 
@@ -33,6 +33,9 @@ run:	harmonic
 	time ./harmonic
 
 shooting2:	shooting/shooting2.c
+	$(CC) $(LIBS) $(FLAGS) -o $@ $<
+
+shooting1:	shooting/shooting1.c
 	$(CC) $(LIBS) $(FLAGS) -o $@ $<
 
 harmonic_bubbling: harmonic_mm_bubbling.o $(DIRS)
@@ -62,7 +65,7 @@ bisection.o: bisection.c bisection.h
 #.PHONY: clean $(DIRS) #$(OBJECTS)
 
 $(DIRS):
-	$(MAKE) -weC $@ project
+	@$(MAKE) --no-print-directory -eC $@ project
 
 clean:
 	@rm -f *.o libyapdes.a

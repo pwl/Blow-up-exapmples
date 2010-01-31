@@ -127,7 +127,7 @@ bisec(double L, double A0, double A1, double e)
 int
 main (void)
 {
-  /* double A, fA; */
+  double A, fA;
   FILE * f;
 
   f=fopen ("test2.dat","w");
@@ -135,12 +135,12 @@ main (void)
   /* double b = bisec ( 1.e3, .0, 5., 1.e-15 ); */
   /* printf( "bisect=%.15f\n", b); */
 
-  /* for( A=1e-5; A<1e4; A*=1.2 ) */
-  /*   { */
-  /*     fA=fevol(100.,-A,0); */
-  /*     printf("%f %f\n",A,fA); */
-  /*     fprintf(f,"%.15f %.15f\n",A,fA); */
-  /*   } */
+  for( A=1e-5; A<1e4; A*=1.2 )
+    {
+      fA=fevol(100.,-A,0);
+      printf("%f %f\n",A,fA);
+      fprintf(f,"%.15f %.15f\n",A,fA);
+    }
 
   /* fevol ( 1e3, -b, 1 ); */
   /* fevol ( 100., -1., 1 ); */

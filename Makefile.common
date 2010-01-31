@@ -22,7 +22,7 @@ $(OBJECTS): %.o: %.c %.h
 
 # recursively make all subdirectories
 $(DIRS):
-	$(MAKE) -weC $@ project
+	@$(MAKE) --no-print-directory -eC $@ project
 
 clean:
 	@rm -f *.o *.a

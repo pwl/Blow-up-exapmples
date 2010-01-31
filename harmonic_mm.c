@@ -9,7 +9,7 @@ int main ( void )
 {
   ODE_solver * s;
   int M = 20, K = 0, N = 2*(M+K)+1,i;
-  H_DOUBLE T =1.e100;
+  H_DOUBLE T =1.e1;
   H_DOUBLE x0 = 0., x1 = PI, x;
   H_DOUBLE t_error = 1.e-8;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
@@ -51,7 +51,7 @@ int main ( void )
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
   /* ODE_modules_add ( s, ODE_module_plot_init( 1.e-2 ) ); */
   /* modul do drukowania w konsoli czasu symulacji */
-  ODE_modules_add ( s, ODE_module_print_time_init ( 1. ) );
+  ODE_modules_add ( s, ODE_module_print_time_init ( .1 ) );
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
      informacji dot. funkcji, w kolejnosci sa to:
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
