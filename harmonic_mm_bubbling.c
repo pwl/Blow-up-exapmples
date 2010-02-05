@@ -8,7 +8,7 @@ gsl_vector * fx, * fu, * ftmp;
 int main ( void )
 {
   ODE_solver * s;
-  int M = 67, K = 0, N = M+K, i;
+  int M = 39, K = 0, N = M+K, i;
   H_DOUBLE a,b,t;
   H_DOUBLE T =1.e100;
   H_DOUBLE x0 = 0., x1 = 100., x;
@@ -50,10 +50,10 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  ODE_modules_add ( s, ODE_module_plot_sin_init( 100. ) );
+  ODE_modules_add ( s, ODE_module_plot_sin_init( 1. ) );
   /* ODE_modules_add ( s, ODE_module_plot_init( 1.e-3 ) ); */
   /* modul do drukowania w konsoli czasu symulacji */
-  ODE_modules_add ( s, ODE_module_print_time_init ( 0. ) );
+  ODE_modules_add ( s, ODE_module_print_time_init ( .01 ) );
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
      informacji dot. funkcji, w kolejnosci sa to:
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
@@ -74,7 +74,7 @@ int main ( void )
 	    s->state->f + i + 1,
 	    &x );
     x = s->state->f[i+N+1];
-    s->state->f[i+1]*=x*(1.+1.e-2);
+    s->state->f[i+1]*=x*(1.-.182e-2);
     /* s->state->f[N-i]=s->state->f[i+1]; */
     /* s->state->f[i+1+N]*=1.e-7; */
     /* s->state->f[2*N-i]=PI-s->state->f[i+1+N]; */
@@ -150,6 +150,7 @@ void ODE_set ( void * solver,
   H_DOUBLE * ui = y + 1;
   H_DOUBLE * xi = y + 1 + N;
   H_DOUBLE k = 3,u,x,du,ddu,Mxi,de,epsilon,gt;
+  H_DOUBLE dt = *(s->state->dt);
 
   /* definicje zmiennych pomocniczych */
   epsilon = 1.e-1;
@@ -162,15 +163,11 @@ void ODE_set ( void * solver,
   /* assert(!isnan(y[0])); */
 
   /* warunek na zamrozenie transf. sundmana */
-  if( gt <= 1e-15 || gt-gt!=0.)
-    gt=1.e-15;
-
-  /* warunek na zatrzymanie symulacji */
-  /* if( fabs(ui[1]/xi[1] - ui[N-2]/xi[N-2]) < 1.e-2) */
-  /*   s->state->status=SOLVER_STATUS_STOP; */
-
-  /* if( gt < 1e-15 || gt-gt!=0.) */
-  /*   s->state->status = SOLVER_STATUS_STOP; */
+  if( gt*dt < 1.e-15 /* || fabs(D1(ui, xi, 0, N)) < 10000 */)
+    {
+      /* printf("STOP: gt < 1.e-15\n"); */
+      /* s->state->status = SOLVER_STATUS_STOP; */
+    }
 
   for ( i = 1; i < N-1; i++) {
     u=ui[i];
@@ -195,7 +192,8 @@ void ODE_set ( void * solver,
     /* assert(Mxi-Mxi==0.); */
 
     gsl_vector_set(fu, i,
-  		   gt*(ddu/* +u */-sin(2.*u/x)/x));
+  		   /* gt*(ddu-sin(2.*u/x)/x) */
+		   gt*(ddu-sin(2.*u/x)/x));
     gsl_vector_set(ftmp, i,
   		   gt/epsilon*Mxi);
     gsl_matrix_set(C, i, i, -du);
@@ -287,14 +285,24 @@ double D2 ( double * u, double * x, int i, int N )
    dt/dtau=g(u)=0.01/(du/dx(0,tau))^2 */
 double g ( double * y, int N )
 {
-  double d1,d2;
-  d1=fabs(D2(y+1,y+1+N,0,N));
-  d2=fabs(D2(y+1,y+1+N,N-1,N));
-  d1=d1>d2?d1:d2;
+  /* double d1,d2; */
+  /* d1=fabs(D2(y+1,y+1+N,0,N)); */
+  /* d2=fabs(D2(y+1,y+1+N,N-1,N)); */
+  /* d1=d1>d2?d1:d2; */
 
-  return
-    0.01
-    *pow(d1,-2);
+  /* return */
+  /*   0.01 */
+  /*   *pow(d1,-2); */
+
+  double k = 2.;
+  H_DOUBLE * ui = y + 1;
+  H_DOUBLE * xi = y + 1 + N;
+  double du=D1(ui,xi,1,N),ddu=D2(ui,xi,1,N);
+  double x=xi[1];
+  double u=ui[1];
+  double ut=(ddu-sin(2.*u/x)/x);
+  /* printf("du=%f, ut=%f, x=%f\n",du,ut,x); */
+  return .01*(fabs((x*du-u)/ut));
 }
 
 /* funkcja rozkladu punktow fizycznej siatki (
@@ -311,14 +319,15 @@ void M_calc ( double * ui, double * xi, double * M, int N )
       ddu=D2( ui, xi, i, N );
       u=ui[i];
 
+      /* M[i]=fabs(du)+sqrt(fabs(du)); */
       M[i]=fabs( x*du-u )/x/x
-	+ sqrt( fabs(
-		     x*x*ddu
-		     -2.*x*du
-		     +2.*u
-		     )
-		/x/x/x
-		);
+      	+ sqrt( fabs(
+      		     x*x*ddu
+      		     -2.*x*du
+      		     +2.*u
+      		     )
+      		/x/x/x
+      		);
       Mtot+=(M[i]*(xi[i+1]-xi[i-1])/2.);
 
       /* printf("M_calc: i=%i, x=%f, M[i]=%.15f\n", */
@@ -337,7 +346,7 @@ void M_calc ( double * ui, double * xi, double * M, int N )
 
   for ( i = 0; i < N; i++ )
     {
-      M[i]/=Mtot;
+      M[i];
       /* M[i]+=.01*(1.+sin(x[i])); */
     }
   /* printf("----M[0]=%f Mtot=%f\n",M[0],Mtot); */
