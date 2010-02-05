@@ -10,18 +10,19 @@ export CFLAGS = -ansi -pedantic -Wall
        # -fshort-enums -fno-common
        # -Wmissing-prototypes -Wstrict-prototypes
        # -Wconversion -Wshadow
-export OFLAGS = # -O3 # left empty for debuggin reasons
+export OFLAGS = #-pg -g # -O3 # left empty for debuggin reasons
 export GDBFLAGS = #-ggdb
 export FLAGS = $(CFLAGS) $(OFLAGS) $(GDBFLAGS)
 export LIBS = -lm -lgsl -lgslcblas # -lfftw3
 export ARCHIVE = $(PWD)/libyapdes.a
 export MAKEFILES = $(PWD)/Makefile.common
 export INCLUDES = $(PWD)/solver
+export SHOOTING_OBJECTS = shooting1 shooting2
 DIRS = "solver"
 RM = /bin/rm -f
 # $(patsubst %/,%,$(wildcard */))
 
-.PHONY : clean spectral ODE_solver harmonic_mm harmonic_mm_bubbling
+.PHONY : clean spectral ODE_solver harmonic_mm harmonic_mm_bubbling shooting1 shooting2
 
 project: $(DIRS)
 
@@ -32,8 +33,20 @@ run:	harmonic
 	$(RM) log/{snapshot,info_1,movie}/*
 	time ./harmonic
 
-shooting2:	shooting/shooting2.c
-	$(CC) $(LIBS) $(FLAGS) -o $@ $<
+# shooting2:	shooting/shooting2.c
+# 	$(CC) $(LIBS) $(FLAGS) -o $@ $<
+
+# shooting1_stability:	shooting/shooting1_stability.c
+# 	$(CC) $(LIBS) $(FLAGS) -o $@ $<
+
+# shooting1: shooting/shooting1.c shooting.o
+# 	$(CC) $(LIBS) $(FLAGS) -o $@ $<
+
+$(SHOOTING_OBJECTS): % : shooting/%.c shooting/%.h shooting.o
+	$(CC) $(FLAGS) $(LIBS) shooting/shooting.o $< -o $@
+
+shooting.o:	shooting/shooting.c shooting/shooting.h
+	$(CC) $(FLAGS) -c -o shooting/$@ $<
 
 harmonic_bubbling: harmonic_mm_bubbling.o $(DIRS)
 	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_mm_bubbling.o $(ARCHIVE) -o $@
@@ -44,14 +57,14 @@ harmonic_mm.o: harmonic_mm.c harmonic.h
 harmonic_mm_bubbling.o: harmonic_mm_bubbling.c harmonic.h
 	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
 
-example: example.o $(DIRS)
-	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) example.o $(ARCHIVE) -o $@
+# example: example.o $(DIRS)
+# 	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) example.o $(ARCHIVE) -o $@
 
-example.o: example.c example.h
-	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
+# example.o: example.c example.h
+# 	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
 
-bisection.o: bisection.c bisection.h
-	$(CC) $(FLAGS) -c -o $@ $<
+# bisection.o: bisection.c bisection.h
+# 	$(CC) $(FLAGS) -c -o $@ $<
 
 # test: test.o $(DIRS)
 # 	$(CC) $(CFLAGS) $(LIBS) $(ARCHIVE) test.o -o $@
@@ -62,7 +75,7 @@ bisection.o: bisection.c bisection.h
 #.PHONY: clean $(DIRS) #$(OBJECTS)
 
 $(DIRS):
-	$(MAKE) -weC $@ project
+	@$(MAKE) --no-print-directory -eC $@ project
 
 clean:
 	@rm -f *.o libyapdes.a
