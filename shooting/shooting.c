@@ -118,9 +118,11 @@ harvester(
       /* if signs are opposite */
       if( value_last*value < 0 )
       	{
-	  results[results_collected] = bisec( cursor_last, cursor, epsilon, val, fevol, param );
+	  results[results_collected] =
+	    bisec( cursor_last, cursor, epsilon, val, fevol, param );
+
 	  results_collected++;
-	  printf("collected result %.15f, %i results in total\n",
+	  printf(CYAN1 "collected result " BOLD1 "%.15f" FORMAT_OFF CYAN1 ", %i results in total\n" FORMAT_OFF,
 		 results[results_collected-1], results_collected);
 
 	  if( results_collected >= results_max )

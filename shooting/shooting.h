@@ -9,7 +9,7 @@
 
 #define STEPPER gsl_odeiv_step_rkf45
 #define STEPPER_ERROR 1.e-15
-#define T_MAX 100.
+#define T_MAX 10.
 #define PRINT_DT 1.e-4
 #define PRINT_DT_RATIO 1.3
 #define T0 1.e-14
@@ -22,6 +22,12 @@
 #define RIPPER_LINEAR 0x00
 #define RIPPER_DENSE1 0x01
 #define RIPPER_DENSE2 0x02
+
+#define CYAN1 "\x1b[0;36m"
+#define RED1 "\x1b[1;31m"
+#define GREEN1 "\x1b[1;32m"
+#define BOLD1 "\x1b[1m"
+#define FORMAT_OFF "\x1b[0m"
 
 /* forward declaration of dimension */
 double k;

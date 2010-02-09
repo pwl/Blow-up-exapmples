@@ -22,7 +22,7 @@ main (void)
 
   for( k = 3.; k <= 6.7; k+=.1 )
     {
-      printf("searching for solutions to NODE in dimension %.3f\n",k);
+      printf(RED1 "searching for solutions to NODE in dimension %.3f\n" FORMAT_OFF,k);
       results_collected = harvester
 	( 1.e-10,
 	  1.e10,
@@ -44,15 +44,15 @@ main (void)
       /* 	} */
       /* fclose(eigenfile); */
 
-      for (i = 0; i < results_collected; ++i)
+      for (i = 1; i < results_collected; ++i)
 	{
 	  print_shrinker_profile( results[i] );
 
-	  printf("solving eigenproblem for index %i in dimension %.3f\n",i+1,k);
+	  printf(GREEN1 "solving eigenproblem for index %i in dimension %.3f\n" FORMAT_OFF,i+1,k);
 	  eigen_results_collected = harvester
-	    ( 20.,
+	    ( 200.,
 	      -10.,
-	      .5,
+	      1.,
 	      RIPPER_LINEAR,
 	      10,
 	      eigen_results,
