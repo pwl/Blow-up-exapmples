@@ -9,11 +9,15 @@
 
 #define STEPPER gsl_odeiv_step_rkf45
 #define STEPPER_ERROR 1.e-15
-#define T_MAX 10.
+#define T_MAX 100.
 #define PRINT_DT 1.e-4
 #define PRINT_DT_RATIO 1.3
 #define T0 1.e-14
-#define H0 1.e-10
+#define H0 1.e-14
+#define RIPPER_BISEC_EPSILON 1.e-15
+#define HARVESTER_DATA_DIR "harvester_data/"
+#define HARVESTER_DEFAULT_EXTENSION "_k%.5f_l%i.dat"
+#define HARVESTER_DEFAULT_EIGEN_EXTENSION "_k%.5f_l%i_i%i.dat"
 
 #define RIPPER_LINEAR 0x00
 #define RIPPER_DENSE1 0x01
@@ -21,9 +25,13 @@
 
 /* forward declaration of dimension */
 double k;
+/* eigenvalue index of the laplacian on S^(n-1), lambda = l*(l+n-2) */
+double l;
+
+void print_shrinker_profile( double A );
 
 int
-ripper(double range_min,
+harvester(double range_min,
        double range_max,
        double delta,
        unsigned int opt,
@@ -52,9 +60,10 @@ func_shrinker (double t, const double y[], double f[],
 	       void *params);
 
 /* Method used to calculate solution to shrinking self similar ansatz.
-   Parameter p is derivative at 0. */
+   Parameter A is defined by the expansion of solution around 0.,
+   namely f(x)=x^l*(A+...) */
 double
-fevol_shrinker (double p, int print, char * filename, void * param);
+fevol_shrinker (double A, int print, char * filename, void * param);
 
 /* Method used to calculate rhs of the linearized equation for
    eigenproblem of shrinking self-similar ansatz, lambda is passed as
@@ -64,10 +73,11 @@ func_shrinker_eigenproblem (double t, const double y[], double f[],
 			    void *params);
 
 /* Method used to calculate solution to the shrinking self-similar
-   asnsatz, parameter lambda is proposed eigenvalue, in parameter p
-   one passes the derivative of solution to NODE at 0 */
+   asnsatz, parameter lambda is proposed eigenvalue, in parameter A
+   one passes the parameter A from the solution is of the form
+   x^l*(A+...) */
 double
-fevol_shrinker_eigenproblem (double lambda, int print, char * filename, void * p);
+fevol_shrinker_eigenproblem (double lambda, int print, char * filename, void * A);
 
 
 

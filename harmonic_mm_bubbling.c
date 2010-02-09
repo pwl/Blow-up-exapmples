@@ -50,7 +50,7 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  ODE_modules_add ( s, ODE_module_plot_sin_init( 1. ) );
+  ODE_modules_add ( s, ODE_module_plot_sin_init( 100. ) );
   /* ODE_modules_add ( s, ODE_module_plot_init( 1.e-3 ) ); */
   /* modul do drukowania w konsoli czasu symulacji */
   ODE_modules_add ( s, ODE_module_print_time_init ( .01 ) );
@@ -74,7 +74,7 @@ int main ( void )
 	    s->state->f + i + 1,
 	    &x );
     x = s->state->f[i+N+1];
-    s->state->f[i+1]*=x*(1.-.182e-2);
+    s->state->f[i+1]*=1.5*x;
     /* s->state->f[N-i]=s->state->f[i+1]; */
     /* s->state->f[i+1+N]*=1.e-7; */
     /* s->state->f[2*N-i]=PI-s->state->f[i+1+N]; */
@@ -193,7 +193,7 @@ void ODE_set ( void * solver,
 
     gsl_vector_set(fu, i,
   		   /* gt*(ddu-sin(2.*u/x)/x) */
-		   gt*(ddu-sin(2.*u/x)/x));
+		   gt*(ddu-55.*sin(2.*u/x)/x));
     gsl_vector_set(ftmp, i,
   		   gt/epsilon*Mxi);
     gsl_matrix_set(C, i, i, -du);

@@ -1,5 +1,19 @@
 #include "shooting.h"
 
+void print_shrinker_profile( double A ) {
+  char shrinkerfile_name[50];
+  FILE *shrinkerfile;
+
+  sprintf
+    ( shrinkerfile_name,
+      HARVESTER_DATA_DIR "shrinker" HARVESTER_DEFAULT_EXTENSION,
+      k, (int)l);
+  shrinkerfile = fopen( shrinkerfile_name, "w" );
+  fprintf( shrinkerfile, "# k = %.15f\n # l = %i", k, (int)l );
+  fclose( shrinkerfile );
+  fevol_shrinker( A, 1 , shrinkerfile_name , NULL );
+}
+
 double
 bisec(double A0,
       double A1,
@@ -25,7 +39,7 @@ bisec(double A0,
 
   while( 2.*(A1-A0)/fabs(A1+A0) > e) /* relative error measure */
     {
-      printf( "%03i, A=%.20f, delta/A=%.1E\n",
+      printf( "%03i, A=%.20f, delta/A=%.1E\r",
 	      i++, .5*(A0+A1), 2.*(A1-A0)/(A0+A1) );
 
       f = fevol(.5*(A0+A1),0, "", param) - val;
@@ -35,11 +49,13 @@ bisec(double A0,
       else
 	A1=.5*(A0+A1);
     }
+  printf("\n");
+
   return .5*(A0+A1);
 }
 
 int
-ripper(
+harvester(
        double range_min,
        double range_max,
        double delta,
@@ -56,7 +72,7 @@ ripper(
   double b=range_max,a=range_min;
   double value;
   double value_last;
-  double epsilon = 1.e-15;
+  double epsilon = RIPPER_BISEC_EPSILON;
   double t=0.,s,dt;			/* t in (0,1] */
   int results_collected = 0;
 
@@ -66,10 +82,10 @@ ripper(
   switch( opt )
     {
     case RIPPER_LINEAR:
-      dt = delta/(b-a);
+      dt = delta/fabs(b-a);
       break;
     case RIPPER_DENSE1:
-      dt = sqrt(1.-pow(1.-delta/(b-a),2));
+      dt = sqrt(1.-pow(1.-delta/fabs(b-a),2));
       break;
     default:
       dt = delta/(b-a);
@@ -77,7 +93,7 @@ ripper(
 
   /* printf("cursor_last = %.5E, cursor = %.5E, dt = %.5E, s = %.5E\n", cursor_last, cursor, dt, s); */
 
-  while( cursor < range_max )
+  while( s < 1. )
     {
       t+=dt;
       switch( opt ) {
@@ -95,6 +111,8 @@ ripper(
       cursor = a+s*(b-a);
       value = fevol( cursor, 0, "", param ) - val;
 
+      printf("cursor = %.10E\r", cursor);
+
       /* printf("cursor_last = %.5E, cursor = %.5E, dt = %.5E, s = %.5E\n", cursor_last, cursor, dt, s); */
 
       /* if signs are opposite */
@@ -102,8 +120,8 @@ ripper(
       	{
 	  results[results_collected] = bisec( cursor_last, cursor, epsilon, val, fevol, param );
 	  results_collected++;
-	  printf("collected result in (%.15f,%.15f), %i results in total\n",
-		 cursor_last, cursor, results_collected);
+	  printf("collected result %.15f, %i results in total\n",
+		 results[results_collected-1], results_collected);
 
 	  if( results_collected >= results_max )
 	    return results_collected;
@@ -121,7 +139,7 @@ func_shrinker (double t, const double y[], double f[],
 	       void *params)
 {
   f[0] = y[1];
-  f[1] = sin(2.*y[0])*(k-1)/2./t/t-((k-1.)/t-t/2.)*y[1];
+  f[1] = sin(2.*y[0])*l*(l+k-2.)/2./t/t-((k-1.)/t-t/2.)*y[1];
   return GSL_SUCCESS;
 }
 
@@ -154,12 +172,26 @@ fevol_shrinker (double bisec_param, int print, char * filename, void * p)
   double h = H0;
   double A = bisec_param;
   double y[2] = {
-    A*t + ((3*A - 4*(-1 + k)*pow(A,3))*pow(2 + k,-1)*pow(t,3))/12. +
-    (A*(15 - 40*(-1 + k)*pow(A,2) + 16*pow(A,4)*(1 - 3*k + 2*pow(k,2)))*
-     pow(t,5)*pow(8 + 6*k + pow(k,2),-1))/160.,
-    A + ((3*A - 4*(-1 + k)*pow(A,3))*pow(2 + k,-1)*pow(t,2))/4. +
-    (A*(15 - 40*(-1 + k)*pow(A,2) + 16*pow(A,4)*(1 - 3*k + 2*pow(k,2)))*
-     pow(t,4)*pow(8 + 6*k + pow(k,2),-1))/32.,
+    (A + A*l*pow (8*l + 4*k, -1)*
+     pow (t, 2) + (A*l*(2 + l)*pow (2*l + k, -1)*pow (2 + 2*l + k, -1)*
+		   pow (t, 4))/
+     32. + (A*l*(2 + l)*(4 + l)*pow (2*l + k, -1)*
+	    pow (2 + 2*l + k, -1)*pow (4 + 2*l + k, -1)*pow (t, 6))/
+     384.)*pow (t, l),
+
+    (A*l*pow (2*l + k, -1)*pow (2 + 2*l + k, -1)*
+     pow (4 + 2*l + k, -1)*(384*(2*l + k)*(2 + 2*l + k)*(4 + 2*l + k) +
+			    96*(2 + l)*(2 + 2*l + k)*(4 + 2*l + k)*pow (t, 2) +
+			    12*(2 + l)*(4 + l)*(4 + 2*l + k)*
+			    pow (t, 4) + (2 + l)*(4 + l)*(6 + l)*pow (t, 6))*
+     pow (t, -1 + l))/384.
+
+    /* A*t + ((3*A - 4*(-1 + k)*pow(A,3))*pow(2 + k,-1)*pow(t,3))/12. + */
+    /* (A*(15 - 40*(-1 + k)*pow(A,2) + 16*pow(A,4)*(1 - 3*k + 2*pow(k,2)))* */
+    /*  pow(t,5)*pow(8 + 6*k + pow(k,2),-1))/160., */
+    /* A + ((3*A - 4*(-1 + k)*pow(A,3))*pow(2 + k,-1)*pow(t,2))/4. + */
+    /* (A*(15 - 40*(-1 + k)*pow(A,2) + 16*pow(A,4)*(1 - 3*k + 2*pow(k,2)))* */
+    /*  pow(t,4)*pow(8 + 6*k + pow(k,2),-1))/32., */
   };
 
   FILE * file;
@@ -210,11 +242,10 @@ func_shrinker_eigenproblem (double t, const double y[], double f[],
 			 void *params)
 {
   double lambda = *(double*)params;
-  /* double k = 6.; */
   f[0] = y[1];
-  f[1] = (k-1.)/2.*sin(2.*y[0])/t/t-((k-1.)/t-t/2.)*y[1];
+  f[1] = l*(l+k-2.)/2.*sin(2.*y[0])/t/t-((k-1.)/t-t/2.)*y[1];
   f[2] = y[3];
-  f[3] = ((k-1.)*cos(2.*y[0])/t/t-lambda)*y[2]-((k-1.)/t-t/2.)*y[3];
+  f[3] = (l*(l+k-2.)*cos(2.*y[0])/t/t+lambda)*y[2]-((k-1.)/t-t/2.)*y[3];
   return GSL_SUCCESS;
 }
 
@@ -240,14 +271,27 @@ fevol_shrinker_eigenproblem (double bisec_param, int print, char * filename, voi
   double A = *(double*)p;
   double y[4] = {		      /* expressions derived using
 					 ~/SeriesSolve.nb */
-    A*t + ((3*A - 4*(-1 + k)*pow(A,3))*pow(2 + k,-1)*pow(t,3))/12. +
-    (A*(15 - 40*(-1 + k)*pow(A,2) + 16*pow(A,4)*(1 - 3*k + 2*pow(k,2)))*
-     pow(t,5)*pow(8 + 6*k + pow(k,2),-1))/160.,
-    A + ((3*A - 4*(-1 + k)*pow(A,3))*pow(2 + k,-1)*pow(t,2))/4. +
-    (A*(15 - 40*(-1 + k)*pow(A,2) + 16*pow(A,4)*(1 - 3*k + 2*pow(k,2)))*
-     pow(t,4)*pow(8 + 6*k + pow(k,2),-1))/32.,
-    t,
-    1.
+    (A + A*l*pow (8*l + 4*k, -1)*
+     pow (t, 2) + (A*l*(2 + l)*pow (2*l + k, -1)*pow (2 + 2*l + k, -1)*
+		   pow (t, 4))/
+     32. + (A*l*(2 + l)*(4 + l)*pow (2*l + k, -1)*
+	    pow (2 + 2*l + k, -1)*pow (4 + 2*l + k, -1)*pow (t, 6))/
+     384.)*pow (t, l),
+
+    (A*l*pow (2*l + k, -1)*pow (2 + 2*l + k, -1)*
+     pow (4 + 2*l + k, -1)*(384*(2*l + k)*(2 + 2*l + k)*(4 + 2*l + k) +
+			    96*(2 + l)*(2 + 2*l + k)*(4 + 2*l + k)*pow (t, 2) +
+			    12*(2 + l)*(4 + l)*(4 + 2*l + k)*
+			    pow (t, 4) + (2 + l)*(4 + l)*(6 + l)*pow (t, 6))*
+     pow (t, -1 + l))/384.,
+    /* A*t + ((3*A - 4*(-1 + k)*pow(A,3))*pow(2 + k,-1)*pow(t,3))/12. + */
+    /* (A*(15 - 40*(-1 + k)*pow(A,2) + 16*pow(A,4)*(1 - 3*k + 2*pow(k,2)))* */
+    /*  pow(t,5)*pow(8 + 6*k + pow(k,2),-1))/160., */
+    /* A + ((3*A - 4*(-1 + k)*pow(A,3))*pow(2 + k,-1)*pow(t,2))/4. + */
+    /* (A*(15 - 40*(-1 + k)*pow(A,2) + 16*pow(A,4)*(1 - 3*k + 2*pow(k,2)))* */
+    /*  pow(t,4)*pow(8 + 6*k + pow(k,2),-1))/32., */
+    pow(t,l),
+    l*pow(t,l-1.)
   };
 
   FILE * file;
@@ -295,3 +339,4 @@ fevol_shrinker_eigenproblem (double bisec_param, int print, char * filename, voi
 
   return y[2];
 }
+

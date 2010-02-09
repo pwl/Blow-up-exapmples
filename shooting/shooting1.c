@@ -5,58 +5,79 @@ double k = 3.;
 int
 main (void)
 {
-  double x;
-  FILE * f, * eigenfile;
+  FILE * eigenfile;
   double results[10];
+  /* double A; */
   double eigen_results[20];
   int i, j, results_collected, eigen_results_collected;
-  char filename[40];
+  char eigenfile_name[40];
 
 
   /* double b = bisec ( 100., 0.1, 6., 1.e-14, 0. ); */
   /* printf( "bisect=%.15f\n", b); */
 
-  sprintf( filename, "shrinker_%.5f.dat", k);
+  k=3.;
 
-  f=fopen (filename,"w");
-  fprintf(f,"# k = %.15f",k);
-  fclose(f);
+  l=2.;
 
-  eigenfile = fopen( "eigefile.dat", "w" );
-
-  results_collected = ripper( 1.,
-			      1.e10,
-			      1.,
-			      RIPPER_DENSE1,
-			      3,
-			      results,
-			      0.,
-			      fevol_shrinker,
-			      NULL );
-
-  for (i = 0; i < results_collected; ++i)
+  for( k = 3.; k <= 6.7; k+=.1 )
     {
-      eigen_results_collected = ripper
-	( -pow(10.,i+1),
-	  1.e3,
-	  1.,
-	  RIPPER_LINEAR,
-	  10,
-	  eigen_results,
+      printf("searching for solutions to NODE in dimension %.3f\n",k);
+      results_collected = harvester
+	( 1.e-10,
+	  1.e10,
+	  1.e-5,
+	  RIPPER_DENSE1,
+	  2,
+	  results,
 	  0.,
-	  fevol_shrinker_eigenproblem,
-	  (void*)(results + i) );
-      for ( j = 0; j < eigen_results_collected; j++ )
-      	{
-      	  fprintf(eigenfile, "%i %.15f\n", i,  eigen_results[j] );
+	  fevol_shrinker,
+	  NULL );
+
+      /* eigenfile = fopen("test.dat", "w"); */
+
+      /* for( A=2.; A>0.; A-=.01) */
+      /* 	{ */
+      /* 	  fprintf( eigenfile, */
+      /* 		   "%.15f %.15f\n", */
+      /* 		   A,fevol_shrinker_eigenproblem(A, 0, NULL, (void*)(results))); */
+      /* 	} */
+      /* fclose(eigenfile); */
+
+      for (i = 0; i < results_collected; ++i)
+	{
+	  print_shrinker_profile( results[i] );
+
+	  printf("solving eigenproblem for index %i in dimension %.3f\n",i+1,k);
+	  eigen_results_collected = harvester
+	    ( 20.,
+	      -10.,
+	      .5,
+	      RIPPER_LINEAR,
+	      10,
+	      eigen_results,
+	      0.,
+	      fevol_shrinker_eigenproblem,
+	      (void*)(results + i) );
+
+	  sprintf
+	    ( eigenfile_name,
+	      HARVESTER_DATA_DIR "eigen" HARVESTER_DEFAULT_EIGEN_EXTENSION,
+	      k, (int)l, i+1);
+	  /* sprintf( eigenfile_name, HARVESTER_DATA_DIR "eigen_k"); */
+	  eigenfile = fopen( eigenfile_name, "w" );
+
+	  for ( j = 0; j < eigen_results_collected; j++ )
+	    {
+	      fprintf
+		(eigenfile,
+		 "%.15f %i %i %.15f %i %.15f\n",
+		 k, (int)l, i+1, results[i], j+1, eigen_results[j] );
+	    }
+
+	  fclose( eigenfile );
 	}
-      fprintf(eigenfile, "\n\n\n");
-
-
-    fevol_shrinker(results[i], 1, filename, NULL);
     }
-
-  fclose(eigenfile);
 
   /* for( x=0.; x<100.; x+=1. ) */
   /*   { */
