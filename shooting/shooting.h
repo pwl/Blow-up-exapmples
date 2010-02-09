@@ -7,17 +7,17 @@
 #include <gsl/gsl_odeiv.h>
 #include <math.h>
 
-#define STEPPER gsl_odeiv_step_rkf45
+#define STEPPER gsl_odeiv_step_rk8pd
 #define STEPPER_ERROR 1.e-15
 #define T_MAX 10.
 #define PRINT_DT 1.e-4
 #define PRINT_DT_RATIO 1.3
-#define T0 1.e-14
+#define T0 1.e-10
 #define H0 1.e-14
 #define RIPPER_BISEC_EPSILON 1.e-15
 #define HARVESTER_DATA_DIR "harvester_data/"
-#define HARVESTER_DEFAULT_EXTENSION "_k%.5f_l%i.dat"
-#define HARVESTER_DEFAULT_EIGEN_EXTENSION "_k%.5f_l%i_i%i.dat"
+#define HARVESTER_DEFAULT_EXTENSION "_k%.5f_l%.1f.dat"
+#define HARVESTER_DEFAULT_EIGEN_EXTENSION "_k%.5f_l%.1f_i%i.dat"
 
 #define RIPPER_LINEAR 0x00
 #define RIPPER_DENSE1 0x01

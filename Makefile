@@ -10,8 +10,8 @@ export CFLAGS = -ansi -pedantic -Wall
        # -fshort-enums -fno-common
        # -Wmissing-prototypes -Wstrict-prototypes
        # -Wconversion -Wshadow
-export OFLAGS = #-pg -g # -O3 # left empty for debuggin reasons
-export GDBFLAGS = #-ggdb
+export OFLAGS = #-pg -O3 # left empty for debuggin reasons
+export GDBFLAGS = -ggdb
 export FLAGS = $(CFLAGS) $(OFLAGS) $(GDBFLAGS)
 export LIBS = -lm -lgsl -lgslcblas # -lfftw3
 export ARCHIVE = $(PWD)/libyapdes.a

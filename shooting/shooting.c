@@ -7,9 +7,9 @@ void print_shrinker_profile( double A ) {
   sprintf
     ( shrinkerfile_name,
       HARVESTER_DATA_DIR "shrinker" HARVESTER_DEFAULT_EXTENSION,
-      k, (int)l);
-  shrinkerfile = fopen( shrinkerfile_name, "w" );
-  fprintf( shrinkerfile, "# k = %.15f\n # l = %i", k, (int)l );
+      k, l);
+  shrinkerfile = fopen( shrinkerfile_name, "a" );
+  fprintf( shrinkerfile, "# k = %.15f\n# l = %.1f\n", k, l );
   fclose( shrinkerfile );
   fevol_shrinker( A, 1 , shrinkerfile_name , NULL );
 }
@@ -73,7 +73,7 @@ harvester(
   double value;
   double value_last;
   double epsilon = RIPPER_BISEC_EPSILON;
-  double t=0.,s,dt;			/* t in (0,1] */
+  double t=0.,s=0.,dt;			/* t in (0,1] */
   int results_collected = 0;
 
 
