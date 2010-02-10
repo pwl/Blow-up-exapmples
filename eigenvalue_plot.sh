@@ -18,7 +18,6 @@ for l in $(cat $LIST_FILE | sort | uniq); do
     cat eigen_k*l$l* > eigen_l$l.dat
     lw=$(echo "scale=0; (0==($l % .5))+(0==($l % 1))+1"|bc)
     lt=$(echo "4-$lw"|bc)
-    echo "$lw $lt"
     CMD="$CMD \"$DIR/eigen_l$l.dat\" u 1:6 w l lt $lt lw $lw t \"\","
 done
 
@@ -28,6 +27,6 @@ cd ..
 
 echo "$CMD" > $PLOTTER_FILE
 
-./eigen_value_plot.gp
+./eigenvalue_plot.gp
 
-evince eigen_value_plot.ps&
+evince eigenvalue_plot.ps&
