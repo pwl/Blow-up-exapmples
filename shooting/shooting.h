@@ -7,6 +7,8 @@
 #include <gsl/gsl_odeiv.h>
 #include <math.h>
 
+#define PI		3.14159265358979323846	/* pi */
+
 #define STEPPER gsl_odeiv_step_rk8pd
 #define STEPPER_ERROR 1.e-15
 #define T_MAX 10.
@@ -94,6 +96,13 @@ solve_shrinker_eigenproblem (double A, int index);
    apropriate file */
 void
 print_shrinker_profile( double A );
+
+int
+func_expander (double t, const double y[], double f[],
+	       void *params);
+double
+fevol_expander (double bisec_param, int print, char * filename, void * p);
+
 
 
 #endif /* _SHOOTING_H_ */

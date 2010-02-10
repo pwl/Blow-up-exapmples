@@ -179,6 +179,14 @@ harvester(
 }
 
 
+
+int
+jac_dummy (double t, const double y[], double *dfdy,
+	   double dfdt[], void *params)
+{
+  return -1;
+}
+
 int
 func_shrinker (double t, const double y[], double f[],
 	       void *params)
@@ -186,14 +194,6 @@ func_shrinker (double t, const double y[], double f[],
   f[0] = y[1];
   f[1] = sin(2.*y[0])*l*(l+k-2.)/2./t/t-((k-1.)/t-t/2.)*y[1];
   return GSL_SUCCESS;
-}
-
-
-int
-jac_dummy (double t, const double y[], double *dfdy,
-	   double dfdt[], void *params)
-{
-  return -1;
 }
 
 double
@@ -387,3 +387,87 @@ fevol_shrinker_eigenproblem (double bisec_param, int print, char * filename, voi
   return y[2];
 }
 
+int
+func_expander (double t, const double y[], double f[],
+	       void *params)
+{
+  f[0] = y[1];
+  f[1] = sin(2.*y[0])*l*(l+k-2.)/2./t/t-((k-1.)/t+t/2.)*y[1];
+  return GSL_SUCCESS;
+}
+
+double
+fevol_expander (double bisec_param, int print, char * filename, void * p)
+{
+  const gsl_odeiv_step_type * T
+    = STEPPER;
+
+  FILE * file = NULL;
+
+  gsl_odeiv_step * s
+    = gsl_odeiv_step_alloc (T, 2);
+  gsl_odeiv_control * c
+    = gsl_odeiv_control_y_new (STEPPER_ERROR, 0.0);
+  gsl_odeiv_evolve * e
+    = gsl_odeiv_evolve_alloc (2);
+
+  double dt=PRINT_DT, t_last=0.;
+
+  gsl_odeiv_system sys = {func_expander, jac_dummy, 2, p};
+
+  double t = T0;
+  double h = H0;
+  double A = bisec_param;
+  double y[2] = {
+    (A*(384 + l*pow(k + 2*l,-1)*pow(2 + k + 2*l,-1)*pow(4 + k + 2*l,-1)*
+	pow(t,2)*(-96*(2 + k + 2*l)*(4 + k + 2*l) +
+		  12*(2 + l)*(4 + k + 2*l)*pow(t,2) - (2 + l)*(4 + l)*pow(t,4)))*
+     pow(t,l))/384.,
+    (A*l*pow(k + 2*l,-1)*pow(2 + k + 2*l,-1)*
+     pow(4 + k + 2*l,-1)*(384*(k + 2*l)*(2 + k + 2*l)*(4 + k + 2*l) -
+			  96*(2 + l)*(2 + k + 2*l)*(4 + k + 2*l)*pow(t,2) +
+			  12*(2 + l)*(4 + l)*(4 + k + 2*l)*pow(t,4) -
+			  (2 + l)*(4 + l)*(6 + l)*pow(t,6))*pow(t,-1 + l))/384.
+  };
+
+  if (print){
+    file = fopen(filename, "a");
+    fprintf(file, "# A = %.15f\n", bisec_param );
+  }
+
+  while (t < T_MAX)
+    {
+      int status =
+	gsl_odeiv_evolve_apply (e, c, s,
+				&sys,
+				&t, T_MAX,
+				&h, y);
+
+      if (status != GSL_SUCCESS)
+	break;
+      /* are we still in the strip [0,pi]? */
+      if ( 0. > y[0] || y[0] > 3.15 )
+	break;
+
+      if (print /* && t_last+dt < t */)
+	{
+	  fprintf (file,
+		   "%.15f %.15f %.15f\n",
+		   t, y[0], y[1]/* , y[2], y[3] */);
+	  t_last+=dt;
+	  dt*=PRINT_DT_RATIO;
+	}
+      /* printf("%.15f\r",t); */
+    }
+
+  gsl_odeiv_evolve_free (e);
+  gsl_odeiv_control_free (c);
+  gsl_odeiv_step_free (s);
+
+  if (print) {
+    fprintf( file, "\n\n\n" );
+    fclose( file );
+  }
+
+  return y[0];
+}

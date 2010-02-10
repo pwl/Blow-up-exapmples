@@ -6,26 +6,30 @@ int
 main (void)
 {
   double results[10];
+  double A;
   int i, results_collected;
   char shrinkerfile_name[100];
+  FILE * eigenfile;
 
-  l=2.5;
+  k=5.;
+  l=2.;
 
-  /* eigenfile = fopen("test.dat", "w"); */
+  eigenfile = fopen("test.dat", "w");
 
-  /* for( A=0.; A<20.; A+=.01) */
-  /*   { */
-  /*     printf( "%.15f\r",A); */
+  /* fevol_expander( 1., 1, "test.dat", NULL ); */
 
+  for( A=1.e-5; A<20000.; A*=1.01)
+    {
+      printf( "%.15f\n",A);
 
-  /*     fprintf( eigenfile, */
-  /* 	       "%.15f %.15f\n", */
-  /* 	       A,fevol_shrinker(A, 0, NULL, (void*)(results))); */
-  /*   } */
+      fprintf( eigenfile,
+  	       "%.15f %.15f\n",
+  	       A,fevol_expander(A, 0, NULL, (void*)(results)));
+    }
 
-  /* fclose(eigenfile); */
+  fclose(eigenfile);
 
-  for( l = 1.; l <=3.01; l+=.1 )
+  for( l = 1.; l <=-3.01; l+=.1 )
     {
       for( k = 3.; k <= 6.01; k+=.1 )
 	{
