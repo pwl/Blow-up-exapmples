@@ -1,14 +1,12 @@
 #include "shooting1.h"
 
+
+
 int
 main (void)
 {
-  FILE * eigenfile;
   double results[10];
-  double A;
-  double eigen_results[20];
-  int i, j, results_collected, eigen_results_collected;
-  char eigenfile_name[100];
+  int i, results_collected;
   char shrinkerfile_name[100];
 
   l=2.5;
@@ -29,7 +27,6 @@ main (void)
 
   for( l = 1.; l <=3.01; l+=.1 )
     {
-
       for( k = 3.; k <= 6.01; k+=.1 )
 	{
 	  printf(RED1 "searching for solutions to NODE in dimension %.3f with l=%.1f\n" FORMAT_OFF,k,l);
@@ -55,33 +52,7 @@ main (void)
 	    {
 	      print_shrinker_profile( results[i] );
 
-	      /* printf(GREEN1 "solving eigenproblem for index %i in dimension %.3f with l=%.1f\n" FORMAT_OFF,i+1,k,l); */
-	      /* eigen_results_collected = harvester */
-	      /* 	( 20., */
-	      /* 	  2., */
-	      /* 	  1., */
-	      /* 	  RIPPER_LINEAR, */
-	      /* 	  10, */
-	      /* 	  eigen_results, */
-	      /* 	  0., */
-	      /* 	  fevol_shrinker_eigenproblem, */
-	      /* 	  (void*)(results + i) ); */
-
-	      /* sprintf */
-	      /* 	( eigenfile_name, */
-	      /* 	  HARVESTER_DATA_DIR "eigen" HARVESTER_DEFAULT_EIGEN_EXTENSION, */
-	      /* 	  k, l, i+1); */
-	      /* eigenfile = fopen( eigenfile_name, "w" ); */
-
-	      /* for ( j = 0; j < eigen_results_collected; j++ ) */
-	      /* 	{ */
-	      /* 	  fprintf */
-	      /* 	    (eigenfile, */
-	      /* 	     "%.15f %i %i %.15f %i %.15f\n", */
-	      /* 	     k, (int)l, i+1, results[i], j+1, eigen_results[j] ); */
-	      /* 	} */
-
-	      /* fclose( eigenfile ); */
+	      /* solve_shrinker_eigenproblem(results[i], i+1); */
 	    }
 	}
     }

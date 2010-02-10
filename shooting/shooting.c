@@ -1,5 +1,48 @@
 #include "shooting.h"
 
+void
+solve_shrinker_eigenproblem
+(double A,
+ int index)
+{
+  FILE *eigenfile;
+  int j, eigen_results_collected;
+  double eigen_results[100];
+  char eigenfile_name[100];
+
+  printf(GREEN1 "solving eigenproblem for index %i in dimension %.3f with l=%.1f\n" FORMAT_OFF,
+	 index, k, l);
+
+  eigen_results_collected = harvester
+    ( 20.,
+      2.,
+      1.,
+      RIPPER_LINEAR,
+      10,
+      eigen_results,
+      0.,
+      fevol_shrinker_eigenproblem,
+      (void*)(&A) );
+
+  sprintf
+    ( eigenfile_name,
+      HARVESTER_DATA_DIR "eigen" HARVESTER_DEFAULT_EIGEN_EXTENSION,
+      k, l, index);
+
+  eigenfile = fopen( eigenfile_name, "w" );
+
+  for ( j = 0; j < eigen_results_collected; j++ )
+    {
+      fprintf
+	(eigenfile,
+	 "%.15f %.1f %i %.15f %i %.15f\n",
+	 k, l, index, A, j+1, eigen_results[j] );
+    }
+
+  fclose( eigenfile );
+}
+
+
 void print_shrinker_profile( double A ) {
   char shrinkerfile_name[50];
   FILE *shrinkerfile;
@@ -56,15 +99,15 @@ bisec(double A0,
 
 int
 harvester(
-       double range_min,
-       double range_max,
-       double delta,
-       unsigned int opt,
-       int results_max,
-       double * results ,
-       double val,
-       double (*fevol)(double, int, char *, void *),
-       void * param)
+	  double range_min,
+	  double range_max,
+	  double delta,
+	  unsigned int opt,
+	  int results_max,
+	  double * results ,
+	  double val,
+	  double (*fevol)(double, int, char *, void *),
+	  void * param)
 {
 
   double cursor = range_min;
@@ -148,7 +191,7 @@ func_shrinker (double t, const double y[], double f[],
 
 int
 jac_dummy (double t, const double y[], double *dfdy,
-     double dfdt[], void *params)
+	   double dfdt[], void *params)
 {
   return -1;
 }
@@ -156,8 +199,10 @@ jac_dummy (double t, const double y[], double *dfdy,
 double
 fevol_shrinker (double bisec_param, int print, char * filename, void * p)
 {
- const gsl_odeiv_step_type * T
+  const gsl_odeiv_step_type * T
     = STEPPER;
+
+  FILE * file = NULL;
 
   gsl_odeiv_step * s
     = gsl_odeiv_step_alloc (T, 2);
@@ -196,7 +241,6 @@ fevol_shrinker (double bisec_param, int print, char * filename, void * p)
     /*  pow(t,4)*pow(8 + 6*k + pow(k,2),-1))/32., */
   };
 
-  FILE * file;
 
   if (print){
     file = fopen(filename, "a");
@@ -231,6 +275,7 @@ fevol_shrinker (double bisec_param, int print, char * filename, void * p)
   gsl_odeiv_evolve_free (e);
   gsl_odeiv_control_free (c);
   gsl_odeiv_step_free (s);
+
   if (print) {
     fprintf( file, "\n\n\n" );
     fclose( file );
@@ -241,7 +286,7 @@ fevol_shrinker (double bisec_param, int print, char * filename, void * p)
 
 int
 func_shrinker_eigenproblem (double t, const double y[], double f[],
-			 void *params)
+			    void *params)
 {
   double lambda = *(double*)params;
   f[0] = y[1];
@@ -254,8 +299,10 @@ func_shrinker_eigenproblem (double t, const double y[], double f[],
 double
 fevol_shrinker_eigenproblem (double bisec_param, int print, char * filename, void * p)
 {
- const gsl_odeiv_step_type * T
+  const gsl_odeiv_step_type * T
     = STEPPER;
+
+  FILE * file = NULL;
 
   gsl_odeiv_step * s
     = gsl_odeiv_step_alloc (T, 4);
@@ -296,8 +343,6 @@ fevol_shrinker_eigenproblem (double bisec_param, int print, char * filename, voi
     l*pow(t,l-1.)
   };
 
-  FILE * file;
-
   if (print){
     file = fopen(filename, "a");
     fprintf(file, "# A = %.15f\n# lambda = %.15f\n", A, bisec_param );
@@ -314,7 +359,7 @@ fevol_shrinker_eigenproblem (double bisec_param, int print, char * filename, voi
       if (status != GSL_SUCCESS)
 	break;
       /* are we still in the strip [0,pi]?  is the lienarized solution
-       reasonably boundaed?*/
+	 reasonably boundaed?*/
       if ( 0. > y[0]
 	   || y[0] > 3.15
 	   || fabs(y[2]) > 10. )

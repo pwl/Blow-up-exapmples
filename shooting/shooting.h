@@ -85,6 +85,15 @@ func_shrinker_eigenproblem (double t, const double y[], double f[],
 double
 fevol_shrinker_eigenproblem (double lambda, int print, char * filename, void * A);
 
+/* this solves the eigenvalue equation for shrinker given parameter A
+   as above */
+void
+solve_shrinker_eigenproblem (double A, int index);
+
+/* function below is used to print the profile of a shrinker to
+   apropriate file */
+void
+print_shrinker_profile( double A );
 
 
 #endif /* _SHOOTING_H_ */
