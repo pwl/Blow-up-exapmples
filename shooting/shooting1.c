@@ -1,7 +1,6 @@
 #include "shooting1.h"
 
 
-
 int
 main (void)
 {
@@ -18,7 +17,7 @@ main (void)
 
   /* fevol_expander( 1., 1, "test.dat", NULL ); */
 
-  for( A=1.e-5; A<20000.; A*=1.01)
+  for( A=1.e-5; A<20000.; A*=1.0 1)
     {
       printf( "%.15f\n",A);
 

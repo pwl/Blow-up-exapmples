@@ -103,6 +103,15 @@ func_expander (double t, const double y[], double f[],
 double
 fevol_expander (double bisec_param, int print, char * filename, void * p);
 
+/* functions used to generate static solutions to harmonic map flow */
+int
+func_static (double t, const double y[], double f[],
+	     void *params);
+
+/* L is the length of the interval the function is calculated on */
+double
+fevol_static (double L, int print, char * filename, void * p);
+
 
 
 #endif /* _SHOOTING_H_ */

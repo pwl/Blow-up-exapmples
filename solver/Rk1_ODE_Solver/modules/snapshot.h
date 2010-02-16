@@ -16,4 +16,8 @@ void snapshot_stop ( void * solver, void * module );
    and is called by the user */
 ODE_module * ODE_module_snapshot_init ( H_DOUBLE dt );
 
+double D1 ( double * u, double * x, int i, int N );
+
+double k;
+
 #endif /* _SNAPSHOT_H_ */

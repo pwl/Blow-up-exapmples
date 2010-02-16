@@ -4,14 +4,14 @@
 
 export SHELL = /bin/bash
 export CC = cc
-export CFLAGS = -ansi -pedantic -Wall
+export CFLAGS = -ansi -pedantic -Wall --std=c99
        # -Wpointer-arith -Wcast-qual -Wcast-align\
        # -Wwrite-strings -Wnested-externs\
        # -fshort-enums -fno-common
        # -Wmissing-prototypes -Wstrict-prototypes
        # -Wconversion -Wshadow
-export OFLAGS = #-pg -O3 # left empty for debuggin reasons
-export GDBFLAGS = -ggdb
+export OFLAGS = -O3 # left empty for debuggin reasons
+export GDBFLAGS = #-ggdb
 export FLAGS = $(CFLAGS) $(OFLAGS) $(GDBFLAGS)
 export LIBS = -lm -lgsl -lgslcblas # -lfftw3
 export ARCHIVE = $(PWD)/libyapdes.a
@@ -30,7 +30,7 @@ harmonic: harmonic_mm.o $(DIRS)
 	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_mm.o $(ARCHIVE) -o $@
 
 run:	harmonic
-	$(RM) log/{snapshot,info_1,movie}/*
+	$(RM) log/{snapshot,movie}/*
 	time ./harmonic
 
 # shooting2:	shooting/shooting2.c

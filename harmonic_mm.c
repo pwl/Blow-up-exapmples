@@ -5,13 +5,16 @@ gsl_matrix * D_inv, * C;
 double * m;
 gsl_vector * fx, * fu, * ftmp;
 
+double k=9.;
+
 int main ( void )
 {
   ODE_solver * s;
-  int M = 20, K = 0, N = 2*(M+K)+1,i;
-  H_DOUBLE T =1.e1;
+  int M = 10, K = 0, i;
+  int N = 80/* 2*(M+K)+1 */;
+  H_DOUBLE T =1.e10;
   H_DOUBLE x0 = 0., x1 = PI, x;
-  H_DOUBLE t_error = 1.e-8;
+  H_DOUBLE t_error = 1.e-15;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
   gsl_matrix * D = gsl_matrix_alloc(N,N);
@@ -49,13 +52,13 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  /* ODE_modules_add ( s, ODE_module_plot_init( 1.e-2 ) ); */
+  ODE_modules_add ( s, ODE_module_plot_init( 10. ) );
   /* modul do drukowania w konsoli czasu symulacji */
   ODE_modules_add ( s, ODE_module_print_time_init ( .1 ) );
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
      informacji dot. funkcji, w kolejnosci sa to:
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
-  ODE_modules_add ( s, ODE_module_info_1_init( .1, N ) );
+  ODE_modules_add ( s, ODE_module_info_1_init( 1., N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
   ODE_modules_add ( s, ODE_module_snapshot_init( 10. ));
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
@@ -141,11 +144,11 @@ void ODE_set ( void * solver,
      funkcji w odpowiednich punktach */
   H_DOUBLE * ui = y + 1;
   H_DOUBLE * xi = y + 1 + N;
-  H_DOUBLE k = 2.,u,x,du,ddu,Mxi,de,epsilon,gt;
+  H_DOUBLE u,x,du,ddu,Mxi,de,epsilon,gt;
   H_DOUBLE dt = *(s->state->dt);
 
   /* definicje zmiennych pomocniczych */
-  epsilon = 1.e-4;
+  epsilon = 5.e-3;
   de = 1./(N-1);
   M_calc( ui, xi, m, N );
 
@@ -155,8 +158,7 @@ void ODE_set ( void * solver,
   assert(!isnan(gt));
   assert(!isnan(y[0]));
 
-  /* warunek na zatrzymanie ewolucji */
-  if( gt*dt < 1.e-15 /* || fabs(D1(ui, xi, 0, N)) < 10000 */)
+  if( dt*gt < 1.e-15)
     {
       printf("STOP: gt < 1.e-15\n");
       s->state->status = SOLVER_STATUS_STOP;
@@ -177,11 +179,14 @@ void ODE_set ( void * solver,
     assert(!isnan(Mxi));
     /* Mxi=0.; */
 
+
     gsl_vector_set(fu, i,
   		   gt*(ddu+(k-1.)/x*du-(k-1.)/2.*sin(2.*u)/x/x));
     gsl_vector_set(ftmp, i,
   		   gt/epsilon*Mxi);
     gsl_matrix_set(C, i, i, -du);
+
+    /* warunek na zatrzymanie ewolucji */
   }
 
   /* wymnozenie prawej strony rownania macierzowego przez odwrotnosc
@@ -259,13 +264,12 @@ double D2 ( double * u, double * x, int i, int N )
 double g ( double * y, int N )
 {
   /* return 0.01*pow(fabs(D1(y+1,y+1+N,0,N))+fabs(D1(y+1,y+1+N,N-1,N)),-2); */
-  double k = 2.;
   H_DOUBLE * ui = y + 1;
   H_DOUBLE * xi = y + 1 + N;
   double du=D1(ui,xi,1,N),ddu=D2(ui,xi,1,N);
   double x=xi[1];
   double u=ui[1];
-  double ut=(ddu+(k-1.)/tan(x)*du-(k-1.)/2.*sin(2.*u)/sin(x)/sin(x));
+  double ut=(ddu+(k-1.)/x*du-(k-1.)/2.*sin(2.*u)/x/x);
   /* printf("du=%f, ut=%f, x=%f\n",du,ut,x); */
   return .01*(fabs(x*du/ut));
 }
@@ -299,7 +303,7 @@ void M_calc ( double * u, double * x, double * M, int N )
 
   for ( i = 0; i < N; i++ )
     {
-      M[i]/=Mtot;
+      M[i]/* /=Mtot */;
       /* M[i]+=.01*(1.+sin(x[i])); */
     }
 }

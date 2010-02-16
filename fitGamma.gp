@@ -1,0 +1,2 @@
+#!/usr/bin/gnuplot -persist
+
