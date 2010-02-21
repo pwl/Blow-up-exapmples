@@ -19,11 +19,13 @@ void snapshot_step ( void * solver, void * module )
 
   file=fopen( temp_c ,"w");
 
-  fprintf(file,"# t = %.15E\n",f[0]);
-  fprintf(file,"# s = %.15E\n",t);
+  fprintf(file,"# t = %.15G\n",f[0]);
+  fprintf(file,"# s = %.15G\n",t);
   fprintf(file,"# N = %.2f\n",k);
-  fprintf(file,"# du = %.15E\n",
+  fprintf(file,"# du = %.15G\n",
 	  D1( u, x, 0, N ) );
+  fprintf(file,"# g = %.15G\n",
+	  s->state->df[0] );
 
   for( i=0; i<N; i++)
     {
