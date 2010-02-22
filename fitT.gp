@@ -5,13 +5,13 @@ x_max = 1000
 file = "log/info_1/log000.dat"
 FIT_LIMIT = 1.e-20
 
-B=0.01
-T=0.06
-A=0.1
+a=0.01
+T=0.3
+A=2.
 
-f(t) = T-A*exp(-B*t)
+f(t) = T-A*exp(-2*a*t)
 
-fit [x_min:x_max] f(x) file u 1:2 via T,A,B
+fit [x_min:x_max] f(x) file u 1:2 via T,A
 
 set logscale y 10
 
