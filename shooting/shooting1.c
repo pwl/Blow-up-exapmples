@@ -17,20 +17,20 @@ main (void)
 
   /* fevol_expander( 1., 1, "test.dat", NULL ); */
 
-  for( A=1.e-5; A<20000.; A*=1.01)
-    {
-      printf( "%.15f\n",A);
+  /* for( A=1.e-5; A<20000.; A*=1.01) */
+  /*   { */
+  /*     printf( "%.15f\n",A); */
 
-      fprintf( eigenfile,
-  	       "%.15f %.15f\n",
-  	       A,fevol_expander(A, 0, NULL, (void*)(results)));
-    }
+  /*     fprintf( eigenfile, */
+  /* 	       "%.15f %.15f\n", */
+  /* 	       A,fevol_expander(A, 0, NULL, (void*)(results))); */
+  /*   } */
 
   fclose(eigenfile);
 
-  for( l = 1.; l <=-3.01; l+=.1 )
+  for( l = 1.; l <=5.01; l+=1. )
     {
-      for( k = 3.; k <= 6.01; k+=.1 )
+      for( k = 4.; k <= 4.01; k+=1. )
 	{
 	  printf(RED1 "searching for solutions to NODE in dimension %.3f with l=%.1f\n" FORMAT_OFF,k,l);
 	  results_collected = harvester
@@ -38,7 +38,7 @@ main (void)
 	      1.e10,
 	      1.e-2,
 	      RIPPER_DENSE1,
-	      3,
+	      5,
 	      results,
 	      0.,
 	      fevol_shrinker,
