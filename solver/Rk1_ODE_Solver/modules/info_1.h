@@ -28,5 +28,6 @@ void info_1_data_free ( void * solver, void * module );
    and is called by the user */
 ODE_module * ODE_module_info_1_init (H_DOUBLE dt, int N );
 
+double D1 ( double * u, double * x, int i, int N );
 
 #endif /* _INFO_1_H_ */

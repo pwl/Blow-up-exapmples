@@ -30,7 +30,9 @@ void snapshot_step ( void * solver, void * module )
   for( i=0; i<N; i++)
     {
       /* fprintf(f,"%f %f\n",s->params->basis->collocation_points[i],s->state->f[i]); */
-      fprintf(file,"%.15E %.15E\n",s->state->f[i+N+1],s->state->f[i+1]);
+      fprintf
+	(file,"%.15E %.15E %.15E\n",
+	 x[i], u[i], D1(u,x,i,N));
     }
 
   fclose(file);

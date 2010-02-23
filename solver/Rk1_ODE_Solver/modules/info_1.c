@@ -1,26 +1,5 @@
 #include "info_1.h"
 
-double DD1 ( double * u, double * x, int i, int N )
-{
-  if( i > 0 && i < N-1 )
-    return
-      (u[-1+i]-u[i])/(x[-1+i]-x[i])+
-      (-u[-1+i]+u[1+i])/(x[-1+i]-x[1+i])+
-      (u[i]-u[1+i])/(x[i]-x[1+i]);
-  else if( i == 0 )
-    return
-      (u[1]-u[0])/(x[1]-x[0])
-      +(u[2]-u[0])/(x[2]-x[0])
-      -(u[2]-u[1])/(x[2]-x[1]);
-  else if( i == N-1 )
-    return
-      (-u[-3+N]+u[-2+N])/(x[-3+N]-x[-2+N])
-      +(u[-3+N]-u[-1+N])/(x[-3+N]-x[-1+N])
-      +(u[-2+N]-u[-1+N])/(x[-2+N]-x[-1+N]);
-    else return 0.;
-} /* delete this later */
-
-
 void info_1_init ( void * solver, void * module )
 {
   ODE_module * m = (ODE_module*)module;
@@ -52,7 +31,7 @@ void info_1_step ( void * solver, void * module )
   H_DOUBLE * x = f+1+N;
   H_DOUBLE g = (s->state->df[0]);
   H_DOUBLE t = f[0];
-  H_DOUBLE dx;
+  H_DOUBLE dx = D1(x,u,0,N);
   H_DOUBLE min = 1.;
   FILE * file;
 
