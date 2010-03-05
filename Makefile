@@ -51,11 +51,17 @@ shooting.o:	shooting/shooting.c shooting/shooting.h
 harmonic_bubbling: harmonic_mm_bubbling.o $(DIRS)
 	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_mm_bubbling.o $(ARCHIVE) -o $@
 
+harmonic_ys_bisection: harmonic_ys_bisection.o $(DIRS)
+	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_ys_bisection.o $(ARCHIVE) -o $@
+
 harmonic_mm.o: harmonic_mm.c harmonic.h
 	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
 
 harmonic_mm_bubbling.o: harmonic_mm_bubbling.c harmonic.h
 	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
+
+harmonic_ys_bisection.o: harmonic_ys_bisection.c harmonic.h
+	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) -c -o $@ $<
 
 # example: example.o $(DIRS)
 # 	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) example.o $(ARCHIVE) -o $@
