@@ -3,23 +3,37 @@
 void
 solve_shrinker_eigenproblem
 (double A,
- int index)
+ int index,
+ int eigenval_number)
 {
   FILE *eigenfile;
   int j, eigen_results_collected;
   double eigen_results[100];
   char eigenfile_name[100];
 
-  printf(GREEN1 "solving eigenproblem for index %i in dimension %.3f with l=%.1f\n" FORMAT_OFF,
+  printf(GREEN1 "solving eigenproblem for index %i in dimension %.3f with l=%.1f\nLambda > 1\n" FORMAT_OFF,
 	 index, k, l);
 
   eigen_results_collected = harvester
-    ( 20.,
-      2.,
-      1.,
-      RIPPER_LINEAR,
-      10,
+    ( 2.,
+      1.e10,
+      10.,
+      RIPPER_EXP,
+      index-1,
       eigen_results,
+      0.,
+      fevol_shrinker_eigenproblem,
+      (void*)(&A) );
+
+  printf(GREEN1 "Lambda <= 1\n" FORMAT_OFF);
+
+  eigen_results_collected += harvester
+    ( 2.,
+      -1.e10,
+      .5,
+      RIPPER_LINEAR,
+      eigenval_number-eigen_results_collected,
+      eigen_results+eigen_results_collected,
       0.,
       fevol_shrinker_eigenproblem,
       (void*)(&A) );
@@ -31,7 +45,15 @@ solve_shrinker_eigenproblem
 
   eigenfile = fopen( eigenfile_name, "w" );
 
-  for ( j = 0; j < eigen_results_collected; j++ )
+  for ( j = index-2; j >= 0; j-- )
+    {
+    fprintf
+	(eigenfile,
+	 "%.15f %.1f %i %.15f %i %.15f\n",
+	 k, l, index, A, index-j-1, eigen_results[j] );
+    }
+
+  for ( j = index-1; j < eigen_results_collected; j++ )
     {
       fprintf
 	(eigenfile,
@@ -130,8 +152,11 @@ harvester(
     case RIPPER_DENSE1:
       dt = sqrt(1.-pow(1.-delta/fabs(b-a),2));
       break;
+    case RIPPER_EXP:
+      dt = log(delta)/log(b/a);
+      break;
     default:
-      dt = delta/(b-a);
+      dt = log(delta);
     }
 
   /* printf("cursor_last = %.5E, cursor = %.5E, dt = %.5E, s = %.5E\n", cursor_last, cursor, dt, s); */
@@ -146,6 +171,9 @@ harvester(
       case RIPPER_DENSE1:
 	s=1.-sqrt(1.-t*t);
 	break;
+      case RIPPER_EXP:
+      	s=a*(pow(b/a,t)-1)/(b-a);
+      	break;
       default:
 	s=t;
       }
@@ -157,6 +185,8 @@ harvester(
       printf("cursor = %.10E\r", cursor);
 
       /* printf("cursor_last = %.5E, cursor = %.5E, dt = %.5E, s = %.5E\n", cursor_last, cursor, dt, s); */
+      if( results_collected >= results_max )
+	return results_collected;
 
       /* if signs are opposite */
       if( value_last*value < 0 )
@@ -168,11 +198,9 @@ harvester(
 	  printf(CYAN1 "collected result " BOLD1 "%.15f" FORMAT_OFF CYAN1 ", %i results in total\n" FORMAT_OFF,
 		 results[results_collected-1], results_collected);
 
-	  if( results_collected >= results_max )
-	    return results_collected;
-
 	  value_last = value;
 	}
+
     }
 
   return results_collected;

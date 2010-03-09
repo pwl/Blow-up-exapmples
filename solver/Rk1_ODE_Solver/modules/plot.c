@@ -148,6 +148,7 @@ void plot_step ( void * solver, void * module )
   H_DOUBLE * t = s->state->t;
   int i;
   double x;
+  double x1 = s->params->basis->params->x1;
 
 
   N=(N-1)/2;
@@ -158,7 +159,7 @@ void plot_step ( void * solver, void * module )
   for(i = 0; i < N; i++)
     {
       x=s->state->f[1+N+i];
-      s->params->Dtemp[0][0][i]=s->state->f[1+i]/* _D2(s->state->f+1, s->state->f+1+N,i,N) */;
+      s->params->Dtemp[0][0][i]=s->state->f[1+i]/(x1-x) /* _D2(s->state->f+1, s->state->f+1+N,i,N) */;
       s->params->Dtemp[0][1][i]=x;
     }
 
@@ -175,7 +176,7 @@ void plot_step ( void * solver, void * module )
   gnuplot_plot_xy( plotter,
   		   s->params->Dtemp[0][1],
   		   s->params->Dtemp[0][0],
-  		   N,
+  		   N-1,
   		   title );
   /* gnuplot_plot_x( plotter, */
   /* 		  s->state->f+1+N, */

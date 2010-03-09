@@ -11,15 +11,17 @@ int main ( void )
 {
   ODE_solver * s;
   int M = 10, K = 0, i;
-  int N = 150/* 2*(M+K)+1 */;
+  int N = 50/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
-  H_DOUBLE x0 = 0., x1 = PI, x;
+  H_DOUBLE x0 = 0., x1 = 10., x;
   H_DOUBLE t_error = 1.e-15;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
-  gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
+  const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
   gsl_matrix * D = gsl_matrix_alloc(N,N);
   gsl_permutation * p = gsl_permutation_alloc(N);
   FILE * file;
+
+  H_DOUBLE A,A1,B1;
 
   /* Alokacja pamięci i inicjalizacja oraz odwrócenie macierzy przy
      użyciu GSL */
@@ -52,15 +54,16 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  ODE_modules_add ( s, ODE_module_plot_init( 10. ) );
+  ODE_modules_add ( s, ODE_module_plot_init( 1. ) );
   /* modul do drukowania w konsoli czasu symulacji */
-  ODE_modules_add ( s, ODE_module_print_time_init ( .1 ) );
+  ODE_modules_add ( s, ODE_module_print_time_init ( .001 ) );
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
      informacji dot. funkcji, w kolejnosci sa to:
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
   ODE_modules_add ( s, ODE_module_info_1_init( 1., N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
   ODE_modules_add ( s, ODE_module_snapshot_init( 10. ));
+  ODE_modules_add ( s, ODE_module_bisection_1_init( 1. ));
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 
   /* inicjalizacja danych poczatkowych */
@@ -96,21 +99,34 @@ int main ( void )
   /* s->state->f[(N+1)/2+N]=PI/2.; */
   /* fclose(file); */
 
-  x=x0;
+  /* x=x0; */
 
-  for ( i = 0; i < N; i++ ) {
-    s->state->f[i+1+N]=x;
-    /* s->state->f[i+1]=x/x1*PI+sin(x/x1*PI); */
-    s->state->f[i+1]=x+sin(x);
-    x += (x1-x0)/(N-1);
-  }
-  s->state->f[0]=0.;
+  /* s->state->f[1+N]=0.; */
+  /* s->state->f[1]=0.; */
 
-  file = fopen ( "test.dat", "w" );
-  for ( i = 0; i < 2*N+1; i++ )
-    fprintf(file, "%i %.15f\n", i, s->state->f[i]);
+  /* x=x0+(x1-x0)/(N-1.); */
 
-  fclose( file );
+  /* A=.88; */
+  /* A1=pow(.01,N/(double)(N-1))/pow(x1,1./((double)(N-1))); */
+  /* B1=log(.01/A1); */
+
+  /* for ( i = 1; i < N; i++ ) { */
+  /*   x=A1*exp(B1*i); */
+  /*   s->state->f[i+1+N]=x; */
+  /*   /\* s->state->f[i+1]=x/x1*PI+sin(x/x1*PI); *\/ */
+  /*   s->state->f[i+1]=atan(A*x)*2./\* /atan(A*x1) *\/\*(x1-x); */
+  /*   /\* x += (x1-x0)/(N-1); *\/ */
+  /* } */
+  /* s->state->f[0]=0.; */
+
+  bisec(.8,1.,10.e-10,0.,
+	bisection_wrapper,(void*)s);
+
+  /* file = fopen ( "test.dat", "w" ); */
+  /* for ( i = 0; i < N; i++ ) */
+  /*   fprintf(file, "%i %.15G %.15G\n", i, s->state->f[i+1+N], s->state->f[i+1]); */
+
+  /* fclose( file ); */
 
   /* ponizsza funkcja pcha wartosci poczatkowe w czasie i uruchamia
      poszczegolne moduly */
@@ -144,7 +160,8 @@ void ODE_set ( void * solver,
      funkcji w odpowiednich punktach */
   H_DOUBLE * ui = y + 1;
   H_DOUBLE * xi = y + 1 + N;
-  H_DOUBLE u,x,du,ddu,Mxi,de,epsilon,gt;
+  H_DOUBLE u,x,du,ddu,Mxi,de,epsilon,gt,du0;
+  H_DOUBLE x1 = s->params->basis->params->x1;
   H_DOUBLE dt = *(s->state->dt);
 
   /* definicje zmiennych pomocniczych */
@@ -153,16 +170,19 @@ void ODE_set ( void * solver,
   M_calc( ui, xi, m, N );
 
   gt = g( y, N );
-    /* gt = 1.; */
+    gt = .01;
 
   assert(!isnan(gt));
   assert(!isnan(y[0]));
 
-  if( dt*gt < 1.e-15)
+  du0=D1(ui,xi,0,N);
+
+  if( dt*gt < 1.e-15 && du > 1.e3 )
     {
-      printf("STOP: gt < 1.e-15\n");
-      s->state->status = SOLVER_STATUS_STOP;
+      /* printf("STOP: gt < 1.e-15\n"); */
+      /* s->state->status = SOLVER_STATUS_STOP; */
     }
+
 
   for ( i = 1; i < N-1; i++) {
     u=ui[i];
@@ -176,12 +196,16 @@ void ODE_set ( void * solver,
 
     /* prawa strona rownania macierzowego */
     Mxi=((m[i+1]+m[i])*(xi[i+1]-xi[i])-(m[i]+m[i-1])*(xi[i]-xi[i-1]))/2./de/de;
-    assert(!isnan(Mxi));
+    /* assert(!isnan(Mxi)); */
     /* Mxi=0.; */
-
+    /* if ( 1./du0 > epsilon ) */
+    /*   epsilon=1./du0; */
+      Mxi=0.;
 
     gsl_vector_set(fu, i,
-  		   gt*(ddu+(k-1.)/x*du-(k-1.)/2.*sin(2.*u)/x/x));
+  		   /* gt*(ddu+((k-1.)/x-x/2.)*du-(k-1.)/2.*sin(2.*u)/x/x) */
+		   gt*(ddu+((k-1.)/x-x/2.+1./(x1-x))*(du+u/(x1-x))-(x1-x)*(k-1.)/2.*sin(2.*u/(x1-x))/x/x)
+		   );
     gsl_vector_set(ftmp, i,
   		   gt/epsilon*Mxi);
     gsl_matrix_set(C, i, i, -du);
@@ -191,8 +215,8 @@ void ODE_set ( void * solver,
 
   /* wymnozenie prawej strony rownania macierzowego przez odwrotnosc
      macierzy */
-  gsl_blas_dsymv (CblasUpper, -1., D_inv, ftmp, 0., fx); /* D = -d2/de2 */
-  gsl_blas_dgemv (CblasNoTrans, -1., C, fx, 1., fu);	/* C = -du/dx */
+  /* gsl_blas_dsymv (CblasUpper, -1., D_inv, ftmp, 0., fx); /\* D = -d2/de2 *\/ */
+  /* gsl_blas_dgemv (CblasNoTrans, -1., C, fx, 1., fu);	/\* C = -du/dx *\/ */
 
   /* przepisanie wynikow do tablicy pochodnej czasowej */
 
@@ -269,7 +293,7 @@ double g ( double * y, int N )
   double du=D1(ui,xi,1,N),ddu=D2(ui,xi,1,N);
   double x=xi[1];
   double u=ui[1];
-  double ut=(ddu+(k-1.)/x*du-(k-1.)/2.*sin(2.*u)/x/x);
+  double ut=(ddu+((k-1.)/x-x/2.)*du-(k-1.)/2.*sin(2.*u)/x/x);
   /* printf("du=%f, ut=%f, x=%f\n",du,ut,x); */
   return .01*(fabs(x*du/ut));
 }
@@ -306,4 +330,79 @@ void M_calc ( double * u, double * x, double * M, int N )
       M[i]/* /=Mtot */;
       /* M[i]+=.01*(1.+sin(x[i])); */
     }
+}
+
+double bisection_wrapper(double A, void * p)
+{
+  ODE_solver * s = (ODE_solver*)p;
+  ODE_module * m = ODE_modules_get_by_name(s,"bisection");
+  double x0 = s->params->basis->params->x0;
+  double x1 = s->params->basis->params->x1;
+  double x,A1,B1;
+  int i, N = (s->params->Nx-1)/2;
+
+  s->state->f[0]=0.;
+  s->state->f[1+N]=0.;
+  s->state->f[1]=0.;
+
+  x=x0+(x1-x0)/(N-1.);
+
+  A1=pow(.01,N/(double)(N-1))/pow(x1,1./((double)(N-1)));
+  B1=log(.01/A1);
+
+  for ( i = 1; i < N; i++ ) {
+    x=A1*exp(B1*i);
+    s->state->f[i+1+N]=x;
+    /* s->state->f[i+1]=x/x1*PI+sin(x/x1*PI); */
+    s->state->f[i+1]=atan(A*x)*2./* /atan(A*x1) */*(x1-x);
+    /* x += (x1-x0)/(N-1); */
+  }
+  s->state->f[0]=0.;
+
+  s->state->status = SOLVER_STATUS_OK;
+
+  ODE_solve(s);
+
+  return ((bisection_1_module_data*)m->data)->result;
+}
+
+
+double
+bisec(double A0,
+      double A1,
+      double e,
+      double val,
+      double (*fevol)(double, void *),
+      void * param)
+{
+  double f,f0,f1;
+  int i=1;
+  double B;
+
+  /* swap the values if they are not sorted */
+  if ( A0 > A1 )
+    {
+      B = A0;
+      A0 = A1;
+      A1 = B;
+    }
+
+  f0 = fevol( A0, param ) - val;
+  f1 = fevol( A1, param ) - val;
+
+  while( 2.*(A1-A0)/fabs(A1+A0) > e) /* relative error measure */
+    {
+      printf( "%03i, A=%.20f, delta/A=%.1E\r",
+	      i++, .5*(A0+A1), 2.*(A1-A0)/(A0+A1) );
+
+      f = fevol(.5*(A0+A1), param ) - val;
+
+      if( f*f0 > 0 )
+	A0=.5*(A0+A1);
+      else
+	A1=.5*(A0+A1);
+    }
+  printf("\n");
+
+  return .5*(A0+A1);
 }

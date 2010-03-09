@@ -22,7 +22,6 @@ for K in $(seq 3 6); do
     ./shrinker_profiles.gp
 done
 
-
 # for file_ps in shrinker_profile*_i${INDEX}.ps; do
 #     evince $file_ps &
 # done

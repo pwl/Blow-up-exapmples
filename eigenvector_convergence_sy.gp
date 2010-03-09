@@ -3,7 +3,7 @@
 # set xrange [1.e-2:8]
 # set logscale x 10
 # set logscale y 10
-set term postscript
+set term postscript enhanced
 set output "eigenvector_convergence_sy.ps"
 # set key bottom left
 

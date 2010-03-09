@@ -23,7 +23,7 @@
 
 #define RIPPER_LINEAR 0x00
 #define RIPPER_DENSE1 0x01
-#define RIPPER_DENSE2 0x02
+#define RIPPER_EXP 0x02
 
 #define CYAN1 "\x1b[0;36m"
 #define RED1 "\x1b[1;31m"
@@ -90,7 +90,7 @@ fevol_shrinker_eigenproblem (double lambda, int print, char * filename, void * A
 /* this solves the eigenvalue equation for shrinker given parameter A
    as above */
 void
-solve_shrinker_eigenproblem (double A, int index);
+solve_shrinker_eigenproblem (double A, int index, int eigenval_number);
 
 /* function below is used to print the profile of a shrinker to
    apropriate file */

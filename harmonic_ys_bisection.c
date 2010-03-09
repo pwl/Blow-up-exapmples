@@ -1,6 +1,8 @@
 #include "assert.h"
 #include "harmonic.h"
 
+#define NDEBUG
+
 gsl_matrix * D_inv, * C;
 double * m;
 gsl_vector * fx, * fu, * ftmp;
@@ -11,9 +13,9 @@ int main ( void )
 {
   ODE_solver * s;
   int M = 10, K = 0, i;
-  int N = 50/* 2*(M+K)+1 */;
+  int N = 100/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
-  H_DOUBLE x0 = 0., x1 = 10., x;
+  H_DOUBLE x0 = 0., x1 = 50., x;
   H_DOUBLE t_error = 1.e-15;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
@@ -21,7 +23,7 @@ int main ( void )
   gsl_permutation * p = gsl_permutation_alloc(N);
   FILE * file;
 
-  H_DOUBLE A,A1,B1;
+  H_DOUBLE A,A1,B1,bis;
 
   /* Alokacja pamięci i inicjalizacja oraz odwrócenie macierzy przy
      użyciu GSL */
@@ -56,14 +58,14 @@ int main ( void )
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
   ODE_modules_add ( s, ODE_module_plot_init( 10. ) );
   /* modul do drukowania w konsoli czasu symulacji */
-  /* ODE_modules_add ( s, ODE_module_print_time_init ( .001 ) ); */
+  ODE_modules_add ( s, ODE_module_print_time_init ( .1 ) );
   /* modul do wpisywania do pliku log/info_1/log000.dat szeregu
      informacji dot. funkcji, w kolejnosci sa to:
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
-  ODE_modules_add ( s, ODE_module_info_1_init( 10., N ) );
+  ODE_modules_add ( s, ODE_module_info_1_init( 1., N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
-  ODE_modules_add ( s, ODE_module_snapshot_init( 1. ));
-  ODE_modules_add ( s, ODE_module_bisection_1_init( 1. ));
+  /* ODE_modules_add ( s, ODE_module_snapshot_init( 1. )); */
+  ODE_modules_add ( s, ODE_module_bisection_1_init( .01 ));
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 
   /* inicjalizacja danych poczatkowych */
@@ -118,10 +120,12 @@ int main ( void )
   /* } */
   /* s->state->f[0]=0.; */
 
-  /* bisec(.8,1.,10.e-10,0., */
+  /* bis=bisec(.1,.4,10.e-10,0., */
   /* 	bisection_wrapper,(void*)s); */
 
-  bisection_wrapper(0.889033322781324,s);
+  ODE_modules_add ( s, ODE_module_snapshot_init( 1. ));
+
+  bisection_wrapper( 0.397034704778343, s );
 
 
   /* file = fopen ( "test.dat", "w" ); */
@@ -342,6 +346,7 @@ double bisection_wrapper(double A, void * p)
   double x1 = s->params->basis->params->x1;
   double x,A1,B1,xx;
   int i, N = (s->params->Nx-1)/2;
+  FILE * file;
 
   s->state->f[0]=0.;
   s->state->f[1+N]=0.;
@@ -352,18 +357,30 @@ double bisection_wrapper(double A, void * p)
   /* xx=pow(1.17,1-N)*x1; */
   /* A1=pow(xx,(double)(N)/(double)(N-1))/pow(x1,1./((double)(N-1))); */
   /* B1=1/(double)(N-1)*log(x1/xx); */
-  xx=0.005;
+  xx=0.004;
   A1=xx;
   B1=log(x1/xx)/log((double)(N-1));
 
-  for ( i = 1; i < N; i++ ) {
+  for ( i = 0; i < N; i++ ) {
     /* x=A1*exp(B1*(i+1.)); */
     x = A1*pow((double)i,B1);
     s->state->f[i+1+N]=x;
     /* s->state->f[i+1]=x/x1*PI+sin(x/x1*PI); */
-    s->state->f[i+1]=atan(A*x)*2.*(x1-x);
+    /* s->state->f[i+1]=atan(A*x)*2./\* *(x1-x) *\/; */
+    s->state->f[i+1]=(PI*tanh(A*x)+sin(2*A*x)*exp(-pow(A*x-3,2)))*(x1-x);
+    /* s->state->f[i+1]=(PI/2.*tanh(A*x) */
+    /* 		      +A*x*(A*x-3.)*exp(-pow(A*x-3,2)) */
+    /* 		      +A*x*(A*x-10.)*exp(-pow(A*x-10,2))/2. */
+    /* 		      +PI/2.*tanh(A*x/10))*(x1-x); */
+    /* s->state->f[i+1]=(PI/2.*(tanh(pow(log(A*x),3)/2.-1.5*log(A*x))+1.))/\* *(x1-x) *\/; */
     /* x += (x1-x0)/(N-1); */
   }
+
+  file = fopen ( "test.dat", "w" );
+  for ( i = 0; i < N; i++ )
+    fprintf(file, "%i %.15G %.15G\n", i, s->state->f[i+1+N], s->state->f[i+1]);
+
+  fclose( file );
 
   s->state->status = SOLVER_STATUS_OK;
 
@@ -386,7 +403,6 @@ bisec(double A0,
   double B;
   FILE * file = fopen("bisection_sy.dat","w");
 
-  fclose(file);
 
   /* swap the values if they are not sorted */
   if ( A0 > A1 )
@@ -397,7 +413,21 @@ bisec(double A0,
     }
 
   f0 = fevol( A0, param ) - val;
+  fprintf( file, "000, A0=%.15G, f0=%.15G\n",
+	   A0, f0 );
   f1 = fevol( A1, param ) - val;
+  fprintf( file, "000, A1=%.15G, f1=%.15G\n",
+	   A1, f1 );
+
+  if ( f0*f1 >= 0 )
+    {
+      fprintf(file, "error, f0 = %.15G, f1 = %.15G have the same sign\n", f0,f1);
+      fclose(file);
+      return 0.;
+    }
+
+
+  fclose(file);
 
   while( 2.*(A1-A0)/fabs(A1+A0) > e) /* relative error measure */
     {

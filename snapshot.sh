@@ -6,7 +6,7 @@ options2="w p lt 2 pt 2"
 
 name="*.dat"
 path="log/snapshot/"
-files=$(find $path -name "$name" |sort |tail -n 2000 | awk 'NR % 10 == 0')
+files=$(find $path -name "$name" |sort -t'_' -k2n |tail -n 2000 | awk 'NR % 10 == 0')
 cmd="plot"
 g="bisection.dat"
 

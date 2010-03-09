@@ -7,6 +7,7 @@
 #include "Rk1_ODE_Solver/modules/initial_function.h"
 #include "Rk1_ODE_Solver/modules/print_time.h"
 #include "Rk1_ODE_Solver/modules/info_1.h"
+#include "Rk1_ODE_Solver/modules/bisection_1.h"
 #include "Rk1_ODE_Solver/modules/position_tracker.h"
 #include "Rk1_ODE_Solver/modules/snapshot.h"
 #include "Rk1_ODE_Solver/modules/movie_maker.h"

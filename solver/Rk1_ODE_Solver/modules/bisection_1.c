@@ -24,12 +24,12 @@ void bisection_1_step ( void * solver, void * module )
 
   /* if any of the bisection conditions are met, save the bisection
      result and stop the evolution */
-  if( u[1]/(x1-x[1])/x[1] > 10. )
+  if( fabs(u[1]/(x1-x[1])/x[1]) > 10. )
     {
       data->result = 1.;
       s->state->status = SOLVER_STATUS_STOP;
     }
-  else if ( u[1]/(x1-x[1])/x[1] < 1. /* u[N-2]/(x1-x[N-2]) < 2.10 */ )
+  else if ( fabs(u[1]/(x1-x[1])/x[1]) < 1. /* && u[N-2]/(x1-x[N-2]) > PI/2. */ )
     {
       data->result = -1.;
       s->state->status = SOLVER_STATUS_STOP;

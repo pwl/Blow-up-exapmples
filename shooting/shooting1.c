@@ -28,17 +28,17 @@ main (void)
 
   fclose(eigenfile);
 
-  for( l = 1.; l <=5.01; l+=1. )
+  for( l = 1.; l <=1.01; l+=1. )
     {
-      for( k = 4.; k <= 4.01; k+=1. )
+      for( k = 3.; k <= 6.01; k+=1. )
 	{
 	  printf(RED1 "searching for solutions to NODE in dimension %.3f with l=%.1f\n" FORMAT_OFF,k,l);
 	  results_collected = harvester
 	    ( 1.e-2,
-	      1.e10,
-	      1.e-2,
-	      RIPPER_DENSE1,
-	      5,
+	      1.e100,
+	      5.,
+	      RIPPER_EXP,
+	      6,
 	      results,
 	      0.,
 	      fevol_shrinker,
@@ -55,7 +55,7 @@ main (void)
 	    {
 	      print_shrinker_profile( results[i] );
 
-	      /* solve_shrinker_eigenproblem(results[i], i+1); */
+	      /* solve_shrinker_eigenproblem(results[i], i+1, 6); */
 	    }
 	}
     }

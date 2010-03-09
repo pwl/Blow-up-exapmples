@@ -24,5 +24,15 @@ void M_calc ( double * u, double * x, double * M, int N );
 
 double g ( double * y, int N );
 
+double bisection_wrapper(double A, void * p);
+
+double
+bisec(double A0,
+      double A1,
+      double e,
+      double val,
+      double (*fevol)(double, void *),
+      void * param);
+
 
 #endif
