@@ -15,7 +15,7 @@ int main ( void )
   int M = 10, K = 0, i;
   int N = 100/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
-  H_DOUBLE x0 = 0., x1 = 50., x;
+  H_DOUBLE x0 = 0., x1 = PI/2., x;
   H_DOUBLE t_error = 1.e-15;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
@@ -56,7 +56,7 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  ODE_modules_add ( s, ODE_module_plot_init( 10. ) );
+  ODE_modules_add ( s, ODE_module_plot_init( 1. ) );
   /* modul do drukowania w konsoli czasu symulacji */
   ODE_modules_add ( s, ODE_module_print_time_init ( .1 ) );
   /* modul do wpisywania do pliku log/info_1/log000.dat szeregu
@@ -65,67 +65,15 @@ int main ( void )
   ODE_modules_add ( s, ODE_module_info_1_init( 1., N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
   /* ODE_modules_add ( s, ODE_module_snapshot_init( 1. )); */
-  ODE_modules_add ( s, ODE_module_bisection_1_init( .01 ));
+  /* ODE_modules_add ( s, ODE_module_bisection_1_init( .01 )); */
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 
-  /* inicjalizacja danych poczatkowych */
-  /* file = fopen( "bisection.dat", "r" ); */
-
-  /* s->state->f[1]=PI; */
-  /* s->state->f[1+N]=0.; */
-  /* s->state->f[N]=PI; */
-  /* s->state->f[2*N]=PI; */
-
-  /* for ( i = 1; i < M; i++ ) { */
-  /*   fscanf(file, "%lf %lf %lf", s->state->f + i+1+N,s->state->f + i+1, &x); */
-  /*   s->state->f[N-i]=s->state->f[i+1]; */
-  /*   s->state->f[i+1+N]*=1.e-5; */
-  /*   s->state->f[2*N-i]=PI-s->state->f[i+1+N]; */
-  /*   /\* printf("%lf %lf\n", s->state->f[i+1+M],s->state->f[i+1]); *\/ */
-  /* } */
-
-  /* for ( i = M; i < M+K; i++) */
-  /*   { */
-  /*     s->state->f[1+i]=s->state->f[M]; */
-  /*     s->state->f[N-i]=s->state->f[M]; */
-  /* 	/\* s->state->f[M]; *\/ */
-  /*     s->state->f[i+1+N]= */
-  /* 	s->state->f[M+N]+ */
-  /* 	(PI/2.-s->state->f[M+N]) */
-  /* 	/(pow(.01*(double)(K+1),4)) */
-  /* 	*(pow(.01*(double)(i-M+1),4)); */
-  /*     s->state->f[2*N-i]=PI-s->state->f[i+1+N]; */
-  /*   } */
-
-  /* s->state->f[(N+1)/2]=s->state->f[(N+1)/2-1]; */
-  /* s->state->f[(N+1)/2+N]=PI/2.; */
-  /* fclose(file); */
-
-  /* x=x0; */
-
-  /* s->state->f[1+N]=0.; */
-  /* s->state->f[1]=0.; */
-
-  /* A=0.88495915904641120342; */
-  /* A1=pow(.01,(double)(N)/(double)(N-1))/pow(x1,1./((double)(N-1))); */
-  /* B1=log(.01/A1); */
-  /* B1=1/(double)(N-1)*log(x1/.01); */
-
-  /* for ( i = 1; i < N; i++ ) { */
-  /*   x=A1*exp(B1*(i+1)); */
-  /*   s->state->f[i+1+N]=x; */
-  /*   /\* s->state->f[i+1]=x/x1*PI+sin(x/x1*PI); *\/ */
-  /*   s->state->f[i+1]=atan(A*x)*2./\* /atan(A*x1) *\/\*(x1-x); */
-  /*   /\* x += (x1-x0)/(N-1); *\/ */
-  /* } */
-  /* s->state->f[0]=0.; */
-
-  /* bis=bisec(.1,.4,10.e-10,0., */
+  /* bis=bisec(0.,1.,10.e-10,0., */
   /* 	bisection_wrapper,(void*)s); */
 
-  ODE_modules_add ( s, ODE_module_snapshot_init( 1. ));
+  /* ODE_modules_add ( s, ODE_module_snapshot_init( 1. )); */
 
-  bisection_wrapper( 0.397034704778343, s );
+  bisection_wrapper( .5, s );
 
 
   /* file = fopen ( "test.dat", "w" ); */
@@ -139,7 +87,7 @@ int main ( void )
   /* ODE_solve ( s ); */
 
   /* uwolnienie zaalokowanej pamieci */
-  ODE_solver_free( s );
+  /* ODE_solver_free( s ); */
 
   free(m);
   gsl_matrix_free( D_inv );
@@ -210,7 +158,10 @@ void ODE_set ( void * solver,
 
     gsl_vector_set(fu, i,
   		   /* gt*(ddu+((k-1.)/x-x/2.)*du-(k-1.)/2.*sin(2.*u)/x/x) */
-		   gt*(ddu+((k-1.)/x-x/2.+1./(x1-x))*(du+u/(x1-x))-(x1-x)*(k-1.)/2.*sin(2.*u/(x1-x))/x/x)
+		   /* gt*(ddu+((k-1.)/x/\* -x/2. *\/+1./(x1-x))*(du+u/(x1-x))-(x1-x)*(k-1.)/2.*sin(2.*u/(x1-x))/x/x) */
+		   gt*(ddu*pow(cos(x),4)
+		       +.5*cos(x)*(2.*cos(x)/tan(x)*(k-2.+cos(2.*x))+0.*sin(x))*du
+		       -(k-1.)/2.*sin(2.*u)/tan(x)/tan(x))
 		   );
     gsl_vector_set(ftmp, i,
   		   gt/epsilon*Mxi);
@@ -367,7 +318,8 @@ double bisection_wrapper(double A, void * p)
     s->state->f[i+1+N]=x;
     /* s->state->f[i+1]=x/x1*PI+sin(x/x1*PI); */
     /* s->state->f[i+1]=atan(A*x)*2./\* *(x1-x) *\/; */
-    s->state->f[i+1]=(PI*tanh(A*x)+sin(2*A*x)*exp(-pow(A*x-3,2)))*(x1-x);
+    /* s->state->f[i+1]=(2.*atan(/\* 7.* *\/A*x)/\* +10.*sin(2*A*x)*exp(-pow(A*x-3,2))/3. *\/)*(x1-x); */
+    s->state->f[i+1]=((PI/2.+A)*tanh(tan(x))/* +x/cosh(x) */)/* *(x1-x) */;
     /* s->state->f[i+1]=(PI/2.*tanh(A*x) */
     /* 		      +A*x*(A*x-3.)*exp(-pow(A*x-3,2)) */
     /* 		      +A*x*(A*x-10.)*exp(-pow(A*x-10,2))/2. */
@@ -375,6 +327,7 @@ double bisection_wrapper(double A, void * p)
     /* s->state->f[i+1]=(PI/2.*(tanh(pow(log(A*x),3)/2.-1.5*log(A*x))+1.))/\* *(x1-x) *\/; */
     /* x += (x1-x0)/(N-1); */
   }
+  s->state->f[N]=(PI/2.+A);
 
   file = fopen ( "test.dat", "w" );
   for ( i = 0; i < N; i++ )
@@ -415,23 +368,27 @@ bisec(double A0,
   f0 = fevol( A0, param ) - val;
   fprintf( file, "000, A0=%.15G, f0=%.15G\n",
 	   A0, f0 );
+  fclose(file);
+
+  file=fopen("bisection_sy.dat","a");
   f1 = fevol( A1, param ) - val;
   fprintf( file, "000, A1=%.15G, f1=%.15G\n",
 	   A1, f1 );
+  fclose(file);
 
   if ( f0*f1 >= 0 )
     {
+      file=fopen("bisection_sy.dat","a");
       fprintf(file, "error, f0 = %.15G, f1 = %.15G have the same sign\n", f0,f1);
       fclose(file);
       return 0.;
     }
 
 
-  fclose(file);
 
   while( 2.*(A1-A0)/fabs(A1+A0) > e) /* relative error measure */
     {
-      fopen("bisection_sy.dat","a");
+      file=fopen("bisection_sy.dat","a");
       fprintf( file, "%03i, A=%.15G, delta/A=%.1E\n",
 	      i++, .5*(A0+A1), 2.*(A1-A0)/(A0+A1) );
       fclose(file);

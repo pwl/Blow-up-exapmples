@@ -11,7 +11,7 @@
 
 #define STEPPER gsl_odeiv_step_rkf45
 #define STEPPER_ERROR 1.e-15
-#define T_MAX 10.
+#define T_MAX 100.
 #define PRINT_DT 1.e-4
 #define PRINT_DT_RATIO 1.3
 #define T0 1.e-10

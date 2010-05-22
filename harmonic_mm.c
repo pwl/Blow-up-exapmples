@@ -11,7 +11,7 @@ int main ( void )
 {
   ODE_solver * s;
   int M = 10, K = 0, i;
-  int N = 50/* 2*(M+K)+1 */;
+  int N = 30/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
   H_DOUBLE x0 = 0., x1 = 10., x;
   H_DOUBLE t_error = 1.e-15;
@@ -54,7 +54,7 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  ODE_modules_add ( s, ODE_module_plot_init( 1. ) );
+  ODE_modules_add ( s, ODE_module_plot_init( 10. ) );
   /* modul do drukowania w konsoli czasu symulacji */
   ODE_modules_add ( s, ODE_module_print_time_init ( .001 ) );
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
@@ -63,7 +63,7 @@ int main ( void )
   ODE_modules_add ( s, ODE_module_info_1_init( 1., N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
   ODE_modules_add ( s, ODE_module_snapshot_init( 10. ));
-  ODE_modules_add ( s, ODE_module_bisection_1_init( 1. ));
+  /* ODE_modules_add ( s, ODE_module_bisection_1_init( 1. )); */
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 
   /* inicjalizacja danych poczatkowych */
@@ -106,21 +106,21 @@ int main ( void )
 
   /* x=x0+(x1-x0)/(N-1.); */
 
-  /* A=.88; */
-  /* A1=pow(.01,N/(double)(N-1))/pow(x1,1./((double)(N-1))); */
-  /* B1=log(.01/A1); */
+  A=.88;
+  A1=pow(.01,N/(double)(N-1))/pow(x1,1./((double)(N-1)));
+  B1=log(.01/A1);
 
-  /* for ( i = 1; i < N; i++ ) { */
-  /*   x=A1*exp(B1*i); */
-  /*   s->state->f[i+1+N]=x; */
-  /*   /\* s->state->f[i+1]=x/x1*PI+sin(x/x1*PI); *\/ */
-  /*   s->state->f[i+1]=atan(A*x)*2./\* /atan(A*x1) *\/\*(x1-x); */
-  /*   /\* x += (x1-x0)/(N-1); *\/ */
-  /* } */
-  /* s->state->f[0]=0.; */
+  for ( i = 1; i < N; i++ ) {
+    x=A1*exp(B1*i);
+    s->state->f[i+1+N]=x;
+    /* s->state->f[i+1]=x/x1*PI+sin(x/x1*PI); */
+    s->state->f[i+1]=atan(A*x)*2;
+    /* x += (x1-x0)/(N-1); */
+  }
+  s->state->f[0]=0.;
 
-  bisec(.8,1.,10.e-10,0.,
-	bisection_wrapper,(void*)s);
+  /* bisec(.8,1.,10.e-10,0., */
+  /* 	bisection_wrapper,(void*)s); */
 
   /* file = fopen ( "test.dat", "w" ); */
   /* for ( i = 0; i < N; i++ ) */
@@ -170,7 +170,7 @@ void ODE_set ( void * solver,
   M_calc( ui, xi, m, N );
 
   gt = g( y, N );
-    gt = .01;
+    /* gt = .01; */
 
   assert(!isnan(gt));
   assert(!isnan(y[0]));
@@ -200,11 +200,11 @@ void ODE_set ( void * solver,
     /* Mxi=0.; */
     /* if ( 1./du0 > epsilon ) */
     /*   epsilon=1./du0; */
-      Mxi=0.;
+      /* Mxi=0.; */
 
     gsl_vector_set(fu, i,
-  		   /* gt*(ddu+((k-1.)/x-x/2.)*du-(k-1.)/2.*sin(2.*u)/x/x) */
-		   gt*(ddu+((k-1.)/x-x/2.+1./(x1-x))*(du+u/(x1-x))-(x1-x)*(k-1.)/2.*sin(2.*u/(x1-x))/x/x)
+  		   gt*(ddu+((k-1.)/x)*du-(k-1.)/2.*sin(2.*u)/x/x)
+		   /* gt*(ddu+((k-1.)/x-x/2.+1./(x1-x))*(du+u/(x1-x))-(x1-x)*(k-1.)/2.*sin(2.*u/(x1-x))/x/x) */
 		   );
     gsl_vector_set(ftmp, i,
   		   gt/epsilon*Mxi);
@@ -215,8 +215,8 @@ void ODE_set ( void * solver,
 
   /* wymnozenie prawej strony rownania macierzowego przez odwrotnosc
      macierzy */
-  /* gsl_blas_dsymv (CblasUpper, -1., D_inv, ftmp, 0., fx); /\* D = -d2/de2 *\/ */
-  /* gsl_blas_dgemv (CblasNoTrans, -1., C, fx, 1., fu);	/\* C = -du/dx *\/ */
+  gsl_blas_dsymv (CblasUpper, -1., D_inv, ftmp, 0., fx); /* D = -d2/de2 */
+  gsl_blas_dgemv (CblasNoTrans, -1., C, fx, 1., fu);	/* C = -du/dx */
 
   /* przepisanie wynikow do tablicy pochodnej czasowej */
 
@@ -308,7 +308,7 @@ void M_calc ( double * u, double * x, double * M, int N )
   for ( i = 1; i < N-1; i++)
     {
       M[i]=fabs( D1( u, x, i, N ) )
-	+ sqrt( fabs( D2( u, x, i, N ) ) );
+	+ sqrt(fabs( D2( u, x, i, N ) ));
       Mtot+=(M[i]*(x[i+1]-x[i-1])/2.);
 
       /* printf("M_calc: i=%i, M[i]=%.15f\n", i, M[i]); */
@@ -319,15 +319,16 @@ void M_calc ( double * u, double * x, double * M, int N )
     }
 
   M[0]=fabs( D1( u, x, 0, N ) )
-	+ sqrt( fabs( D2( u, x, 0, N ) ) );
+    + sqrt(fabs( D2( u, x, 0, N ) ));
   M[N-1]=fabs( D1( u, x, N-1, N ) )
-	+ sqrt( fabs( D2( u, x, N-1, N ) ) );
+    + sqrt(fabs( D2( u, x, N-1, N ) ) );
 
   Mtot+=M[0]*(x[1]-x[0])+M[N-1]*(x[N-1]-x[N-2]);
 
   for ( i = 0; i < N; i++ )
     {
-      M[i]/* /=Mtot */;
+      M[i]+=.1*Mtot;
+      /* M[i]+=.1; */
       /* M[i]+=.01*(1.+sin(x[i])); */
     }
 }
