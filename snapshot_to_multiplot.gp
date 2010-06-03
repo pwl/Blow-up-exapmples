@@ -4,7 +4,9 @@
 # set logscale x 10
 # set logscale y 10
 set term postscript enhanced color
-set output "snapshot_to_multiplot.ps"
+set term epslatex
+set output "graphics/snapshot_to_multiplot.tex"
+# set size 2.,3.
 # set key bottom left
 
 # set xlabel "y"

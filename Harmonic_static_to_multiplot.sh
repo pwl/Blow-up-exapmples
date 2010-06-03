@@ -22,17 +22,18 @@ for i in $(seq 0 $((mrows*mcols-1))); do
     # echo "$i"
 
     # setup the tics for picture in the lower left corner
-    echo "unset tics" >> plotter.gp
-    echo "unset xlabel" >> plotter.gp
-    echo "unset ylabel" >> plotter.gp
     tics=$(echo "(($i%$mrows)==0 && ($i/$mrows)==$mrows)"|bc)
     if [ $tics -eq 1 ]; then
     	echo "set tics nomirror in" >> plotter.gp
 	echo "set xtics" >> plotter.gp
 	echo "set ytics 0,pi/4,pi format \"\"" >> plotter.gp
-	echo "set ytics add (\"0\" 0, \"\$\\\\pi/2\$\" pi/2,  \"\$\\\\pi\$\" pi)" >> plotter.gp
-	echo "set xlabel \"\$\\\\ln(\\\\tan(\\\\psi/2))\$\"" >> plotter.gp
-	echo "set ylabel \"\$f_n(\\\\psi)\$\"" >> plotter.gp
+	echo "set ytics add (\"0\" 0, \"\$\\\pi/2\$\" pi/2,  \"\$\\\pi\$\" pi)" >> plotter.gp
+	echo "set xlabel \"\$\\\ln(\\\tan(\\\psi/2))\$\"" >> plotter.gp
+	echo "set ylabel \"\$f_n(\\\psi)\$\"" >> plotter.gp
+    else
+	echo "unset tics" >> plotter.gp
+	echo "unset xlabel" >> plotter.gp
+	echo "unset ylabel" >> plotter.gp
     fi
 
     echo "set key off" >> plotter.gp

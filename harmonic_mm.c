@@ -11,9 +11,9 @@ int main ( void )
 {
   ODE_solver * s;
   int M = 10, K = 0, i;
-  int N = 300/* 2*(M+K)+1 */;
-  H_DOUBLE T =5.;
-  H_DOUBLE x0 = 0., x1 = PI/2., x;
+  int N = 400/* 2*(M+K)+1 */;
+  H_DOUBLE T =1.e10;
+  H_DOUBLE x0 = 0., x1 = PI, x;
   H_DOUBLE t_error = 1.e-15;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
@@ -54,16 +54,16 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  /* ODE_modules_add ( s, ODE_module_plot_init( .001 ) ); */
+  /* ODE_modules_add ( s, ODE_module_plot_init( .01 ) ); */
   /* modul do drukowania w konsoli czasu symulacji */
   ODE_modules_add ( s, ODE_module_print_time_init ( .001 ) );
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
      informacji dot. funkcji, w kolejnosci sa to:
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
-  ODE_modules_add ( s, ODE_module_info_1_init( .01, N ) );
+  /* ODE_modules_add ( s, ODE_module_info_1_init( .01, N ) ); */
   /* modul wpisywania profili fcji do katalogu log/snapshot */
-  ODE_modules_add ( s, ODE_module_snapshot_init( 0.01 ));
-  /* ODE_modules_add ( s, ODE_module_bisection_3_init( .001 )); */
+  /* ODE_modules_add ( s, ODE_module_snapshot_init( 0.01 )); */
+  ODE_modules_add ( s, ODE_module_bisection_3_init( .001 ));
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 
   /* inicjalizacja danych poczatkowych */
@@ -106,22 +106,22 @@ int main ( void )
 
   /* x=x0+(x1-x0)/(N-1.); */
 
-  A=1.24568469439604978533;
-  /* A=1.; */
+  /* asym: N=300, x0=0, x1=PI/2, T=5.*/
+  /* A=1.24568469439604978533; */
 
-  for ( i = 0; i < N; i++ ) {
-    x=i*(x1-x0)/(N-1);
-    s->state->f[i+1+N]=x;
-    /* s->state->f[i+1]=x/x1*PI+sin(x/x1*PI); */
-    s->state->f[i+1]=x+A*sin(2.*x);
-    /* x += (x1-x0)/(N-1); */
-  }
-  s->state->f[0]=0.;
+  /* for ( i = 0; i < N; i++ ) { */
+  /*   x=i*(x1-x0)/(N-1); */
+  /*   s->state->f[i+1+N]=x; */
+  /*   /\* s->state->f[i+1]=x/x1*PI+sin(x/x1*PI); *\/ */
+  /*   s->state->f[i+1]=x+A*sin(2.*x); */
+  /*   /\* x += (x1-x0)/(N-1); *\/ */
+  /* } */
+  /* s->state->f[0]=0.; */
 
-  ODE_solve ( s );
+  /* ODE_solve ( s ); */
 
-  /* bisec(1.2454,1.246,10.e-15,0., */
-  /* 	bisection_wrapper,(void*)s); */
+  bisec(1.,3.,10.e-15,0.,
+  	bisection_wrapper,(void*)s);
 
   /* file = fopen ( "test.dat", "w" ); */
   /* for ( i = 0; i < N; i++ ) */
@@ -308,7 +308,8 @@ double bisection_wrapper(double A, void * p)
   for ( i = 0; i < N; i++ ) {
     x=i*(x1-x0)/(N-1);
     s->state->f[i+1+N]=x;
-    s->state->f[i+1]=x+A*sin(2.*x);
+    /* s->state->f[i+1]=x+A*sin(2.*x); */
+    s->state->f[i+1]=A*sin(x);
   }
 
   s->state->status = SOLVER_STATUS_OK;
