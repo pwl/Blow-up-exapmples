@@ -64,9 +64,82 @@ solve_shrinker_eigenproblem
   fclose( eigenfile );
 }
 
+void
+solve_eigenproblem
+(double A,
+ int index,
+ int eigenval_number,
+ double (*fevol_eigenproblem)(double, int, char *, void *))
+{
+  FILE *eigenfile;
+  int j, eigen_results_collected;
+  double eigen_results[100];
+  char eigenfile_name[500];
+
+  printf(GREEN1 "solving eigenproblem for index %i in dimension %.3f with l=%.1f\nLambda > 1\n" FORMAT_OFF,
+	 index, k, l);
+
+  eigen_results_collected = harvester
+    ( 2.,
+      1.e5,
+      2.,
+      RIPPER_EXP,
+      index-1,
+      eigen_results,
+      0.,
+      fevol_eigenproblem,
+      (void*)(&A) );
+
+  printf(GREEN1 "Lambda <= 1\n" FORMAT_OFF);
+
+  eigen_results_collected += harvester
+    ( 2.,
+      -1.e10,
+      1.,
+      RIPPER_LINEAR,
+      eigenval_number-eigen_results_collected,
+      eigen_results+eigen_results_collected,
+      0.,
+      fevol_eigenproblem,
+      (void*)(&A) );
+
+  sprintf
+    ( eigenfile_name,
+      HARVESTER_DATA_DIR "eigen" HARVESTER_DEFAULT_EIGEN_EXTENSION,
+      k, l, index);
+
+  eigenfile = fopen( eigenfile_name, "w" );
+  fclose( eigenfile );
+
+  for ( j = index-2; j >= 0; j-- )
+    {
+      eigenfile = fopen( eigenfile_name, "a" );
+      fprintf
+	(eigenfile,
+	 "#%.15f %.1f %i %.15f %i %.15f\n",
+	 k, l, index, A, index-j-1, eigen_results[j] );
+      fclose( eigenfile );
+
+      fevol_eigenproblem(eigen_results[j], 1, eigenfile_name, (void*)(&A));
+    }
+
+  for ( j = index-1; j < eigen_results_collected; j++ )
+    {
+      eigenfile = fopen( eigenfile_name, "a" );
+      fprintf
+	(eigenfile,
+	 "#%.15f %.1f %i %.15f %i %.15f\n",
+	 k, l, index, A, j+1, eigen_results[j] );
+      fclose( eigenfile );
+
+      fevol_eigenproblem(eigen_results[j], 1, eigenfile_name, (void*)(&A));
+    }
+
+}
+
 
 void print_shrinker_profile( double A ) {
-  char shrinkerfile_name[50];
+  char shrinkerfile_name[500];
   FILE *shrinkerfile;
 
   sprintf
@@ -77,6 +150,23 @@ void print_shrinker_profile( double A ) {
   fprintf( shrinkerfile, "# k = %.15f\n# l = %.1f\n", k, l );
   fclose( shrinkerfile );
   fevol_shrinker( A, 1 , shrinkerfile_name , NULL );
+}
+
+void
+print_profile( double A,
+	       double (*fevol)(double, int, char *, void *))
+{
+  char profile_file_name[500];
+  FILE *profile_file;
+
+  sprintf
+    ( profile_file_name,
+      HARVESTER_DATA_DIR PROFILE_FILE_PREFIX HARVESTER_DEFAULT_EXTENSION,
+      k, l);
+  profile_file = fopen( profile_file_name, "a" );
+  fprintf( profile_file, "# k = %.15f\n# l = %.1f\n", k, l );
+  fclose( profile_file );
+  fevol( A, 1 , profile_file_name, NULL );
 }
 
 double
@@ -142,6 +232,9 @@ harvester(
   int results_collected = 0;
 
 
+  if( results_collected >= results_max )
+    return results_collected;
+
   value_last = fevol( cursor, 0, "", param ) - val;
 
   switch( opt )
@@ -182,7 +275,8 @@ harvester(
       cursor = a+s*(b-a);
       value = fevol( cursor, 0, "", param ) - val;
 
-      printf("cursor = %.10E\r", cursor);
+      /* printf("                              \r"); */
+      /* printf("cursor = %.10E\r", cursor); */
 
       /* printf("cursor_last = %.5E, cursor = %.5E, dt = %.5E, s = %.5E\n", cursor_last, cursor, dt, s); */
       if( results_collected >= results_max )
@@ -573,4 +667,187 @@ fevol_static (double L, int print, char * filename, void * p)
   }
 
   return y[0];
+}
+
+int
+func_static_harmonic (double t, const double y[], double f[],
+		      void *params)
+{
+  f[0] = y[1];
+  f[1] = sin(2.*y[0])*l*(l+k-2.)/2./sin(t)/sin(t)-(k-1.)/tan(t)*y[1];
+  return GSL_SUCCESS;
+}
+
+int
+func_static_harmonic_eigenproblem
+(double t,
+ const double y[],
+ double f[],
+ void *params)
+{
+  double lambda = *(double*)params;
+  f[0] = y[1];
+  f[1] = sin(2.*y[0])*l*(l+k-2.)/2./sin(t)/sin(t)-(k-1.)/tan(t)*y[1];
+  f[2] = y[3];
+  f[3] = (l*(l+k-2.)*cos(2.*y[0])/sin(t)/sin(t)+lambda)*y[2]-(k-1.)/tan(t)*y[3];
+  return GSL_SUCCESS;
+}
+
+double
+fevol_static_harmonic (double A, int print, char * filename, void * p)
+{
+  const gsl_odeiv_step_type * T
+    = STEPPER;
+
+  FILE * file = NULL;
+
+  gsl_odeiv_step * s
+    = gsl_odeiv_step_alloc (T, 2);
+  gsl_odeiv_control * c
+    = gsl_odeiv_control_y_new (STEPPER_ERROR, 0.0);
+  gsl_odeiv_evolve * e
+    = gsl_odeiv_evolve_alloc (2);
+
+  double dt=PRINT_DT, t_last=0.;
+
+  gsl_odeiv_system sys = {func_static_harmonic, jac_dummy, 2, p};
+
+  double t = T0;
+  double h = H0;
+  double y[2] = {
+    A*t*(1.-(k-1)*(A*A-1)/3./(k+2.)*t*t),
+    A*(1.-2.*(k-1)*(A*A-1)/3./(k+2.)*t)
+  };
+  /* double y[2] = { */
+  /*   PI/2., */
+  /*   A */
+  /* }; */
+
+  if (print){
+    file = fopen(filename, "a");
+  }
+
+  while (t < PI-.05*1.e-4)
+    {
+      int status =
+	gsl_odeiv_evolve_apply (e, c, s,
+				&sys,
+				&t, PI,
+				&h, y);
+
+      if (status != GSL_SUCCESS)
+	break;
+      /* are we still in the strip [0,pi]? */
+      if ( y[0] < 0.)
+	{
+	  y[0]=-1.;
+	  break;
+	}
+      if ( y[0] > PI )
+	{
+	  y[0]=1.;
+	  break;
+	}
+
+
+      if (print /* && t_last+dt < t */)
+	{
+	  fprintf (file,
+		   "%.15f %.15f %.15f\n",
+		   t, y[0], y[1]/* , y[2], y[3] */);
+	  t_last+=dt;
+	  dt*=PRINT_DT_RATIO;
+	}
+      /* printf("%.15f\r",t); */
+    }
+
+  gsl_odeiv_evolve_free (e);
+  gsl_odeiv_control_free (c);
+  gsl_odeiv_step_free (s);
+
+  if (print) {
+    fprintf( file, "\n\n\n" );
+    fclose( file );
+  }
+
+  return /* (y[0]-PI/2.)*y[1] */ y[0];
+}
+
+double
+fevol_harmonic_eigenproblem (double bisec_param, int print, char * filename, void * p)
+{
+  const gsl_odeiv_step_type * T
+    = STEPPER;
+
+  FILE * file = NULL;
+
+  gsl_odeiv_step * s
+    = gsl_odeiv_step_alloc (T, 4);
+  gsl_odeiv_control * c
+    = gsl_odeiv_control_y_new (STEPPER_ERROR, 0.0);
+  gsl_odeiv_evolve * e
+    = gsl_odeiv_evolve_alloc (4);
+
+  double dt=PRINT_DT, t_last=0.;
+
+  gsl_odeiv_system sys = {func_static_harmonic_eigenproblem, jac_dummy, 4, (void*)&bisec_param};
+
+  double t = PI/2.;
+  double h = H0;
+  double A = *(double*)p;
+  /* double y[4] = { */
+  /*   A*t*(1.-(k-1)*(A*A-1)/3./(k+2.)*t*t), */
+  /*   A*(1.-2.*(k-1)*(A*A-1)/3./(k+2.)*t), */
+  /*   t, */
+  /*   1. */
+  /* }; */
+  double y[4] = {
+    PI/2.,
+    A,
+    0.,
+    1.
+  };
+
+  if (print){
+    file = fopen(filename, "a");
+    fprintf(file, "# A = %.15f\n# lambda = %.15f\n", A, bisec_param );
+  }
+
+  while (t < PI-1.e-3)
+    {
+      int status =
+	gsl_odeiv_evolve_apply (e, c, s,
+				&sys,
+				&t, T_MAX,
+				&h, y);
+
+      if (status != GSL_SUCCESS)
+	break;
+      /* are we still in the strip [0,pi]?  is the lienarized solution
+	 reasonably boundaed?*/
+      if ( 0. > y[0]
+	   || y[0] > PI
+	   || fabs(y[2]) > 1.e5)
+	break;
+
+      if (print /* && t_last+dt < t */)
+	{
+	  fprintf (file,
+		   "%.15E %.15E %.15E %.15E %.15E\n",
+		   PI-t, y[0], y[1], y[2], y[3]);
+	  t_last+=dt;
+	  dt*=PRINT_DT_RATIO;
+	}
+      /* printf("%.15f %.15f\r",t, y[2]); */
+    }
+
+  gsl_odeiv_evolve_free (e);
+  gsl_odeiv_control_free (c);
+  gsl_odeiv_step_free (s);
+  if (print) {
+    fprintf( file, "\n\n\n" );
+    fclose( file );
+  }
+
+  return y[2];
 }

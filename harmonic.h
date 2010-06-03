@@ -4,6 +4,7 @@
 #include "stdlib.h"
 
 #include "solver/Rk1_ODE_Solver/ODE_solver.h"
+#include "omp.h"
 #include "gsl/gsl_matrix.h"
 #include "gsl/gsl_vector.h"
 #include "gsl/gsl_permutation.h"

@@ -4,7 +4,7 @@
 
 export SHELL = /bin/bash
 export CC = cc
-export CFLAGS = -ansi -pedantic -Wall --std=c99
+export CFLAGS =  -fopenmp -ansi -pedantic -Wall --std=c99
        # -Wpointer-arith -Wcast-qual -Wcast-align\
        # -Wwrite-strings -Wnested-externs\
        # -fshort-enums -fno-common

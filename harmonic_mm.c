@@ -11,9 +11,9 @@ int main ( void )
 {
   ODE_solver * s;
   int M = 10, K = 0, i;
-  int N = 30/* 2*(M+K)+1 */;
-  H_DOUBLE T =1.e10;
-  H_DOUBLE x0 = 0., x1 = 10., x;
+  int N = 300/* 2*(M+K)+1 */;
+  H_DOUBLE T =5.;
+  H_DOUBLE x0 = 0., x1 = PI/2., x;
   H_DOUBLE t_error = 1.e-15;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
@@ -54,16 +54,16 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  ODE_modules_add ( s, ODE_module_plot_init( 10. ) );
+  /* ODE_modules_add ( s, ODE_module_plot_init( .001 ) ); */
   /* modul do drukowania w konsoli czasu symulacji */
   ODE_modules_add ( s, ODE_module_print_time_init ( .001 ) );
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
      informacji dot. funkcji, w kolejnosci sa to:
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
-  ODE_modules_add ( s, ODE_module_info_1_init( 1., N ) );
+  ODE_modules_add ( s, ODE_module_info_1_init( .01, N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
-  ODE_modules_add ( s, ODE_module_snapshot_init( 10. ));
-  /* ODE_modules_add ( s, ODE_module_bisection_1_init( 1. )); */
+  ODE_modules_add ( s, ODE_module_snapshot_init( 0.01 ));
+  /* ODE_modules_add ( s, ODE_module_bisection_3_init( .001 )); */
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 
   /* inicjalizacja danych poczatkowych */
@@ -106,20 +106,21 @@ int main ( void )
 
   /* x=x0+(x1-x0)/(N-1.); */
 
-  A=.88;
-  A1=pow(.01,N/(double)(N-1))/pow(x1,1./((double)(N-1)));
-  B1=log(.01/A1);
+  A=1.24568469439604978533;
+  /* A=1.; */
 
-  for ( i = 1; i < N; i++ ) {
-    x=A1*exp(B1*i);
+  for ( i = 0; i < N; i++ ) {
+    x=i*(x1-x0)/(N-1);
     s->state->f[i+1+N]=x;
     /* s->state->f[i+1]=x/x1*PI+sin(x/x1*PI); */
-    s->state->f[i+1]=atan(A*x)*2;
+    s->state->f[i+1]=x+A*sin(2.*x);
     /* x += (x1-x0)/(N-1); */
   }
   s->state->f[0]=0.;
 
-  /* bisec(.8,1.,10.e-10,0., */
+  ODE_solve ( s );
+
+  /* bisec(1.2454,1.246,10.e-15,0., */
   /* 	bisection_wrapper,(void*)s); */
 
   /* file = fopen ( "test.dat", "w" ); */
@@ -130,7 +131,6 @@ int main ( void )
 
   /* ponizsza funkcja pcha wartosci poczatkowe w czasie i uruchamia
      poszczegolne moduly */
-  ODE_solve ( s );
 
   /* uwolnienie zaalokowanej pamieci */
   ODE_solver_free( s );
@@ -165,25 +165,9 @@ void ODE_set ( void * solver,
   H_DOUBLE dt = *(s->state->dt);
 
   /* definicje zmiennych pomocniczych */
-  epsilon = 5.e-3;
-  de = 1./(N-1);
-  M_calc( ui, xi, m, N );
+  gt=1.;
 
-  gt = g( y, N );
-    /* gt = .01; */
-
-  assert(!isnan(gt));
-  assert(!isnan(y[0]));
-
-  du0=D1(ui,xi,0,N);
-
-  if( dt*gt < 1.e-15 && du > 1.e3 )
-    {
-      /* printf("STOP: gt < 1.e-15\n"); */
-      /* s->state->status = SOLVER_STATUS_STOP; */
-    }
-
-
+#pragma omp parallel for
   for ( i = 1; i < N-1; i++) {
     u=ui[i];
     x=xi[i];
@@ -191,39 +175,13 @@ void ODE_set ( void * solver,
     du=D1(ui,xi,i,N);
     ddu=D2(ui,xi,i,N);
 
-    assert(!isnan(du));
-    assert(!isnan(ddu));
-
-    /* prawa strona rownania macierzowego */
-    Mxi=((m[i+1]+m[i])*(xi[i+1]-xi[i])-(m[i]+m[i-1])*(xi[i]-xi[i-1]))/2./de/de;
-    /* assert(!isnan(Mxi)); */
-    /* Mxi=0.; */
-    /* if ( 1./du0 > epsilon ) */
-    /*   epsilon=1./du0; */
-      /* Mxi=0.; */
-
-    gsl_vector_set(fu, i,
-  		   gt*(ddu+((k-1.)/x)*du-(k-1.)/2.*sin(2.*u)/x/x)
-		   /* gt*(ddu+((k-1.)/x-x/2.+1./(x1-x))*(du+u/(x1-x))-(x1-x)*(k-1.)/2.*sin(2.*u/(x1-x))/x/x) */
-		   );
-    gsl_vector_set(ftmp, i,
-  		   gt/epsilon*Mxi);
-    gsl_matrix_set(C, i, i, -du);
-
-    /* warunek na zatrzymanie ewolucji */
+    f[i+1]=ddu+((k-1.)/tan(x))*du-(k-1.)/2.*sin(2.*u)/sin(x)/sin(x);
+    /* f[i+1]=ddu+((k-1.)/tan(x))*du+2.*(k-1)/tan(u)/sin(u)/sin(u)/sin(x)/sin(x); */
+    f[i+N+1]=0.;
   }
-
-  /* wymnozenie prawej strony rownania macierzowego przez odwrotnosc
-     macierzy */
-  gsl_blas_dsymv (CblasUpper, -1., D_inv, ftmp, 0., fx); /* D = -d2/de2 */
-  gsl_blas_dgemv (CblasNoTrans, -1., C, fx, 1., fu);	/* C = -du/dx */
 
   /* przepisanie wynikow do tablicy pochodnej czasowej */
 
-  for ( i = 1; i < N-1; i++) {
-    f[i+1]=gsl_vector_get(fu,i);
-    f[i+N+1]=gsl_vector_get(fx,i);
-  }
   f[0]=gt;
 
   /* warunki brzegowe */
@@ -343,28 +301,23 @@ double bisection_wrapper(double A, void * p)
   int i, N = (s->params->Nx-1)/2;
 
   s->state->f[0]=0.;
+  /* s->state->t[0]=0.; */
   s->state->f[1+N]=0.;
   s->state->f[1]=0.;
 
-  x=x0+(x1-x0)/(N-1.);
-
-  A1=pow(.01,N/(double)(N-1))/pow(x1,1./((double)(N-1)));
-  B1=log(.01/A1);
-
-  for ( i = 1; i < N; i++ ) {
-    x=A1*exp(B1*i);
+  for ( i = 0; i < N; i++ ) {
+    x=i*(x1-x0)/(N-1);
     s->state->f[i+1+N]=x;
-    /* s->state->f[i+1]=x/x1*PI+sin(x/x1*PI); */
-    s->state->f[i+1]=atan(A*x)*2./* /atan(A*x1) */*(x1-x);
-    /* x += (x1-x0)/(N-1); */
+    s->state->f[i+1]=x+A*sin(2.*x);
   }
-  s->state->f[0]=0.;
 
   s->state->status = SOLVER_STATUS_OK;
 
   ODE_solve(s);
 
-  return ((bisection_1_module_data*)m->data)->result;
+  printf("T_max = %.15f\n",s->state->t[0]);
+
+  return ((bisection_3_module_data*)m->data)->result;
 }
 
 

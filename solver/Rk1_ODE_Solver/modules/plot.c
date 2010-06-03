@@ -159,10 +159,8 @@ void plot_step ( void * solver, void * module )
   for(i = 0; i < N; i++)
     {
       x=s->state->f[1+N+i];
-      s->params->Dtemp[0][0][i]=s->state->f[i+1]
-	/*/(x1-x)*/ /* _D2(s->state->f+1, s->state->f+1+N,i,N) */
-	;
-      s->params->Dtemp[0][1][i]=tan(x);
+      s->params->Dtemp[0][0][i]=s->state->f[i+1];
+      s->params->Dtemp[0][1][i]=x;
     }
 
 
@@ -178,7 +176,7 @@ void plot_step ( void * solver, void * module )
   gnuplot_plot_xy( plotter,
   		   s->params->Dtemp[0][1],
   		   s->params->Dtemp[0][0],
-  		   N-1,
+  		   N,
   		   title );
   /* gnuplot_plot_x( plotter, */
   /* 		  s->state->f+1+N, */
@@ -211,7 +209,7 @@ ODE_module * ODE_module_plot_init ( H_DOUBLE dt )
 
   data->plotter = gnuplot_init();
   gnuplot_setstyle( data->plotter, "linespoints" );
-  gnuplot_cmd( data->plotter, "set logscale x;set xrange [1.e-8:]\n" );
+  /* gnuplot_cmd( data->plotter, "set yrange [.0:pi]\n" ); */
 
   plot_module->data = data;
 

@@ -9,15 +9,17 @@
 
 #define PI		3.14159265358979323846	/* pi */
 
+
 #define STEPPER gsl_odeiv_step_rkf45
-#define STEPPER_ERROR 1.e-15
+#define STEPPER_ERROR 1.e-12
 #define T_MAX 100.
 #define PRINT_DT 1.e-4
 #define PRINT_DT_RATIO 1.3
 #define T0 1.e-10
-#define H0 1.e-14
+#define H0 1.e-15
 #define RIPPER_BISEC_EPSILON 1.e-15
-#define HARVESTER_DATA_DIR "harvester_data/"
+#define HARVESTER_DATA_DIR "harvester_data_harmonic/"
+#define PROFILE_FILE_PREFIX "harmonic"
 #define HARVESTER_DEFAULT_EXTENSION "_k%.5f_l%.1f.dat"
 #define HARVESTER_DEFAULT_EIGEN_EXTENSION "_k%.5f_l%.1f_i%i.dat"
 
@@ -92,10 +94,22 @@ fevol_shrinker_eigenproblem (double lambda, int print, char * filename, void * A
 void
 solve_shrinker_eigenproblem (double A, int index, int eigenval_number);
 
+void
+solve_eigenproblem
+(double A,
+ int index,
+ int eigenval_number,
+ double (*fevol_eigenproblem)(double, int, char *, void *));
+
+
 /* function below is used to print the profile of a shrinker to
    apropriate file */
 void
 print_shrinker_profile( double A );
+
+void
+print_profile( double A,
+	       double (*fevol)(double, int, char *, void *));
 
 int
 func_expander (double t, const double y[], double f[],
@@ -111,6 +125,24 @@ func_static (double t, const double y[], double f[],
 /* L is the length of the interval the function is calculated on */
 double
 fevol_static (double L, int print, char * filename, void * p);
+
+int
+func_static_harmonic (double t, const double y[], double f[],
+		      void *params);
+
+int
+func_static_harmonic_eigenproblem
+(double t,
+ const double y[],
+ double f[],
+ void *params);
+
+double
+fevol_static_harmonic (double L, int print, char * filename, void * p);
+
+double
+fevol_harmonic_eigenproblem (double bisec_param, int print, char * filename, void * p);
+
 
 
 
