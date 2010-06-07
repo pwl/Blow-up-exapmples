@@ -792,21 +792,22 @@ fevol_harmonic_eigenproblem (double bisec_param, int print, char * filename, voi
 
   gsl_odeiv_system sys = {func_static_harmonic_eigenproblem, jac_dummy, 4, (void*)&bisec_param};
 
-  double t = PI/2.;
+  double t = T0;
   double h = H0;
   double A = *(double*)p;
-  /* double y[4] = { */
-  /*   A*t*(1.-(k-1)*(A*A-1)/3./(k+2.)*t*t), */
-  /*   A*(1.-2.*(k-1)*(A*A-1)/3./(k+2.)*t), */
-  /*   t, */
-  /*   1. */
-  /* }; */
   double y[4] = {
-    PI/2.,
-    A,
-    0.,
+    A*t*(1.-(k-1)*(A*A-1)/3./(k+2.)*t*t),
+    A*(1.-2.*(k-1)*(A*A-1)/3./(k+2.)*t),
+    t,
     1.
   };
+  /* double y[4] = { */
+  /*   A, */
+  /*   0., */
+  /*   1., */
+  /*   0. */
+
+  /* }; */
 
   if (print){
     file = fopen(filename, "a");
@@ -834,7 +835,7 @@ fevol_harmonic_eigenproblem (double bisec_param, int print, char * filename, voi
 	{
 	  fprintf (file,
 		   "%.15E %.15E %.15E %.15E %.15E\n",
-		   PI-t, y[0], y[1], y[2], y[3]);
+		   t, y[0], y[1], y[2], y[3]);
 	  t_last+=dt;
 	  dt*=PRINT_DT_RATIO;
 	}

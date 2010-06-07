@@ -3,8 +3,10 @@
 # set xrange [1.e-2:8]
 # set logscale x 10
 # set logscale y 10
-set term epslatex # size 3,3
-set output "graphics/Harmonic_static_to_multiplot.tex"
+# set term postscript enhanced color
+set term epslatex
+set output "graphics/snapshot_f3.tex"
+# set size 2.,3.
 # set key bottom left
 
 # set xlabel "y"

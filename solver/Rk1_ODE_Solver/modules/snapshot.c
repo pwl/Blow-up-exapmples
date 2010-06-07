@@ -32,7 +32,7 @@ void snapshot_step ( void * solver, void * module )
       /* fprintf(f,"%f %f\n",s->params->basis->collocation_points[i],s->state->f[i]); */
       fprintf
 	(file,"%.15G %.15G %.15G %.15G\n",
-	 x[i], u[i], D1(u,x,i,N), s->state->df[1+i]/(s->state->df[N-1]/(x[N-2]-PI/2.)));
+	 x[i], u[i], D1(u,x,i,N), s->state->df[1+i]/(s->state->df[2]/(x[1])));
     }
 
   fclose(file);

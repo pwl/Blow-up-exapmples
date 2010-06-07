@@ -5,7 +5,7 @@
 # set logscale y 10
 set term postscript enhanced color
 set term epslatex
-set output "graphics/snapshot_to_multiplot.tex"
+set output "graphics/snapshot_f3.tex"
 # set size 2.,3.
 # set key bottom left
 

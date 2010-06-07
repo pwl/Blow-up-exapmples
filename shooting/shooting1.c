@@ -51,7 +51,7 @@ main (void)
   	      1.e10,
   	      3.,
   	      RIPPER_EXP,
-  	      10,
+  	      3,
   	      results,
   	      0.,
   	      fevol_static_harmonic,
@@ -68,10 +68,11 @@ main (void)
   	    {
   	      print_profile( results[i], fevol_static_harmonic );
 
-  	      /* solve_eigenproblem(results[i], i+1, i+1, fevol_harmonic_eigenproblem); */
+  	      solve_eigenproblem(results[i], i+1, i+2, fevol_harmonic_eigenproblem);
   	    }
   	}
     }
+
 
 
   return 0;
