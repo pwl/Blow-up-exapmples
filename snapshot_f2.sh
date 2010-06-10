@@ -7,7 +7,7 @@ mcols=3
 mtot=$((mcols*mrows))
 # snapshot_files=$(find $snapshot_dir -name "$snapshot_name")
 snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
-    sort -n -t'_' -k2 | awk '(NR-1) % 145 == 0'| head -n$mtot)
+    sort -n -t'_' -k3 | awk '(NR-1) % 145 == 0'| head -n$mtot)
 blowup_file1="harvester_data_harmonic/eigen_k3.00000_l1.0_i2.dat"
 blowup_file2="harvester_data_harmonic/eigen_k3.00000_l1.0_i2.dat"
 startx=0.1
@@ -101,8 +101,6 @@ for snap in $snapshot_files; do
 	echo "set ytics (\"\\\$\\\pi/2\\\$\" pi/2)" >> plotter.gp
 	echo "set grid" >> plotter.gp
     fi
-
-
 
     echo "plot [0:pi] [0:pi] \"$snap\" w l lt 1" >> plotter.gp
     # echo "\"\" u (pi-\$1):(pi-\$2) w l lt 1" >> plotter.gp

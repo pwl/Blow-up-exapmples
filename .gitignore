@@ -3,6 +3,7 @@ movie/*
 *.avi
 *.png
 *.tgz
+*.tex
 filelist.txt
 bisection.dat
 TAGS
@@ -16,5 +17,7 @@ gnuplot*
 plotter.gp
 *.ps
 *.pdf
+shooting1
 shooting2
+harmonic_ys_bisection
 *.log
