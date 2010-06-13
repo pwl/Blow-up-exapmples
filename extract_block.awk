@@ -26,5 +26,9 @@ empty == 0 && b == block {
     print
 }
 
+b>block {
+    exit
+}
+
 END {
 }

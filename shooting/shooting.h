@@ -7,31 +7,31 @@
 #include <gsl/gsl_odeiv.h>
 #include <math.h>
 
-#define PI		3.14159265358979323846	/* pi */
+#define PI					3.14159265358979323846	/* pi */
 
 
-#define STEPPER gsl_odeiv_step_rkf45
-#define STEPPER_ERROR 1.e-12
-#define T_MAX 100.
-#define PRINT_DT 1.e-4
-#define PRINT_DT_RATIO 1.3
-#define T0 1.e-10
-#define H0 1.e-15
-#define RIPPER_BISEC_EPSILON 1.e-15
-#define HARVESTER_DATA_DIR "harvester_data_harmonic/"
-#define PROFILE_FILE_PREFIX "harmonic"
-#define HARVESTER_DEFAULT_EXTENSION "_k%.5f_l%.1f.dat"
-#define HARVESTER_DEFAULT_EIGEN_EXTENSION "_k%.5f_l%.1f_i%i.dat"
+#define STEPPER					gsl_odeiv_step_rkf45
+#define STEPPER_ERROR				1.e-15
+#define T_MAX					100.
+#define PRINT_DT				1.e-10
+#define PRINT_DT_RATIO				1.01
+#define T0					1.e-6
+#define H0					1.e-10
+#define RIPPER_BISEC_EPSILON			1.e-15
+#define HARVESTER_DATA_DIR			"harvester_data/"
+#define PROFILE_FILE_PREFIX			"shrinker"
+#define HARVESTER_DEFAULT_EXTENSION		"_k%.5f_l%.1f.dat"
+#define HARVESTER_DEFAULT_EIGEN_EXTENSION	"_k%.5f_l%.1f_i%i.dat"
 
-#define RIPPER_LINEAR 0x00
-#define RIPPER_DENSE1 0x01
-#define RIPPER_EXP 0x02
+#define RIPPER_LINEAR	0x00
+#define RIPPER_DENSE1	0x01
+#define RIPPER_EXP	0x02
 
-#define CYAN1 "\x1b[0;36m"
-#define RED1 "\x1b[1;31m"
-#define GREEN1 "\x1b[1;32m"
-#define BOLD1 "\x1b[1m"
-#define FORMAT_OFF "\x1b[0m"
+#define CYAN1		"\x1b[0;36m"
+#define RED1		"\x1b[1;31m"
+#define GREEN1		"\x1b[1;32m"
+#define BOLD1		"\x1b[1m"
+#define FORMAT_OFF	"\x1b[0m"
 
 /* forward declaration of dimension */
 double k;

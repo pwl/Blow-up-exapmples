@@ -1,7 +1,8 @@
 #!/bin/bash
 
 shrinker_file=$1
-blocks=$(awk -f block.awk $shrinker_file)
+
+blocks=$(grep -c 'A = ' $1)
 asymptotics="Shrinker_asymptotics.dat"
 exp_asymptotics="Expander_asymptotics.dat"
 tempfile="Shrinker_asymptotics.tmp"
@@ -10,7 +11,7 @@ plot="plot"
 
 echo "" > test.dat
 
-echo "" > $asymptotics
+rm -f $asymptotics
 echo "blocks = $blocks"
 
 for i in $(seq 1 $blocks); do
@@ -42,3 +43,9 @@ echo "set grid ytics noxtics"
 echo "$plot" >> plotter.gp
 
 ./Shrinker_asymptotics.gp
+
+rm $tempfile
+
+./an_bn_theoretical.awk Shrinker_asymptotics.dat > an_bn_theoretical.dat
+./an_bn_theoretical.awk Shrinker_asymptotics.dat| ./table_to_latex.awk > an_bn_theoretical.tex
+

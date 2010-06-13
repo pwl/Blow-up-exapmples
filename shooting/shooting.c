@@ -194,7 +194,7 @@ bisec(double A0,
 
   while( 2.*(A1-A0)/fabs(A1+A0) > e) /* relative error measure */
     {
-      printf( "%03i, A=%.20f, delta/A=%.1E\r",
+      printf( "%03i, A=%.20G, delta/A=%.1G\r",
 	      i++, .5*(A0+A1), 2.*(A1-A0)/(A0+A1) );
 
       f = fevol(.5*(A0+A1),0, "", param) - val;
@@ -289,7 +289,7 @@ harvester(
 	    bisec( cursor_last, cursor, epsilon, val, fevol, param );
 
 	  results_collected++;
-	  printf(CYAN1 "collected result " BOLD1 "%.15f" FORMAT_OFF CYAN1 ", %i results in total\n" FORMAT_OFF,
+	  printf(CYAN1 "collected result " BOLD1 "%.15G" FORMAT_OFF CYAN1 ", %i results in total\n" FORMAT_OFF,
 		 results[results_collected-1], results_collected);
 
 	  value_last = value;
@@ -313,7 +313,8 @@ func_shrinker (double t, const double y[], double f[],
 	       void *params)
 {
   f[0] = y[1];
-  f[1] = sin(2.*y[0])*l*(l+k-2.)/2./t/t-((k-1.)/t-t/2.)*y[1];
+  f[1] = (sin(2.*y[0])*l*(l+k-2.)/2./t-(k-1.)*y[1])/t+t/2.*y[1];
+  /* f[1] = sin(2.*y[0])*l*(l+k-2.)/2./t/t-((k-1.)/t-t/2.)*y[1]; */
   return GSL_SUCCESS;
 }
 
@@ -328,15 +329,15 @@ fevol_shrinker (double bisec_param, int print, char * filename, void * p)
   gsl_odeiv_step * s
     = gsl_odeiv_step_alloc (T, 2);
   gsl_odeiv_control * c
-    = gsl_odeiv_control_y_new (STEPPER_ERROR, 0.0);
+    = gsl_odeiv_control_y_new (STEPPER_ERROR, STEPPER_ERROR);
   gsl_odeiv_evolve * e
     = gsl_odeiv_evolve_alloc (2);
 
-  double dt=PRINT_DT, t_last=0.;
+  double dt=T0/bisec_param/* PRINT_DT */, t_last=0.;
 
   gsl_odeiv_system sys = {func_shrinker, jac_dummy, 2, p};
 
-  double t = T0;
+  double t = T0/bisec_param;
   double h = H0;
   double A = bisec_param;
   double y[2] = {
@@ -365,7 +366,7 @@ fevol_shrinker (double bisec_param, int print, char * filename, void * p)
 
   if (print){
     file = fopen(filename, "a");
-    fprintf(file, "# A = %.15f\n", bisec_param );
+    fprintf(file, "# A = %.15G\n", bisec_param );
   }
 
   while (t < T_MAX)
@@ -382,10 +383,10 @@ fevol_shrinker (double bisec_param, int print, char * filename, void * p)
       if ( 0. > y[0] || y[0] > 3.15 )
 	break;
 
-      if (print /* && t_last+dt < t */)
+      if (print && t_last+dt < t)
 	{
 	  fprintf (file,
-		   "%.15f %.15f %.15f\n",
+		   "%.15G %.15G %.15G\n",
 		   t, y[0], y[1]/* , y[2], y[3] */);
 	  t_last+=dt;
 	  dt*=PRINT_DT_RATIO;
