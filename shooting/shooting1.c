@@ -46,7 +46,7 @@ main (void)
   	      1.e100,
   	      3.,
   	      RIPPER_EXP,
-  	      20,
+  	      12,
   	      results,
   	      0.,
   	      fevol_shrinker,

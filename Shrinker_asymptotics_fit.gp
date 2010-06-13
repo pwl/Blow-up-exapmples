@@ -15,8 +15,8 @@ fit [8:9] f(x) data via b
 
 # plot [2:] data u 1:(abs($2-f($1))) w l
 
-set print "Shrinker_asymptotics.dat" append
-print b
+# set print "Shrinker_asymptotics.dat" append
+# print b
 set print "-"
 print b
 exit

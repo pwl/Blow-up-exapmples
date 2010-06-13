@@ -7,9 +7,9 @@ BEGIN {
 }
 
 # ignore comment lines and empty lines
-/#/ {
-    next
-}
+# /#/ {
+#     next
+# }
 
 # if line is empty increment block
 /^$/ && empty == 0{

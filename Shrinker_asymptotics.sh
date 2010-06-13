@@ -18,14 +18,17 @@ for i in $(seq 1 $blocks); do
     echo "Extracting block $i/$blocks"
     awk -v "block=$i" -f extract_block.awk $shrinker_file > $tempfile
     echo "Fitting data"
-    echo -ne "$i " >> $asymptotics
-    a=$(./Shrinker_asymptotics_fit.gp)
+    # echo -ne "$i " >> $asymptotics
+    b=$(./Shrinker_asymptotics_fit.gp)
+    a=$(grep 'A' $tempfile |awk '{print $4}')
+    En=$(grep 'En' $tempfile |awk '{print $4}')
+    echo "$i   $a   $b   $En" >> $asymptotics
     if [ 1 -eq $(echo "$i%2"|bc) ]; then
-	bi="a_$i"
-	lt="1"
+    	bi="b_$i"
+    	lt="1"
     else
-	bi="-a_$i"
-	lt="2"
+    	bi="-b_$i"
+    	lt="2"
     fi
     grid="${grid}\"$bi\" abs($a-pi/2),"
     plot="$plot abs($a-pi/2) lt $lt t\"\","
@@ -42,10 +45,9 @@ echo "set ytics ($grid)" >> plotter.gp
 echo "set grid ytics noxtics"
 echo "$plot" >> plotter.gp
 
-./Shrinker_asymptotics.gp
+# ./Shrinker_asymptotics.gp
 
 rm $tempfile
 
-./an_bn_theoretical.awk Shrinker_asymptotics.dat > an_bn_theoretical.dat
-./an_bn_theoretical.awk Shrinker_asymptotics.dat| ./table_to_latex.awk > an_bn_theoretical.tex
-
+# ./an_bn_theoretical.awk Shrinker_asymptotics.dat > an_bn_theoretical.dat
+# ./an_bn_theoretical.awk Shrinker_asymptotics.dat| ./table_to_latex.awk > an_bn_theoretical.tex

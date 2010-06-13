@@ -337,6 +337,7 @@ fevol_shrinker (double bisec_param, int print, char * filename, void * p)
 
   gsl_odeiv_system sys = {func_shrinker, jac_dummy, 2, p};
 
+  double En= 0.;
   double t = T0/bisec_param;
   double h = H0;
   double A = bisec_param;
@@ -383,13 +384,18 @@ fevol_shrinker (double bisec_param, int print, char * filename, void * p)
       if ( 0. > y[0] || y[0] > 3.15 )
 	break;
 
-      if (print && t_last+dt < t)
+
+      if (print)
 	{
-	  fprintf (file,
-		   "%.15G %.15G %.15G\n",
-		   t, y[0], y[1]/* , y[2], y[3] */);
-	  t_last+=dt;
-	  dt*=PRINT_DT_RATIO;
+	  En+=h*(y[1]*y[1]/2.+(k-1.)*sin(y[0])*sin(y[0])/t/t)*exp(-t*t/4.)*pow(t,k-1)/2.;
+	  if (t > t_last )
+	    {
+	      fprintf (file,
+		       "%.15G %.15G %.15G\n",
+		       t, y[0], y[1]/* , y[2], y[3] */);
+	      t_last+=dt;
+	      dt*=PRINT_DT_RATIO;
+	    }
 	}
       /* printf("%.15f\r",t); */
     }
@@ -399,7 +405,7 @@ fevol_shrinker (double bisec_param, int print, char * filename, void * p)
   gsl_odeiv_step_free (s);
 
   if (print) {
-    fprintf( file, "\n\n\n" );
+    fprintf( file, "# En = %.15G\n\n\n\n", En );
     fclose( file );
   }
 
