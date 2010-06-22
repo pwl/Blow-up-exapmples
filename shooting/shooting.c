@@ -413,6 +413,109 @@ fevol_shrinker (double bisec_param, int print, char * filename, void * p)
 }
 
 int
+func_shrinker_reverse (double t, const double y[], double f[],
+	       void *params)
+{
+  f[0] = y[1];
+  f[1] = (k-1)/2.*sin(2*y[0])+(k-2.-.5*exp(-2*t))*f[0];
+  /* f[1] = sin(2.*y[0])*l*(l+k-2.)/2./t/t-((k-1.)/t-t/2.)*y[1]; */
+  return GSL_SUCCESS;
+}
+
+double
+fevol_shrinker_reverse (double bisec_param, int print, char * filename, void * p)
+{
+  const gsl_odeiv_step_type * T
+    = STEPPER;
+
+  FILE * file = NULL;
+
+  gsl_odeiv_step * s
+    = gsl_odeiv_step_alloc (T, 2);
+  gsl_odeiv_control * c
+    = gsl_odeiv_control_y_new (STEPPER_ERROR, STEPPER_ERROR);
+  gsl_odeiv_evolve * e
+    = gsl_odeiv_evolve_alloc (2);
+
+
+  gsl_odeiv_system sys = {func_shrinker_reverse, jac_dummy, 2, p};
+
+  /* double En= 0.; */
+  double t = T0;
+  double h = H0;
+  double A = bisec_param;
+  double y[2] = {
+    PI/2.+A-(k-1)/2.*sin(2*A)*exp(2.*t),
+    -(k-1)*sin(2*A)*exp(2.*t)
+  };
+  double dt=.01/* PRINT_DT */, t_last=t;
+
+  if (print){
+    file = fopen(filename, "a");
+    fprintf(file, "# A = %.15G\n", bisec_param );
+  }
+
+  while ( t < T_MAX )
+    {
+      int status =
+	gsl_odeiv_evolve_apply (e, c, s,
+				&sys,
+				&t, T_MAX,
+				&h, y);
+
+      if (status != GSL_SUCCESS)
+	break;
+      /* are we still in the strip [0,pi]? */
+      if ( y[0] > PI || y[0] < 0. )
+      	break;
+
+      if (print)
+	{
+	  /* En+=h*(y[1]*y[1]/2.+(k-1.)*sin(y[0])*sin(y[0])/t/t)*exp(-t*t/4.)*pow(t,k-1)/2.; */
+	  if (t > t_last )
+	    {
+	      fprintf (file,
+		       "%.15G %.15G %.15G\n",
+		       -t, y[0], y[1]/* , y[2], y[3] */);
+	      t_last+=dt;
+	      /* dt*=PRINT_DT_RATIO; */
+	    }
+	}
+      /* printf("%.15f\r",t); */
+    }
+
+  gsl_odeiv_evolve_free (e);
+  gsl_odeiv_control_free (c);
+  gsl_odeiv_step_free (s);
+
+  if (print) {
+    fprintf( file, "\n\n\n");
+    fclose( file );
+  }
+
+  return y[0];
+}
+
+double
+expander_asymptotics( double A, int printf, char * filename, void * p )
+{
+  return d1_f(expander_asymptotics_wrapper,A,A*H0)*pow(A,k/2.);
+}
+
+double
+expander_asymptotics_wrapper(double A)
+{
+  return fevol_expander(A,0,NULL,NULL);
+}
+
+double
+d1_f( double(*f)(double x), double x, double h )
+{
+  return (f(x+h)-f(x-h))/2./h;
+}
+
+
+int
 func_shrinker_eigenproblem (double t, const double y[], double f[],
 			    void *params)
 {
@@ -520,7 +623,7 @@ func_expander (double t, const double y[], double f[],
 	       void *params)
 {
   f[0] = y[1];
-  f[1] = sin(2.*y[0])*l*(l+k-2.)/2./t/t-((k-1.)/t+t/2.)*y[1];
+  f[1] = -sin(2.*y[0])*l*(l+k-2.)/2./t/t-((k-1.)/t+t/2.)*y[1];
   return GSL_SUCCESS;
 }
 
@@ -535,7 +638,7 @@ fevol_expander (double bisec_param, int print, char * filename, void * p)
   gsl_odeiv_step * s
     = gsl_odeiv_step_alloc (T, 2);
   gsl_odeiv_control * c
-    = gsl_odeiv_control_y_new (STEPPER_ERROR, 0.0);
+    = gsl_odeiv_control_y_new (STEPPER_ERROR, STEPPER_ERROR);
   gsl_odeiv_evolve * e
     = gsl_odeiv_evolve_alloc (2);
 
@@ -543,11 +646,11 @@ fevol_expander (double bisec_param, int print, char * filename, void * p)
 
   gsl_odeiv_system sys = {func_expander, jac_dummy, 2, p};
 
-  double t = T0;
+  double t = T0/bisec_param;
   double h = H0;
   double A = bisec_param;
   double y[2] = {
-    (A*(384 + l*pow(k + 2*l,-1)*pow(2 + k + 2*l,-1)*pow(4 + k + 2*l,-1)*
+    -PI/2.+(A*(384 + l*pow(k + 2*l,-1)*pow(2 + k + 2*l,-1)*pow(4 + k + 2*l,-1)*
 	pow(t,2)*(-96*(2 + k + 2*l)*(4 + k + 2*l) +
 		  12*(2 + l)*(4 + k + 2*l)*pow(t,2) - (2 + l)*(4 + l)*pow(t,4)))*
      pow(t,l))/384.,
@@ -574,7 +677,7 @@ fevol_expander (double bisec_param, int print, char * filename, void * p)
       if (status != GSL_SUCCESS)
 	break;
       /* are we still in the strip [0,pi]? */
-      if ( 0. > y[0] || y[0] > 3.15 )
+      if ( y[0] < -PI/2. || y[0] > PI/2. )
 	break;
 
       if (print /* && t_last+dt < t */)

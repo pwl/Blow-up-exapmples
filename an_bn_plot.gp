@@ -23,7 +23,7 @@ set output "graphics/an_bn_plot.tex"
 # set multiplot
 
 set xlabel '$a_n$'
-set ylabel '$b_n$' offset screen .1
+set ylabel '$\lvert b_n\rvert$' offset screen .1
 set trange [.1:15]
 set xrange [.1:1.e14]
 set yrange [1.e-7:10.]
