@@ -26,6 +26,7 @@ main (void)
       for( k = 3.; k <= 3.; k+=1. )
   	{
 	  /* sprintf(common_file_name,"Expander_asymptotics_k%.2f.dat", k); */
+	  /* sprintf(common_file_name,"test.dat"); */
 	  /* eigenfile = fopen(common_file_name, "w"); */
 	  /* printf( "k=%.2f\n",k); */
 
@@ -61,11 +62,11 @@ main (void)
   	  /*     NULL ); */
 
 	  results_collected = harvester
-  	    ( .001,
-  	      1.e5,
+  	    ( 1.,
+  	      1.e10,
   	      3.,
   	      RIPPER_EXP,
-  	      1,
+  	      7,
   	      results,
   	      0.,/* -0.57314113304, */
   	      fevol_shrinker,
@@ -76,7 +77,7 @@ main (void)
   	      HARVESTER_DATA_DIR PROFILE_FILE_PREFIX HARVESTER_DEFAULT_EXTENSION,
   	      k, l);
 
-  	  fclose(fopen( shrinkerfile_name, "w" ));
+	  /* fclose(fopen( shrinkerfile_name, "w" )); */
 
 	  for (i = 0; i < results_collected; ++i)
   	    {
@@ -87,9 +88,8 @@ main (void)
 	      /* 	      k, l, i, pow(-1,i)*results[i] ); */
 	      /* fprintf(common_data,"%.2f  %.2f  %i   %.15G   %.15G\n", */
 	      /* 	      k, l, i, results[i], fevol_shrinker_reverse(results[i],0,NULL,NULL)); */
-
-  	      /* solve_eigenproblem(results[i], i+1, i+2, fevol_shrinker_eigenproblem); */
-  	    }
+  	      /* solve_eigenproblem(results[i], i+1, 10, fevol_shrinker_eigenproblem); */
+	    }
 
 	  /* fclose(common_data); */
 

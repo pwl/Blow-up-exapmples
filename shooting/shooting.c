@@ -17,7 +17,7 @@ solve_shrinker_eigenproblem
   eigen_results_collected = harvester
     ( 2.,
       1.e10,
-      10.,
+      2.,
       RIPPER_EXP,
       index-1,
       eigen_results,
@@ -81,8 +81,8 @@ solve_eigenproblem
 
   eigen_results_collected = harvester
     ( 2.,
-      1.e5,
-      2.,
+      1.e100,
+      1.1,
       RIPPER_EXP,
       index-1,
       eigen_results,
@@ -275,8 +275,7 @@ harvester(
       cursor = a+s*(b-a);
       value = fevol( cursor, 0, "", param ) - val;
 
-      /* printf("                              \r"); */
-      /* printf("cursor = %.10E\r", cursor); */
+      printf(/* "                              \r" */ "cursor = %.10G\r", cursor);
 
       /* printf("cursor_last = %.5E, cursor = %.5E, dt = %.5E, s = %.5E\n", cursor_last, cursor, dt, s); */
       if( results_collected >= results_max )
@@ -446,7 +445,7 @@ fevol_shrinker_reverse (double bisec_param, int print, char * filename, void * p
   double A = bisec_param;
   double y[2] = {
     PI/2.+A-(k-1)/2.*sin(2*A)*exp(2.*t),
-    -(k-1)*sin(2*A)*exp(2.*t)
+    (k-1)*sin(2*A)*exp(2.*t)
   };
   double dt=.01/* PRINT_DT */, t_last=t;
 
@@ -496,6 +495,106 @@ fevol_shrinker_reverse (double bisec_param, int print, char * filename, void * p
   return y[0];
 }
 
+int
+func_shrinker_eigenproblem_reverse
+(double t,
+ const double y[],
+ double f[],
+ void *params)
+{
+  double lambda = *(double*)params;
+  f[0] = y[1];
+  f[1] = (k-1)/2.*sin(2*y[0])+(k-2.-.5*exp(-2*t))*y[1];
+  f[2] = y[3];
+  f[3] = ((k-1)*cos(2*y[0])+lambda*exp(-2.*t))*y[2]+(k-2.-.5*exp(-2*t))*y[3];
+  return GSL_SUCCESS;
+}
+
+double
+fevol_shrinker_eigenproblem_reverse
+(double lbd,
+ int print,
+ char * filename,
+ void * p)
+{
+  const gsl_odeiv_step_type * T
+    = STEPPER;
+
+  FILE * file = NULL;
+
+  gsl_odeiv_step * s
+    = gsl_odeiv_step_alloc (T, 4);
+  gsl_odeiv_control * c
+    = gsl_odeiv_control_y_new (STEPPER_ERROR, STEPPER_ERROR);
+  gsl_odeiv_evolve * e
+    = gsl_odeiv_evolve_alloc (4);
+
+
+  gsl_odeiv_system sys = {func_shrinker_eigenproblem_reverse, jac_dummy, 4, (void*)&lbd};
+
+  /* double En= 0.; */
+  double t = T0;
+  double h = H0;
+  double A = *(double*)p;
+  double y[4] = {
+    PI/2.+A-(k-1)/2.*sin(2*A)*exp(2.*t),
+    (k-1)*sin(2*A)*exp(2.*t),
+    exp(-2.*lbd*t),
+    -2.*lbd*exp(-2.*lbd*t)
+  };
+  double dt=.01/* PRINT_DT */, t_last=t;
+
+  if ( print )
+    {
+      file = fopen(filename, "a");
+      fprintf(file, "# A = %.15G\n", lbd );
+    }
+
+  while ( t < -5. )
+    {
+      int status =
+	gsl_odeiv_evolve_apply (e, c, s,
+				&sys,
+				&t, T_MAX,
+				&h, y);
+
+      if (status != GSL_SUCCESS)
+	break;
+
+      /* are we still in the strip [0,pi]? */
+      if ( y[0] > PI || y[0] < 0. || fabs(y[2]) > 1.e10)
+	{
+	  /* printf("bubel at %.15G\n", t); */
+	  break;
+	}
+
+
+      if (print)
+	{
+	  if ( t > t_last )
+	    {
+	      fprintf (file,
+		       "%.15G %.15G %.15G %.15G %.15G\n",
+		       -t, y[0], y[1], y[2], y[3]);
+	      t_last+=dt;
+	      /* dt*=PRINT_DT_RATIO; */
+	    }
+	}
+      /* printf("%.15f\r",t); */
+    }
+
+  gsl_odeiv_evolve_free (e);
+  gsl_odeiv_control_free (c);
+  gsl_odeiv_step_free (s);
+
+  if (print) {
+    fprintf( file, "\n\n\n");
+    fclose( file );
+  }
+
+  return y[2]/* *y[2]*exp(-(k-1.)*t)*exp(-exp(2.*t)/4.) */;
+}
+
 double
 expander_asymptotics( double A, int printf, char * filename, void * p )
 {
@@ -538,7 +637,7 @@ fevol_shrinker_eigenproblem (double bisec_param, int print, char * filename, voi
   gsl_odeiv_step * s
     = gsl_odeiv_step_alloc (T, 4);
   gsl_odeiv_control * c
-    = gsl_odeiv_control_y_new (STEPPER_ERROR, 0.0);
+    = gsl_odeiv_control_y_new (STEPPER_ERROR, STEPPER_ERROR);
   gsl_odeiv_evolve * e
     = gsl_odeiv_evolve_alloc (4);
 
@@ -579,7 +678,7 @@ fevol_shrinker_eigenproblem (double bisec_param, int print, char * filename, voi
     fprintf(file, "# A = %.15f\n# lambda = %.15f\n", A, bisec_param );
   }
 
-  while (t < T_MAX)
+  while (t < 10.)
     {
       int status =
 	gsl_odeiv_evolve_apply (e, c, s,
@@ -592,8 +691,8 @@ fevol_shrinker_eigenproblem (double bisec_param, int print, char * filename, voi
       /* are we still in the strip [0,pi]?  is the lienarized solution
 	 reasonably boundaed?*/
       if ( 0. > y[0]
-	   || y[0] > 3.15
-	   || fabs(y[2]) > 10. )
+	   || y[0] > PI
+	   || fabs(y[2]) > 1.e10)
 	break;
 
       if (print /* && t_last+dt < t */)
@@ -615,7 +714,7 @@ fevol_shrinker_eigenproblem (double bisec_param, int print, char * filename, voi
     fclose( file );
   }
 
-  return y[2];
+  return y[2]*pow(t,k-1.)*exp(-t*t/4.);
 }
 
 int
@@ -644,7 +743,7 @@ fevol_expander (double bisec_param, int print, char * filename, void * p)
 
   double dt=PRINT_DT, t_last=0.;
 
-  gsl_odeiv_system sys = {func_expander, jac_dummy, 2, p};
+  gsl_odeiv_system sys = {func_expander, jac_dummy, 2, (void*)&bisec_param};
 
   double t = T0/bisec_param;
   double h = H0;

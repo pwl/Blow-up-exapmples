@@ -11,11 +11,11 @@
 
 #define STEPPER					gsl_odeiv_step_rkf45
 #define STEPPER_ERROR				1.e-15
-#define T_MAX					1.e2
+#define T_MAX					1.e10
 #define PRINT_DT				1.e-10
 #define PRINT_DT_RATIO				1.01
 #define T0					1.e-6 /* -7. */
-#define H0					1.e-7
+#define H0					1.e-10
 #define RIPPER_BISEC_EPSILON			1.e-15
 #define HARVESTER_DATA_DIR			"harvester_data/"
 #define PROFILE_FILE_PREFIX			"shrinker"
@@ -156,6 +156,21 @@ expander_asymptotics_wrapper(double A);
 
 double
 d1_f( double(*f)(double x), double x, double  h );
+
+int
+func_shrinker_eigenproblem_reverse
+(double t,
+ const double y[],
+ double f[],
+ void *params);
+
+double
+fevol_shrinker_eigenproblem_reverse
+(double bisec_param,
+ int print,
+ char * filename,
+ void * p);
+
 
 
 #endif /* _SHOOTING_H_ */
