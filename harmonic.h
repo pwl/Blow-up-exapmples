@@ -2,6 +2,7 @@
 #define _HARMONIC_H_
 
 #include "stdlib.h"
+#include "assert.h"
 
 #include "solver/Rk1_ODE_Solver/ODE_solver.h"
 #include "omp.h"
@@ -11,6 +12,7 @@
 #include "gsl/gsl_blas.h"
 #include "gsl/gsl_linalg.h"
 
+#include "mm_distribute_points.h"
 
 void ODE_set ( void * solver,
 	       H_DOUBLE t,
@@ -35,5 +37,6 @@ bisec(double A0,
       double (*fevol)(double, void *),
       void * param);
 
+double mAnalyical (double x);
 
 #endif

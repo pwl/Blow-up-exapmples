@@ -4,7 +4,7 @@
 
 export SHELL = /bin/bash
 export CC = cc
-export CFLAGS =  -fopenmp -ansi -pedantic -Wall --std=c99
+export CFLAGS =  -fopenmp -ansi -pedantic -Wall --std=c99 -Wno-unused
        # -Wpointer-arith -Wcast-qual -Wcast-align\
        # -Wwrite-strings -Wnested-externs\
        # -fshort-enums -fno-common
@@ -27,7 +27,7 @@ RM = /bin/rm -f
 project: $(DIRS)
 
 harmonic: harmonic_mm.o $(DIRS)
-	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_mm.o $(ARCHIVE) -o $@
+	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_mm.o mm_distribute_points.o $(ARCHIVE) -o $@
 
 run:	harmonic
 	$(RM) log/{snapshot,movie}/*
@@ -54,7 +54,10 @@ harmonic_bubbling: harmonic_mm_bubbling.o $(DIRS)
 harmonic_ys_bisection: harmonic_ys_bisection.o $(DIRS)
 	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_ys_bisection.o $(ARCHIVE) -o $@
 
-harmonic_mm.o: harmonic_mm.c harmonic.h
+harmonic_mm.o: harmonic_mm.c harmonic.h mm_distribute_points.o
+	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
+
+mm_distribute_points.o: mm_distribute_points.c mm_distribute_points.h
 	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
 
 harmonic_mm_bubbling.o: harmonic_mm_bubbling.c harmonic.h
