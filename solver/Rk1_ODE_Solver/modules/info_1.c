@@ -32,6 +32,7 @@ void info_1_step ( void * solver, void * module )
   H_DOUBLE g = (s->state->df[0]);
   H_DOUBLE t = f[0];
   H_DOUBLE dx = D1(u,x,0,N);
+  H_DOUBLE ddx = D2(u,x,0,N);
   H_DOUBLE min = 1.;
   H_DOUBLE d2fdtdx = D1(df+1,x,0,N);
   FILE * file;
@@ -39,8 +40,8 @@ void info_1_step ( void * solver, void * module )
 
 
   file = fopen ( data->fileNames[0], "a" );
-  fprintf( file, "%.15E %.15E %.15E %.15E %.15E %.15E %.15E %.15E %.15E\n",
-  	   tau, t, u[1], x[1], dx, g, *dtau, df[2], d2fdtdx );
+  fprintf( file, "%.15G %.15G %.15G %.15G %.15G %.15G %.15G %.15G %.15G %.15G\n",
+  	   tau, t, u[1], x[1], dx, g, *dtau, df[2], d2fdtdx, ddx );
   fclose( file );
 }
 

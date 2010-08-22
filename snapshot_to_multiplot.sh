@@ -9,7 +9,7 @@ mcols=3
 mtot=$((mcols*mrows))
 # snapshot_files=$(find $snapshot_dir -name "$snapshot_name")
 snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
-    sort -n -t'_' -k2 | awk '(NR-1) % 50 == 0'| head -n$mtot)
+    sort -n -t'_' -k2 | awk '(NR-1) % 1000 == 0'| head -n$mtot)
 blowup_file1="harvester_data_harmonic/eigen_k3.00000_l1.0_i1.dat"
 blowup_file2="harvester_data_harmonic/eigen_k3.00000_l1.0_i2.dat"
 startx=0.1
@@ -24,7 +24,8 @@ size_mult=1.
 # exit 0
 
 echo "" > plotter.gp
-echo "set terminal epslatex color size 7,7" >> plotter.gp
+echo "set terminal postscript enhanced color size 7,7" >> plotter.gp
+echo "set output \"graphics/snapshot_to_multiplot.ps\"" >> plotter.gp
 # echo "set size $size_mult,$size_mult" >> plotter.gp
 echo "set multiplot title \"Asymetric modes of \\\$f_3\\\$ and \\\$f_1\\\$\"" >> plotter.gp
 
@@ -80,9 +81,9 @@ for snap in $snapshot_files; do
 
     echo "set title \"\\\$t=$t\\\$\" offset screen .2*$sizex, screen -1.05*$sizey" >> plotter.gp
     # plot the data
-    echo -ne "plot [0:pi/2] [1.e-2:1.e2] \"$snap\" u 1:(abs(\$4)) w l lw 3 lc 1 t\"\"," >> plotter.gp
+    echo -ne "plot [0:pi/2] [1.e-2:1.e2] \"$snap\" u 1:(abs(\$4)) w l lw 3 lc 1 t\"\"\n" >> plotter.gp
     # echo -ne "\"$blowup_file1\" u 1:(abs(\$4)) w l lt 2 t\"\"" >> plotter.gp
-    echo -ne "\"$blowup_file2\" u 1:(abs(\$4)) w l lt 3 t\"\"\n" >> plotter.gp
+    # echo -ne "\"$blowup_file2\" u 1:(abs(\$4)) w l lt 3 t\"\"\n" >> plotter.gp
 
     echo "unset logscale xy" >> plotter.gp
     echo "unset xlabel; unset ylabel; unset tics; unset title; unset label" >> plotter.gp
@@ -113,5 +114,5 @@ done
 echo "unset multiplot" >> plotter.gp
 
 ./snapshot_to_multiplot.gp
-ps2pdf graphics/snapshot_to_multiplot.eps graphics/snapshot_to_multiplot.pdf
-# evince snapshot_to_multiplot.ps
+ps2pdf graphics/snapshot_to_multiplot.ps graphics/snapshot_to_multiplot.pdf
+evince graphics/snapshot_to_multiplot.ps

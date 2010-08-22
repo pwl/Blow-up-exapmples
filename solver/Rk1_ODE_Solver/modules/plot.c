@@ -1,6 +1,8 @@
 #include "plot.h"
 #include "assert.h"
 
+double D1 ( double * u, double * x, int i, int N );
+
 /* obliczanie pierwszej pochodnej */
 double _D1 ( double * u, double * x, int i, int N )
 {
@@ -160,7 +162,7 @@ void plot_step ( void * solver, void * module )
     {
       x=s->state->f[1+N+i];
       s->params->Dtemp[0][0][i]=s->state->f[i+1];
-      s->params->Dtemp[0][1][i]=x;
+      s->params->Dtemp[0][1][i]=x*D1(s->state->f+1,s->state->f+1+N,0,N);
     }
 
 
@@ -209,7 +211,7 @@ ODE_module * ODE_module_plot_init ( H_DOUBLE dt )
 
   data->plotter = gnuplot_init();
   gnuplot_setstyle( data->plotter, "linespoints" );
-  /* gnuplot_cmd( data->plotter, "set yrange [.0:pi]\n" ); */
+  gnuplot_cmd( data->plotter, "set xrange [:10]\n" );
 
   plot_module->data = data;
 

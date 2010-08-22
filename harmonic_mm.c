@@ -11,7 +11,7 @@ int main ( void )
 {
   ODE_solver * s;
   int M = 10, K = 0, i;
-  int N = 100/* 2*(M+K)+1 */;
+  int N = 150/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
   H_DOUBLE x0 = 0., x1 = PI, x;
   H_DOUBLE t_error = 1.e-15;
@@ -56,7 +56,7 @@ int main ( void )
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
   ODE_modules_add ( s, ODE_module_plot_init( 1. ) );
   /* modul do drukowania w konsoli czasu symulacji */
-  ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) );
+  /* ODE_modules_add ( s, ODE_module_print_time_init ( .01 ) ); */
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
      informacji dot. funkcji, w kolejnosci sa to:
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
@@ -181,17 +181,17 @@ void ODE_set ( void * solver,
   epsilon = 5.e-3;
   de	  = 1./(N-1);
   M_calc( ui, xi, m, N );
-  gt = g( y, N );
+  /* gt = g( y, N ); */
   /* gt=1.; */
-  assert(!isnan(gt));
-  assert(!isnan(y[0]));
+  /* assert(!isnan(gt)); */
+  /* assert(!isnan(y[0])); */
 
-  if( dt*gt < 1.e-15)
-    {
-      printf("STOP: gt*dt = %.5G < 1.e-15\n", gt*dt);
-      s->state->status = SOLVER_STATUS_STOP;
-      return;
-    }
+  /* if( dt*gt < 1.e-15) */
+  /*   { */
+  /*     printf("STOP: gt*dt = %.5G < 1.e-15\n", gt*dt); */
+  /*     s->state->status = SOLVER_STATUS_STOP; */
+  /*     return; */
+  /*   } */
 
 #pragma omp parallel for private(u,x,du,ddu,Mxi)
   for ( i = 1; i < N-1; i++) {
@@ -207,29 +207,47 @@ void ODE_set ( void * solver,
     /* Mxi=0.; */
 
     gsl_vector_set(fu, i,
-		   gt*(ddu+(k-1.)/x*du-(k-1.)/2.*sin(2.*u)/x/x));
+		   (ddu+(k-1.)/x*du-(k-1.)/2.*sin(2.*u)/x/x));
     gsl_vector_set(ftmp, i,
-		   gt/epsilon*Mxi);
+		   1./epsilon*Mxi);
     gsl_matrix_set(C, i, i, -du);
   }
 
-  /* przepisanie wynikow do tablicy pochodnej czasowej */
-  gsl_blas_dsymv (CblasUpper, -1., D_inv, ftmp, 0., fx);	/* D = -d2/de2 */
-  gsl_blas_dgemv (CblasNoTrans, -1., C, fx, 1., fu);	/* C = -du/dx */
+#pragma omp parallel for
+  for ( i = 1; i < N-1; i++) {
+    f[i+1] = gsl_vector_get(fu,i);
+  }
+
+  /* printf ("%.5G\n",.01*dt*D1(ui,xi,0,N)/D1(f+1,xi,0,N)); */
+  gt = .01*(fabs(D1(ui,xi,0,N)/D1(f+1,xi,0,N)));
+
+    /* przepisanie wynikow do tablicy pochodnej czasowej */
+  gsl_blas_dsymv (CblasUpper, -1., D_inv, ftmp, 0., fx); /* D = -d2/de2 */
+  gsl_blas_dgemv (CblasNoTrans, -1., C, fx, 1., fu); /* C = -du/dx */
+
+  if( dt*gt < 1.e-15)
+    {
+      printf("STOP: gt*dt = %.5G < 1.e-15\n", gt*dt);
+      s->state->status = SOLVER_STATUS_STOP;
+      return;
+    }
 
 #pragma omp parallel for
   for ( i = 1; i < N-1; i++) {
-    f[i+1]   = gsl_vector_get(fu,i);
-    f[i+N+1] = gsl_vector_get(fx,i);
+    f[i+1]   = gt*gsl_vector_get(fu,i);
+    f[i+N+1] = gt*gsl_vector_get(fx,i);
   }
 
-  f[0]=gt;
+
 
   /* warunki brzegowe */
   f[1]=0.;
   f[N]=0.;
   f[N+1]=0.;
   f[2*N]=0.;
+
+  f[0]=gt;
+
 }
 
 /* obliczanie pierwszej pochodnej */

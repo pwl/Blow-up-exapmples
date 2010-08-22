@@ -28,13 +28,13 @@ set logscale y 10
 
 # plot file u 1:(abs($2-g3($1))) w l
 
-fit [900:x_max] g1(x) file u 1:2 every 10 via T,A,A1,L1
-fit [600:x_max] g2(x) file u 1:2 every 2 via T,A,A1,A2,L1
+fit [500:x_max] g1(x) file u 1:2 every 100 via T,A,A1,L1
+fit [200:x_max] g2(x) file u 1:2 every 20 via T,A,A1,A2,L1
 # L1=0.51762191809152735544	# true value for L1
 plot file u 1:(abs(g2($1)-$2)) w l
 set print "fit.dat"
 print "L1 = ", L1, " +- ", abs(1-L1/L1_REAL)
-fit [100:400] log(g4(x)) file u 1:(log(abs(g2($1)-$2))) every 2 via A3,L2
+fit [100:400] log(g4(x)) file u 1:(log(abs(g2($1)-$2))) every 20 via A3,L2
 replot file u 1:(abs(g3($1)-$2)) w l, g4(x)
 
 # print "L = ", L, "+-", abs(1-L/L1), "(compared to result from eigenproblem)"
