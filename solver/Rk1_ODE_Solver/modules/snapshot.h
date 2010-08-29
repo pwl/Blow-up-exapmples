@@ -17,6 +17,7 @@ void snapshot_stop ( void * solver, void * module );
 ODE_module * ODE_module_snapshot_init ( H_DOUBLE dt );
 
 double D1 ( double * u, double * x, int i, int N );
+double D2 ( double * u, double * x, int i, int N );
 
 double k;
 

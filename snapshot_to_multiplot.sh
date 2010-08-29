@@ -1,17 +1,19 @@
 #!/bin/bash
 
-info_file="log/info_1/log000.dat"
 mplotx=
 snapshot_dir="log/snapshot"
 snapshot_name="*.dat"
 mrows=3
 mcols=3
 mtot=$((mcols*mrows))
-# snapshot_files=$(find $snapshot_dir -name "$snapshot_name")
+mspace=$((mtot))
+# snapshot_N=$(find $snapshot_dir -name "$snapshot_name"|wc -l)
+# snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
+#     sort -n -t'_' -k2 | awk '(NR-1) % 1200 == 0'| head -n$mtot)
 snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
-    sort -n -t'_' -k2 | awk '(NR-1) % 1000 == 0'| head -n$mtot)
-blowup_file1="harvester_data_harmonic/eigen_k3.00000_l1.0_i1.dat"
-blowup_file2="harvester_data_harmonic/eigen_k3.00000_l1.0_i2.dat"
+    sort -n -t'_' -k2 | awk 'NR % 700 == 0'| tail -n$mtot)
+blowup_file1="harvester_data/shrinker_k3.00000_l1.0.dat"
+blowup_file2="harvester_data/eigen_k3.00000_l1.0_i1.dat"
 startx=0.1
 starty=0.1
 stopx=0.9
@@ -27,7 +29,7 @@ echo "" > plotter.gp
 echo "set terminal postscript enhanced color size 7,7" >> plotter.gp
 echo "set output \"graphics/snapshot_to_multiplot.ps\"" >> plotter.gp
 # echo "set size $size_mult,$size_mult" >> plotter.gp
-echo "set multiplot title \"Asymetric modes of \\\$f_3\\\$ and \\\$f_1\\\$\"" >> plotter.gp
+echo "set multiplot title \"Blow-up profile (moving mesh method)\"" >> plotter.gp
 
 i=0
 
@@ -36,7 +38,11 @@ for snap in $snapshot_files; do
     t=$(./snap_to_time.sh $snap)
     t=${t:0:3}
 
-    echo "set logscale y 10" >> plotter.gp
+    g=$(awk '/g = /{print  $4}' $snap)
+    s=$(awk '/s = /{printf("%.0f",$4)}' $snap)
+    du=$(awk '/du = /{printf("%.0f",$4)}' $snap)
+
+    echo "set logscale x 10" >> plotter.gp
     echo "set key off" >> plotter.gp
     # switch margins off
     echo "set rmargin 0" >> plotter.gp
@@ -61,34 +67,39 @@ for snap in $snapshot_files; do
     echo "unset ylabel" >> plotter.gp
     if [ $tics -eq 1 ]; then
     	echo "set tics nomirror in" >> plotter.gp
-	echo "set xtics 0,pi/4,pi/2 format \"\"" >> plotter.gp
+	# echo "set xtics 0,pi/4,pi/2 format \"\"" >> plotter.gp
 
 	# echo "set xtics (\"\\\$\\\pi/2\\\$\" pi/2)" >> plotter.gp
-	# echo "set ytics (\"\\\$\\\pi/2\\\$\" pi/2)" >> plotter.gp
-	echo "set format y \"\\\$10^\{%L\}\\\$\"" >> plotter.gp
-	echo "set xtics add (\"\\\$0\\\$\" 0, \"\\\$\\\pi/4\\\$\" pi/4, \"\\\$\\\pi/2\\\$\" pi/2)" >> plotter.gp
-
-	echo "set xlabel \"\\\$\\\psi\\\$\"" >> plotter.gp
-	echo "set ylabel \"\\\$f_t(t,r)\\\$\" rotate offset screen .2*$sizex, 0." >> plotter.gp
+	echo "set ytics (0,2,4)" >> plotter.gp
+	echo "set format x \"10^\{%L\}\"" >> plotter.gp
+	# echo "set format x2 \"10^\{%L\}\"" >> plotter.gp
+	# echo "set format y \"10^\{%L\}\"" >> plotter.gp
+	# echo "set xtics add (\"\\\$0\\\$\" 0, \"\\\$\\\pi/4\\\$\" pi/4, \"\\\$\\\pi/2\\\$\" pi/2)" >> plotter.gp
+	echo "set xlabel \"r*g(t)\"" >> plotter.gp
+	echo "set ylabel \"u(r,t)\" rotate offset screen .1*$sizex, 0." >> plotter.gp
 	# echo "set ytics 0,pi/4,pi format \"\"" >> plotter.gp
 	# echo "set ytics add (\"0\" 0, \"{/Symbol p}/2\" pi/2,  \"{/Symbol p}\" pi)" >> plotter.gp
     fi
 
-    if [ $i -eq $((mtot-1)) ]; then
-	echo "set label \"\\\$\\\vn\{1\}\{3\}\\\$\" at graph 0.3, graph 0.8" >> plotter.gp
-	echo "set label \"\\\$\\\vn\{3\}\{3\}\\\$\" at graph 0.1, graph 0.62" >> plotter.gp
-    fi
+    # if [ $i -eq $((mtot-1)) ]; then
+    # 	echo "set label \"\\\$\\\vn\{1\}\{3\}\\\$\" at graph 0.3, graph 0.8" >> plotter.gp
+    # 	echo "set label \"\\\$\\\vn\{3\}\{3\}\\\$\" at graph 0.1, graph 0.62" >> plotter.gp
+    # fi
 
-    echo "set title \"\\\$t=$t\\\$\" offset screen .2*$sizex, screen -1.05*$sizey" >> plotter.gp
+    echo "set title \"s=$s\" offset screen -.2*$sizex, screen -.25*$sizey" >> plotter.gp
     # plot the data
-    echo -ne "plot [0:pi/2] [1.e-2:1.e2] \"$snap\" u 1:(abs(\$4)) w l lw 3 lc 1 t\"\"\n" >> plotter.gp
-    # echo -ne "\"$blowup_file1\" u 1:(abs(\$4)) w l lt 2 t\"\"" >> plotter.gp
+    echo -ne "plot [.01:1000] [0:4] \"$snap\" u (\$1/sqrt($g)):(\$2) t\"\" w l," >> plotter.gp
+    # echo -ne "\"$snap\" u (\$1/sqrt($g)):(abs(2.*\$4*\$5)) every ::::30 t\"\"," >> plotter.gp
+    echo -ne "\"$blowup_file2\" index 1 w l lt 2 t\"\"\n" >> plotter.gp
+    # echo -ne "\"$blowup_file2\" u 1:(abs(\$4-\$1*\$3/2.738753125884604)/1.1e2) index 1 w l lt 2 t\"\"\n" >> plotter.gp
+    # echo -ne "x w l lt 2 t\"\"\n" >> plotter.gp
     # echo -ne "\"$blowup_file2\" u 1:(abs(\$4)) w l lt 3 t\"\"\n" >> plotter.gp
 
     echo "unset logscale xy" >> plotter.gp
+    # echo 'set logscale x2' >> plotter.gp
     echo "unset xlabel; unset ylabel; unset tics; unset title; unset label" >> plotter.gp
     orx=$(echo "scale=20;$orx+.6*$sizex"|bc)
-    ory=$(echo "scale=20;$ory+.6*$sizey"|bc)
+    ory=$(echo "scale=20;$ory+.0*$sizey"|bc)
     echo "set origin $orx,$ory" >> plotter.gp
     sizex=$(echo "scale=20;.4*$sizex"|bc)
     sizey=$(echo "scale=20;.4*$sizey"|bc)
@@ -97,16 +108,17 @@ for snap in $snapshot_files; do
     # tics=$(echo "($i%$mrows==0) && (($i/$mcols)+1==$mrows)"|bc)
     if [ $i -eq 0 ]; then
     	echo "set tics nomirror in" >> plotter.gp
-	# echo "set xtics 0,pi/2,pi format \"\"" >> plotter.gp
-	echo "set xtics (\"\\\$\\\pi/2\\\$\" pi/2)" >> plotter.gp
-	echo "set ytics (\"\\\$\\\pi/2\\\$\" pi/2)" >> plotter.gp
-	echo "set grid" >> plotter.gp
+	echo 'unset xtics; set x2tics (1.e-4, 1.e-1) format "10^\{%L\}"' >> plotter.gp
+    	echo 'set ytics (0, "{/Symbol p}" pi)' >> plotter.gp
+    	# echo "set xtics 0,pi/2,pi format \"\"" >> plotter.gp
+    	# echo "unset xtics" >> plotter.gp
+    	# echo "set x2tics (\"{/Symbol p}/2\" pi/2)" >> plotter.gp
+    	# echo "set ytics (\"\\\$\\\pi/2\\\$\" pi/2)" >> plotter.gp
+    	# echo "set grid x2tics" >> plotter.gp
     fi
 
-
-
-    echo -n "plot [0:pi] [0:pi] \"$snap\" w l lt 1," >> plotter.gp
-    echo "\"\" u (pi-\$1):(pi-\$2) w l lt 1" >> plotter.gp
+    echo "plot [1.e-5:] [0:pi] \"$snap\" w l lt 1" >> plotter.gp
+    # echo "\"\" u (pi-\$1):(pi-\$2) w l lt 1" >> plotter.gp
 
     i=$((i+1))
 done
@@ -114,5 +126,5 @@ done
 echo "unset multiplot" >> plotter.gp
 
 ./snapshot_to_multiplot.gp
-ps2pdf graphics/snapshot_to_multiplot.ps graphics/snapshot_to_multiplot.pdf
+# ps2pdf graphics/snapshot_to_multiplot.ps graphics/snapshot_to_multiplot.pdf
 evince graphics/snapshot_to_multiplot.ps

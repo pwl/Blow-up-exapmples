@@ -11,7 +11,7 @@ int main ( void )
 {
   ODE_solver * s;
   int M = 10, K = 0, i;
-  int N = 150/* 2*(M+K)+1 */;
+  int N = 100/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
   H_DOUBLE x0 = 0., x1 = PI, x;
   H_DOUBLE t_error = 1.e-15;
@@ -62,7 +62,7 @@ int main ( void )
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
   ODE_modules_add ( s, ODE_module_info_1_init( .01, N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
-  ODE_modules_add ( s, ODE_module_snapshot_init( 0.1 ));
+  ODE_modules_add ( s, ODE_module_snapshot_init( .1 ));
   /* ODE_modules_add ( s, ODE_module_bisection_3_init( .001 )); */
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 
@@ -203,7 +203,7 @@ void ODE_set ( void * solver,
 
     /* prawa strona rownania macierzowego */
     Mxi = ((m[i+1]+m[i])*(xi[i+1]-xi[i])-(m[i]+m[i-1])*(xi[i]-xi[i-1]))/2./de/de;
-    /* assert(!isnan(Mxi)); */
+    assert(!isnan(Mxi));
     /* Mxi=0.; */
 
     gsl_vector_set(fu, i,
@@ -215,30 +215,28 @@ void ODE_set ( void * solver,
 
 #pragma omp parallel for
   for ( i = 1; i < N-1; i++) {
-    f[i+1] = gsl_vector_get(fu,i);
+    f[i+1] = gsl_vector_get(fu,i); /* tymczasowe miejsce dla du/dt */
   }
 
   /* printf ("%.5G\n",.01*dt*D1(ui,xi,0,N)/D1(f+1,xi,0,N)); */
-  gt = .01*(fabs(D1(ui,xi,0,N)/D1(f+1,xi,0,N)));
+  gt = .01*(fabs(D1(ui,xi,0,N)/D1(f+1,xi,0,N))); /* gt=alpha*du/dx/(d2u/dxdt)|x=0 */
 
-    /* przepisanie wynikow do tablicy pochodnej czasowej */
-  gsl_blas_dsymv (CblasUpper, -1., D_inv, ftmp, 0., fx); /* D = -d2/de2 */
-  gsl_blas_dgemv (CblasNoTrans, -1., C, fx, 1., fu); /* C = -du/dx */
-
-  if( dt*gt < 1.e-15)
+  if( gt*dt < 1.e-15)
     {
       printf("STOP: gt*dt = %.5G < 1.e-15\n", gt*dt);
       s->state->status = SOLVER_STATUS_STOP;
       return;
     }
 
+  /* przepisanie wynikow do tablicy pochodnej czasowej */
+  gsl_blas_dsymv (CblasUpper, -1., D_inv, ftmp, 0., fx); /* D = -d2/de2 */
+  gsl_blas_dgemv (CblasNoTrans, -1., C, fx, 1., fu); /* C = -du/dx */
+
 #pragma omp parallel for
   for ( i = 1; i < N-1; i++) {
     f[i+1]   = gt*gsl_vector_get(fu,i);
     f[i+N+1] = gt*gsl_vector_get(fx,i);
   }
-
-
 
   /* warunki brzegowe */
   f[1]=0.;
@@ -247,7 +245,6 @@ void ODE_set ( void * solver,
   f[2*N]=0.;
 
   f[0]=gt;
-
 }
 
 /* obliczanie pierwszej pochodnej */

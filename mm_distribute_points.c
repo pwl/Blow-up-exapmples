@@ -7,19 +7,19 @@ double mm_A=0.;
 double mm_u
 ( double x )
 {
-  return x + mm_A*sin(x);
+  return x+sin(x)*(1+sin(2.*x));
 }
 
 double mm_du
 ( double x )
 {
-  return 1 + mm_A*cos(x);
+  return 1 + 2*cos (2*x)*sin (x) + cos (x)*(1 + sin (2*x));
 }
 
 double mm_ddu
 ( double x )
 {
-  return -mm_A*sin(x);
+  return (-cos (x) + 9*cos (3*x) - 2*sin (x))/2.;
 }
 
 double mm_M
@@ -80,7 +80,7 @@ void mm_setup_mesh ( double * x, int N )
   printf(RED1 "Relaxing mesh...\n" FORMAT_OFF);
 
   s = ODE_solver_init ( N, /*rk=*/ 1, T, x0, x1, t_error, basis, mm_ODE_set, stepper );
-  ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) );
+  /* ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) ); */
 
   for ( i = 0; i < N; i++ ) {
     s->state->f[i]=x[i];
