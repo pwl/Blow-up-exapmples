@@ -162,7 +162,7 @@ void plot_step ( void * solver, void * module )
     {
       x=s->state->f[1+N+i];
       s->params->Dtemp[0][0][i]=s->state->f[i+1];
-      s->params->Dtemp[0][1][i]=x/sqrt(s->state->df[0]*50.);
+      s->params->Dtemp[0][1][i]=x/* /sqrt(s->state->df[0]*50.) */;
     }
 
 

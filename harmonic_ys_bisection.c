@@ -15,7 +15,7 @@ int main ( void )
   int M = 10, K = 0, i;
   int N = 100/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
-  H_DOUBLE x0 = 0., x1 = PI/2., x;
+  H_DOUBLE x0 = 0., x1 = PI., x;
   H_DOUBLE t_error = 1.e-15;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
@@ -65,15 +65,15 @@ int main ( void )
   ODE_modules_add ( s, ODE_module_info_1_init( 1., N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
   /* ODE_modules_add ( s, ODE_module_snapshot_init( 1. )); */
-  /* ODE_modules_add ( s, ODE_module_bisection_1_init( .01 )); */
+  ODE_modules_add ( s, ODE_module_bisection_3_init( .01 ));
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 
-  /* bis=bisec(0.,1.,10.e-10,0., */
-  /* 	bisection_wrapper,(void*)s); */
+  bis=bisec(0.,1.,10.e-10,0.,
+  	bisection_wrapper,(void*)s);
 
   /* ODE_modules_add ( s, ODE_module_snapshot_init( 1. )); */
 
-  bisection_wrapper( .5, s );
+  bisection_wrapper( bis, s );
 
 
   /* file = fopen ( "test.dat", "w" ); */
