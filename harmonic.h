@@ -14,6 +14,8 @@
 
 #include "mm_distribute_points.h"
 
+#define min(a,b) a<b?a:b
+
 void ODE_set ( void * solver,
 	       H_DOUBLE t,
 	       H_DOUBLE * y,

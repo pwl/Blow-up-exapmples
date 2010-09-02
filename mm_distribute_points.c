@@ -7,19 +7,19 @@ double mm_A=0.;
 double mm_u
 ( double x )
 {
-  return x+sin(x)*(1+sin(2.*x));
+  return (sin(x)+2.*x)*sin(x);
 }
 
 double mm_du
 ( double x )
 {
-  return 1 + 2*cos (2*x)*sin (x) + cos (x)*(1 + sin (2*x));
+  return (1 + cos (x))*sin (x) + cos (x)*(x + sin (x));
 }
 
 double mm_ddu
 ( double x )
 {
-  return (-cos (x) + 9*cos (3*x) - 2*sin (x))/2.;
+  return 2*cos (x)*(1 + cos (x)) - pow (sin (x), 2) - sin (x)*(x + sin (x));
 }
 
 double mm_M

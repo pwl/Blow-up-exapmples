@@ -158,11 +158,11 @@ void plot_step ( void * solver, void * module )
   /* _M_calc(s->state->f+1, s->state->f+1+N,s->params->Dtemp[0][0],N); */
 
 
-  for(i = 0; i < N; i++)
+  for(i = 1; i < N-1; i++)
     {
       x=s->state->f[1+N+i];
-      s->params->Dtemp[0][0][i]=s->state->f[i+1];
-      s->params->Dtemp[0][1][i]=x/* /sqrt(s->state->df[0]*50.) */;
+      s->params->Dtemp[0][0][i]=s->state->f[i+1]/sin(x);
+      s->params->Dtemp[0][1][i]=x/sqrt(s->state->df[0]*50.);
     }
 
 
@@ -176,9 +176,9 @@ void plot_step ( void * solver, void * module )
   /* 		   s->params->Nx, */
   /* 		   title ); */
   gnuplot_plot_xy( plotter,
-  		   s->params->Dtemp[0][1],
-  		   s->params->Dtemp[0][0],
-  		   N,
+  		   s->params->Dtemp[0][1]+1,
+  		   s->params->Dtemp[0][0]+1,
+  		   N-2,
   		   title );
   /* gnuplot_plot_x( plotter, */
   /* 		  s->state->f+1+N, */
