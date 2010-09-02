@@ -7,7 +7,7 @@ double mm_A=0.;
 double mm_u
 ( double x )
 {
-  return (sin(x)+2.*x)*sin(x);
+  return (sin(x)+x)*x;
 }
 
 double mm_du
