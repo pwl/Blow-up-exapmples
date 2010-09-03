@@ -7,25 +7,28 @@ double mm_A=0.;
 double mm_u
 ( double x )
 {
-  return (sin(x)+x)*x;
+  return sin(x)+x;
 }
 
 double mm_du
 ( double x )
 {
-  return (1 + cos (x))*sin (x) + cos (x)*(x + sin (x));
+  return cos(x)+1;
 }
 
 double mm_ddu
 ( double x )
 {
-  return 2*cos (x)*(1 + cos (x)) - pow (sin (x), 2) - sin (x)*(x + sin (x));
+  return -sin(x);
 }
 
 double mm_M
 ( double x )
 {
-  return fabs(mm_du(x)) + sqrt(fabs(mm_ddu(x)));
+  double u=mm_u(x);
+  double du=mm_du(x);
+  double ddu=mm_ddu(x);
+  return fabs(du) + sqrt(fabs(ddu));
 }
 
 void mm_ODE_set
@@ -44,11 +47,10 @@ void mm_ODE_set
   de = 1./(N-1);
 
   for ( i = 1; i < N-1; i++) {
-    /* F=d(log(M(x))) */
-    F		     = (mm_M(y[i+1])-mm_M(y[i-1]))/2./de/mm_M(y[i]);
+    F		     = (mm_M(y[i+1])-mm_M(y[i-1]))/2./de;
     dx		     = (y[i+1]-y[i-1])/2./de;
     ddx		     = (y[i+1]+y[i-1]-2*y[i])/de/de;
-    f[i]	     = ddx + F*dx;
+    f[i]	     = mm_M(y[i])*ddx + F*dx;
     initializedTest &= (fabs(f[i]) < crit);
   }
 
@@ -87,6 +89,11 @@ void mm_setup_mesh ( double * x, int N )
   }
 
   ODE_solve(s);
+
+  for ( i = 0; i < N; i++ ) {
+    printf("%2i %10.5G %10.5G\n",i,x[i],mm_M(x[i]));
+  }
+
   ODE_solver_free(s);
   printf(RED1 "Mesh relaxed!\n" FORMAT_OFF);
 }

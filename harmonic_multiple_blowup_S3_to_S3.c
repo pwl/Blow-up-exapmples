@@ -13,7 +13,7 @@ int main ( void )
   int M = 10, K = 0, i;
   int N = 30/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
-  H_DOUBLE x0 = 0., x1 = PI, x;
+  H_DOUBLE x0 = 0., x1 = PI, x, du, ddu;
   H_DOUBLE t_error = 1.e-15;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
@@ -54,7 +54,7 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  ODE_modules_add ( s, ODE_module_plot_init( .01 ) );
+  ODE_modules_add ( s, ODE_module_plot_init( .0 ) );
   /* modul do drukowania w konsoli czasu symulacji */
   /* ODE_modules_add ( s, ODE_module_print_time_init ( .01 ) ); */
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
@@ -67,54 +67,6 @@ int main ( void )
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 
   /* inicjalizacja danych poczatkowych */
-  /* file = fopen( "bisection.dat", "r" ); */
-
-  /* s->state->f[1]=PI; */
-  /* s->state->f[1+N]=0.; */
-  /* s->state->f[N]=PI; */
-  /* s->state->f[2*N]=PI; */
-
-  /* for ( i = 1; i < M; i++ ) { */
-  /*   fscanf(file, "%lf %lf %lf", s->state->f + i+1+N,s->state->f + i+1, &x); */
-  /*   s->state->f[N-i]=s->state->f[i+1]; */
-  /*   s->state->f[i+1+N]*=1.e-5; */
-  /*   s->state->f[2*N-i]=PI-s->state->f[i+1+N]; */
-  /*   /\* printf("%lf %lf\n", s->state->f[i+1+M],s->state->f[i+1]); *\/ */
-  /* } */
-
-  /* for ( i = M; i < M+K; i++) */
-  /*   { */
-  /*     s->state->f[1+i]=s->state->f[M]; */
-  /*     s->state->f[N-i]=s->state->f[M]; */
-  /* 	/\* s->state->f[M]; *\/ */
-  /*     s->state->f[i+1+N]= */
-  /* 	s->state->f[M+N]+ */
-  /* 	(PI/2.-s->state->f[M+N]) */
-  /* 	/(pow(.01*(double)(K+1),4)) */
-  /* 	*(pow(.01*(double)(i-M+1),4)); */
-  /*     s->state->f[2*N-i]=PI-s->state->f[i+1+N]; */
-  /*   } */
-
-  /* s->state->f[(N+1)/2]=s->state->f[(N+1)/2-1]; */
-  /* s->state->f[(N+1)/2+N]=PI/2.; */
-  /* fclose(file); */
-
-  /* x=x0; */
-
-  /* s->state->f[1+N]=0.; */
-  /* s->state->f[1]=0.; */
-
-  /* x=x0+(x1-x0)/(N-1.); */
-
-  /* asym: N=300, x0=0, x1=PI/2, T=5.*/
-  /* A=1.24568469439604978533; */
-
-  /* asym: N=400, x0=0, x1=PI/2, T=5.*/
-  /* A=1.24571310318894035163-1.1e-14; */
-
-  /* sym: N=400, x0=0, x1=PI, T=5.*/
-  /* A=2.10669393489537526420; */
-
   mm_A=1.;
 
   for ( i = 0; i < N; i++ ) {
@@ -126,26 +78,23 @@ int main ( void )
 
   for ( i = 0; i < N; i++ ) {
     x=s->state->f[i+1+N];
-    s->state->f[i+1]=mm_u(x);
+    s->state->f[i+1]=mm_u(x)*x;
+    /* printf("%5.5G %5.5G\n", x, mm_u(x)*x); */
   }
+
+  /* M_calc( s->state->f+1, s->state->f+N+1, m, N ); */
+  /* for ( i = 0; i < N; i++ ) { */
+  /*   x=s->state->f[i+1+N]; */
+  /*   du=D1(s->state->f+1,s->state->f+1+N,i,N); */
+  /*   ddu=D2(s->state->f+1,s->state->f+1+N,i,N); */
+  /*   printf("%i %10.5G %10.5G\n", i, x, m[i]); */
+  /* } */
 
   s->state->f[0]=0.;
 
   ODE_solve ( s );
 
-  /* bisec(0.,2.,10.e-15,0., */
-  /* 	bisection_wrapper,(void*)s); */
-
-  /* file = fopen ( "test.dat", "w" ); */
-  /* for ( i = 0; i < N; i++ ) */
-  /*   fprintf(file, "%i %.15G %.15G\n", i, s->state->f[i+1+N], s->state->f[i+1]); */
-
-  /* fclose( file ); */
-
-  /* ponizsza funkcja pcha wartosci poczatkowe w czasie i uruchamia
-     poszczegolne moduly */
-
-  /* uwolnienie zaalokowanej pamieci */
+/* uwolnienie zaalokowanej pamieci */
   ODE_solver_free( s );
 
   free(m);
@@ -181,22 +130,21 @@ void ODE_set ( void * solver,
   epsilon = 5.e-3;
   de	  = 1./(N-1);
   M_calc( ui, xi, m, N );
-  /* gt = g( y, N ); */
-  /* gt=1.; */
-  /* assert(!isnan(gt)); */
-  /* assert(!isnan(y[0])); */
-
-  /* if( dt*gt < 1.e-15) */
-  /*   { */
-  /*     printf("STOP: gt*dt = %.5G < 1.e-15\n", gt*dt); */
-  /*     s->state->status = SOLVER_STATUS_STOP; */
-  /*     return; */
-  /*   } */
+  /* sleep(1); */
 
 #pragma omp parallel for private(u,x,du,ddu,Mxi)
   for ( i = 1; i < N-1; i++) {
     u=ui[i];
     x=xi[i];
+
+    /* if ( x < 0. ) */
+    /*   { */
+    /* 	printf("STOP: x[%i]=%.5G < 0.\n", i, x); */
+    /* 	s->state->status = SOLVER_STATUS_STOP; */
+    /* 	/\* break; *\/ */
+    /* 	/\* assert( x > 0.); *\/ */
+    /*   } */
+
     /* obliczenie pochodnych w punkcie "i" */
     du=D1(ui,xi,i,N);
     ddu=D2(ui,xi,i,N);
@@ -210,19 +158,20 @@ void ODE_set ( void * solver,
 		   (ddu-sin(2.*u/x)/x));
     gsl_vector_set(ftmp, i,
 		   1./epsilon*Mxi);
-    gsl_matrix_set(C, i, i, -du+u/x);
+    gsl_matrix_set(C, i, i, -du);
   }
 
 #pragma omp parallel for
   for ( i = 1; i < N-1; i++) {
     f[i+1] = gsl_vector_get(fu,i); /* tymczasowe miejsce dla du/dt */
+    /* printf("%i %5.5G\n",i,gsl_vector_get(ftmp,i)); */
   }
 
   /* printf ("%.5G\n",.01*dt*D1(ui,xi,0,N)/D1(f+1,xi,0,N)); */
   gt = .01*min(fabs(D2(ui,xi,0,N)/D2(f+1,xi,0,N)),
 	       fabs(D2(ui,xi,N-1,N)/D2(f+1,xi,N-1,N)));	/* gt=alpha*du/dx/(d2u/dxdt)|x=0 */
 
-  /* gt=1.; */
+  gt=1.;
 
   if( gt*dt < 1.e-15)
     {
@@ -327,21 +276,21 @@ void M_calc ( double * u, double * x, double * M, int N )
     {
       du=D1( u, x, i, N );
       ddu=D2( u, x, i, N );
-      M[i]=fabs(( du - u[i]/x[i] )/x[i])
-	+ sqrt(fabs((ddu-2.*(du+u[i]/x[i])/x[i])/x[i]));
+      M[i]=fabs(( du*x[i] - u[i])/x[i]/x[i])
+	+ sqrt(fabs(ddu*x[i]*x[i]-2.*du*x[i]+2.*u[i])/x[i]/x[i]/x[i]);
       /* Mtot+=(M[i]*(x[i+1]-x[i-1])/2.); */
 
       /* printf("M_calc: i=%i, M[i]=%.15f\n", i, M[i]); */
       /* printf("M_calc: M[i]-M[i]=%.15f\n", M[i]-M[i]); */
 
-      assert( M[i]-M[i]==0. );
+      assert( !isnan(M[i]) );
       assert( M[i] >= 0 );
     }
 
-  M[0]=fabs( D2( u, x, 0, N )/2. )
-    + sqrt(fabs( D1( u, x, 0, N )/3. ));
-  M[N-1]=fabs( D2( u, x, N-1, N )/2. )
-    + sqrt(fabs( D1( u, x, N-1, N )/3. ) );
+  M[0]=fabs( D2( u, x, 0, N )/2. );
+  /* + sqrt(fabs( D1( u, x, 0, N )/3. )); */
+  M[N-1]=M[N-2];/* fabs( D2( u, x, N-1, N )/2. ) */
+    /* + sqrt(fabs( D1( u, x, N-1, N )/3. ) ); */
 
   /* Mtot+=M[0]*(x[1]-x[0])+M[N-1]*(x[N-1]-x[N-2]); */
 
@@ -378,7 +327,7 @@ double bisection_wrapper(double A, void * p)
 
   for ( i = 0; i < N; i++ ) {
     x=s->state->f[i+1+N];
-    s->state->f[i+1]=mm_u(x);
+    s->state->f[i+1]=mm_u(x)*x;
   }
   /* for ( i = 0; i < N; i++ ) { */
   /*   x=i*(x1-x0)/(N-1); */
