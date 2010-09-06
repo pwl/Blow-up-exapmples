@@ -11,10 +11,10 @@ int main ( void )
 {
   ODE_solver * s;
   int M = 10, K = 0, i;
-  int N = 30/* 2*(M+K)+1 */;
+  int N = 50/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
   H_DOUBLE x0 = 0., x1 = PI, x, du, ddu;
-  H_DOUBLE t_error = 1.e-15;
+  H_DOUBLE t_error = 1.e-13;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
   gsl_matrix * D = gsl_matrix_alloc(N,N);
@@ -54,13 +54,13 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  ODE_modules_add ( s, ODE_module_plot_init( .0 ) );
+  ODE_modules_add ( s, ODE_module_plot_init( .1 ) );
   /* modul do drukowania w konsoli czasu symulacji */
-  /* ODE_modules_add ( s, ODE_module_print_time_init ( .01 ) ); */
+  /* ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) ); */
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
      informacji dot. funkcji, w kolejnosci sa to:
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
-  ODE_modules_add ( s, ODE_module_info_1_init( .01, N ) );
+  ODE_modules_add ( s, ODE_module_info_1_init( .001, N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
   ODE_modules_add ( s, ODE_module_snapshot_init( .1 ));
   /* ODE_modules_add ( s, ODE_module_bisection_3_init( .001 )); */
@@ -94,7 +94,7 @@ int main ( void )
 
   ODE_solve ( s );
 
-/* uwolnienie zaalokowanej pamieci */
+  /* uwolnienie zaalokowanej pamieci */
   ODE_solver_free( s );
 
   free(m);
@@ -127,7 +127,7 @@ void ODE_set ( void * solver,
   H_DOUBLE dt = *(s->state->dt);
 
   /* definicje zmiennych pomocniczych */
-  epsilon = 5.e-3;
+  epsilon = 1.e-3;
   de	  = 1./(N-1);
   M_calc( ui, xi, m, N );
   /* sleep(1); */
@@ -137,22 +137,12 @@ void ODE_set ( void * solver,
     u=ui[i];
     x=xi[i];
 
-    /* if ( x < 0. ) */
-    /*   { */
-    /* 	printf("STOP: x[%i]=%.5G < 0.\n", i, x); */
-    /* 	s->state->status = SOLVER_STATUS_STOP; */
-    /* 	/\* break; *\/ */
-    /* 	/\* assert( x > 0.); *\/ */
-    /*   } */
-
     /* obliczenie pochodnych w punkcie "i" */
     du=D1(ui,xi,i,N);
     ddu=D2(ui,xi,i,N);
 
     /* prawa strona rownania macierzowego */
     Mxi = ((m[i+1]+m[i])*(xi[i+1]-xi[i])-(m[i]+m[i-1])*(xi[i]-xi[i-1]))/2./de/de;
-    assert(!isnan(Mxi));
-    /* Mxi=0.; */
 
     gsl_vector_set(fu, i,
 		   (ddu-sin(2.*u/x)/x));
@@ -164,26 +154,17 @@ void ODE_set ( void * solver,
 #pragma omp parallel for
   for ( i = 1; i < N-1; i++) {
     f[i+1] = gsl_vector_get(fu,i); /* tymczasowe miejsce dla du/dt */
-    /* printf("%i %5.5G\n",i,gsl_vector_get(ftmp,i)); */
   }
 
-  /* printf ("%.5G\n",.01*dt*D1(ui,xi,0,N)/D1(f+1,xi,0,N)); */
-  gt = .01*min(fabs(D2(ui,xi,0,N)/D2(f+1,xi,0,N)),
-	       fabs(D2(ui,xi,N-1,N)/D2(f+1,xi,N-1,N)));	/* gt=alpha*du/dx/(d2u/dxdt)|x=0 */
+  gt = .01*fabs(D2(ui,xi,0,N)/D2(f+1,xi,0,N));	/* gt=alpha*du/dx/(d2u/dxdt)|x=0 */
 
-  /* gt=1.; */
-
-  if( gt*dt < 1.e-14)
+  if( gt < 1.e-13)
     {
-      gt=1.e-14/dt;
+      gt=1.e-13;
 #pragma omp parallel for
       for ( i = 1; i < N-1; i++) {
-	gsl_vector_set(ftmp,i,0.); /* tymczasowe miejsce dla du/dt */
-	/* printf("%i %5.5G\n",i,gsl_vector_get(ftmp,i)); */
+	gsl_vector_set(ftmp,i,0.); /* x_t=0, zamrozenie siatki */
       }
-      /* printf("STOP: gt*dt = %.5G < 1.e-15\n", gt*dt); */
-      /* s->state->status = SOLVER_STATUS_STOP; */
-      /* return; */
     }
 
   /* przepisanie wynikow do tablicy pochodnej czasowej */
@@ -295,16 +276,16 @@ void M_calc ( double * u, double * x, double * M, int N )
   M[0]=fabs( D2( u, x, 0, N )/2. );
   + sqrt(fabs( D1( u, x, 0, N )/3. ));
   M[N-1]=M[N-2];/* fabs( D2( u, x, N-1, N )/2. ) */
-    /* + sqrt(fabs( D1( u, x, N-1, N )/3. ) ); */
+  /* + sqrt(fabs( D1( u, x, N-1, N )/3. ) ); */
 
   /* Mtot+=M[0]*(x[1]-x[0])+M[N-1]*(x[N-1]-x[N-2]); */
 
   /* for ( i = 0; i < N; i++ ) */
   /*   { */
-      /* M[i]+=.1*Mtot; */
-      /* M[i]+=.1; */
-      /* M[i]+=.01*(1.+sin(x[i])); */
-    /* } */
+  /* M[i]+=.1*Mtot; */
+  /* M[i]+=.1; */
+  /* M[i]+=.01*(1.+sin(x[i])); */
+  /* } */
 }
 
 double bisection_wrapper(double A, void * p)

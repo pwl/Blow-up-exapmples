@@ -90,9 +90,10 @@ void mm_setup_mesh ( double * x, int N )
 
   ODE_solve(s);
 
-  for ( i = 0; i < N; i++ ) {
-    printf("%2i %10.5G %10.5G\n",i,x[i],mm_M(x[i]));
-  }
+
+  /* for ( i = 0; i < N; i++ ) { */
+  /*   printf("%2i %10.5G %10.5G\n",i,x[i],mm_M(x[i])); */
+  /* } */
 
   ODE_solver_free(s);
   printf(RED1 "Mesh relaxed!\n" FORMAT_OFF);

@@ -57,6 +57,9 @@ harmonic_multiple_blowup: harmonic_multiple_blowup.o $(DIRS)
 harmonic_multiple_blowup_S3_to_S3: harmonic_multiple_blowup_S3_to_S3.o $(DIRS)
 	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_multiple_blowup_S3_to_S3.o  mm_distribute_points.o $(ARCHIVE) -o $@
 
+harmonic_multiple_blowup_R3_to_S3: harmonic_multiple_blowup_R3_to_S3.o $(DIRS)
+	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_multiple_blowup_R3_to_S3.o  mm_distribute_points.o $(ARCHIVE) -o $@
+
 harmonic_ys_bisection: harmonic_ys_bisection.o $(DIRS)
 	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_ys_bisection.o $(ARCHIVE) -o $@
 
@@ -73,6 +76,9 @@ harmonic_multiple_blowup.o: harmonic_multiple_blowup.c harmonic.h mm_distribute_
 	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
 
 harmonic_multiple_blowup_S3_to_S3.o: harmonic_multiple_blowup_S3_to_S3.c harmonic.h mm_distribute_points.o
+	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
+
+harmonic_multiple_blowup_R3_to_S3.o: harmonic_multiple_blowup_R3_to_S3.c harmonic.h mm_distribute_points.o
 	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
 
 harmonic_ys_bisection.o: harmonic_ys_bisection.c harmonic.h
