@@ -4,12 +4,13 @@
 
 export SHELL = /bin/bash
 export CC = cc
-export CFLAGS =  -fopenmp -ansi -pedantic -Wall --std=c99 -Wno-unused
+export CFLAGS = -fopenmp -ansi -pedantic -Wall --std=c99 -Wno-unused
        # -Wpointer-arith -Wcast-qual -Wcast-align\
        # -Wwrite-strings -Wnested-externs\
        # -fshort-enums -fno-common
        # -Wmissing-prototypes -Wstrict-prototypes
        # -Wconversion -Wshadow
+# export CFLAGS =  -openmp -ansi -Wall -Wno-unused
 export OFLAGS = -O3 # left empty for debuggin reasons
 export GDBFLAGS = #-ggdb
 export FLAGS = $(CFLAGS) $(OFLAGS) $(GDBFLAGS)
