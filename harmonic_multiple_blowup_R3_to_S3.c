@@ -11,10 +11,10 @@ int main ( void )
 {
   ODE_solver * s;
   int M = 10, K = 0, i;
-  int N = 30/* 2*(M+K)+1 */;
+  int N = 50/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
   H_DOUBLE x0 = 0., x1 = PI, x, du, ddu;
-  H_DOUBLE t_error = 1.e-13;
+  H_DOUBLE t_error = 1.e-10;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
   gsl_matrix * D = gsl_matrix_alloc(N,N);
@@ -60,9 +60,9 @@ int main ( void )
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
      informacji dot. funkcji, w kolejnosci sa to:
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
-  ODE_modules_add ( s, ODE_module_info_1_init( .001, N ) );
+  ODE_modules_add ( s, ODE_module_info_1_init( .01, N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
-  ODE_modules_add ( s, ODE_module_snapshot_init( .1 ));
+  ODE_modules_add ( s, ODE_module_snapshot_init( 1. ));
   /* ODE_modules_add ( s, ODE_module_bisection_3_init( .001 )); */
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 
@@ -132,7 +132,7 @@ void ODE_set ( void * solver,
   M_calc( ui, xi, m, N );
   /* sleep(1); */
 
-#pragma omp parallel for schedule(runtime) private(u,x,du,ddu,Mxi)
+/* #pragma omp parallel for schedule(runtime) private(u,x,du,ddu,Mxi) */
   for ( i = 1; i < N-1; i++) {
     u=ui[i];
     x=xi[i];
@@ -151,7 +151,7 @@ void ODE_set ( void * solver,
     gsl_matrix_set(C, i, i, -du);
   }
 
-#pragma omp parallel for schedule(runtime)
+/* #pragma omp parallel for schedule(runtime) */
   for ( i = 1; i < N-1; i++) {
     f[i+1] = gsl_vector_get(fu,i); /* tymczasowe miejsce dla du/dt */
   }
@@ -160,8 +160,8 @@ void ODE_set ( void * solver,
 
   if( gt < 1.e-13)
     {
-      gt=1.e-13;
-#pragma omp parallel for schedule(runtime)
+      /* gt=1.e-13; */
+/* #pragma omp parallel for schedule(runtime) */
       for ( i = 1; i < N-1; i++) {
 	gsl_vector_set(ftmp,i,0.); /* x_t=0, zamrozenie siatki */
       }
@@ -171,7 +171,7 @@ void ODE_set ( void * solver,
   gsl_blas_dsymv (CblasUpper, -1., D_inv, ftmp, 0., fx); /* D = -d2/de2 */
   gsl_blas_dgemv (CblasNoTrans, -1., C, fx, 1., fu); /* C = -du/dx */
 
-#pragma omp parallel for schedule(runtime)
+/* #pragma omp parallel for schedule(runtime) */
   for ( i = 1; i < N-1; i++) {
     f[i+1]   = gt*gsl_vector_get(fu,i);
     f[i+N+1] = gt*gsl_vector_get(fx,i);

@@ -68,7 +68,7 @@ main (void)
   	      RIPPER_EXP,
   	      7,
   	      results,
-  	      0.,/* -0.57314113304, */
+  	      -0.57314113304,
   	      fevol_shrinker,
   	      NULL );
 

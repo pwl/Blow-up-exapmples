@@ -211,7 +211,7 @@ ODE_module * ODE_module_plot_init ( H_DOUBLE dt )
 
   data->plotter = gnuplot_init();
   gnuplot_setstyle( data->plotter, "linespoints" );
-  /* gnuplot_cmd( data->plotter, "set xrange [:10]\n" ); */
+  gnuplot_cmd( data->plotter, "set xrange [:10]\n" );
 
   plot_module->data = data;
 
