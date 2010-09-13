@@ -11,11 +11,11 @@
 
 #define STEPPER					gsl_odeiv_step_rkf45
 #define STEPPER_ERROR				1.e-15
-#define T_MAX					1.e10
-#define PRINT_DT				1.e-10
-#define PRINT_DT_RATIO				1.01
+#define T_MAX					1.e2
+#define PRINT_DT				1.e-5
+#define PRINT_DT_RATIO				1.3
 #define T0					1.e-6 /* -7. */
-#define H0					1.e-15
+#define H0					1.e-10
 #define RIPPER_BISEC_EPSILON			1.e-15
 #define HARVESTER_DATA_DIR			"harvester_data_expander/"
 #define PROFILE_FILE_PREFIX			"expander"

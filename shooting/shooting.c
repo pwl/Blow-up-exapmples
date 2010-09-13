@@ -31,9 +31,9 @@ solve_shrinker_eigenproblem
   printf(GREEN1 "Lambda <= 1\n" FORMAT_OFF);
 
   eigen_results_collected += harvester
-    ( 2.,
+    ( 10.,
       -1.e10,
-      .5,
+      .2,
       RIPPER_LINEAR,
       eigenval_number-eigen_results_collected,
       eigen_results+eigen_results_collected,
@@ -46,7 +46,7 @@ solve_shrinker_eigenproblem
       HARVESTER_DATA_DIR "eigen" HARVESTER_DEFAULT_EIGEN_EXTENSION,
       k, l, index);
 
-  eigenfile = fopen( eigenfile_name, "w" );
+  eigenfile = fopen( eigenfile_name, "a" );
 
   for ( j = index-2; j >= 0; j-- )
     {
@@ -109,7 +109,7 @@ solve_eigenproblem
   eigen_results_collected += harvester
     ( 2.,
       -1.e10,
-      10.,
+      .01,
       RIPPER_LINEAR,
       eigenval_number-eigen_results_collected,
       eigen_results+eigen_results_collected,
@@ -739,7 +739,9 @@ func_expander_eigenproblem (double t, const double y[], double f[],
   f[0] = y[1];
   f[1] = l*(l+k-2.)/2.*sin(2.*y[0])/t/t-((k-1.)/t+t/2.)*y[1];
   f[2] = y[3];
-  f[3] = (l*(l+k-2.)*cos(2.*y[0])/t/t+lambda)*y[2]-((k-1.)/t+t/2.)*y[3];
+  /* f[3] = (l*(l+k-2.)*cos(2.*y[0])/t/t+lambda)*y[2]-((k-1.)/t+t/2.)*y[3]; */
+  /* below we assume l=1 */
+  f[3] = ((pow(2*k+t*t,2)-4-32.*(k-1.)*pow(sin(y[0]),2))/t/t/16.+lambda)*y[2];
   return GSL_SUCCESS;
 }
 
@@ -762,15 +764,17 @@ fevol_expander_eigenproblem (double bisec_param, int print, char * filename, voi
 
   gsl_odeiv_system sys = {func_expander_eigenproblem, jac_dummy, 4, (void*)&bisec_param};
 
-  double t = T0;
-  double h = H0;
   double A = *(double*)p;
+  double t = T0/A;
+  double h = H0/A;
   double y[4] = {		      /* expressions derived using
 					 ~/SeriesSolve.nb */
     PI-t*(A - (A*(3 + 4*(-1 + k)*pow (A, 2))*pow (2 + k, -1)*pow (t, 2))/12.),
     - (A*(3 + 4*(-1 + k)*pow (A, 2))*pow (2 + k, -1)*pow (t, 2))/4.,
-    pow(t,l),
-    l*pow(t,l-1.)
+    pow(t,l+(k-1)/2),
+    (l+(k-1)/2.)*pow(t,l+(k-3)/2)
+    /* pow(t,l), */
+    /* l*pow(t,l-1.) */
   };
 
   if (print){
@@ -778,7 +782,7 @@ fevol_expander_eigenproblem (double bisec_param, int print, char * filename, voi
     fprintf(file, "# A = %.15f\n# lambda = %.15f\n", A, bisec_param );
   }
 
-  while (t < 20.)
+  while (t < 50.)
     {
       int status =
 	gsl_odeiv_evolve_apply (e, c, s,
@@ -792,7 +796,7 @@ fevol_expander_eigenproblem (double bisec_param, int print, char * filename, voi
 	 reasonably boundaed?*/
       if ( 0. > y[0]
 	   || y[0] > PI
-	   /* || fabs(y[2]) > 1.e10 */)
+	   || (t > 20. && fabs(y[2])/ /* pow(t,-2*bisec_param-(k+1)/2)/ */exp(-t*t/8.)/* *pow(t,(k-1.)/2.)*exp(t*t/8.) */ > 1.e5))
 	break;
 
       if (print /* && t_last+dt < t */)
@@ -814,7 +818,8 @@ fevol_expander_eigenproblem (double bisec_param, int print, char * filename, voi
     fclose( file );
   }
 
-  return y[2]*pow(t,k-1.)*exp(t*t/4.);
+  return y[2]/pow(t,-2*bisec_param-(k+1)/2)/exp(-t*t/8.)
+    /* *pow(t,(k-1.)/2.)*exp(t*t/8.) */;
 }
 
 int

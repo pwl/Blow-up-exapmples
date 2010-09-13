@@ -12,7 +12,7 @@ int main ( void )
   ODE_solver * s;
   int M = 10, K = 0, i;
   int N = 50/* 2*(M+K)+1 */;
-  H_DOUBLE T =1.e10;
+  H_DOUBLE T =1.e-2;
   H_DOUBLE x0 = 0., x1 = PI, x, du, ddu;
   H_DOUBLE t_error = 1.e-10;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
@@ -93,6 +93,8 @@ int main ( void )
   s->state->f[0]=0.;
 
   ODE_solve ( s );
+
+/* #pragma omp parallel end */
 
   /* uwolnienie zaalokowanej pamieci */
   ODE_solver_free( s );
