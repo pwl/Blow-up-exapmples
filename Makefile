@@ -18,7 +18,7 @@ export LIBS = -lm -lgsl -lgslcblas # -lfftw3
 export ARCHIVE = $(PWD)/libyapdes.a
 export MAKEFILES = $(PWD)/Makefile.common
 export INCLUDES = $(PWD)/solver
-export SHOOTING_OBJECTS = shooting1 shooting2
+export SHOOTING_OBJECTS = shooting1 shooting2 shooting3
 DIRS = "solver"
 RM = /bin/rm -f
 # $(patsubst %/,%,$(wildcard */))

@@ -1,5 +1,8 @@
 #include "shooting.h"
 
+/* WARNING: All series expressions depending on l are valid for l=1
+   only! */
+
 void
 solve_shrinker_eigenproblem
 (double A,
@@ -79,6 +82,17 @@ solve_eigenproblem
   printf(GREEN1 "solving eigenproblem for index %i in dimension %.3f with l=%.1f\nLambda > 1\n" FORMAT_OFF,
 	 index, k, l);
 
+  /* eigen_results_collected = harvester */
+  /*   ( 0., */
+  /*     3., */
+  /*     .1, */
+  /*     RIPPER_LINEAR, */
+  /*     index-1, */
+  /*     eigen_results, */
+  /*     0., */
+  /*     fevol_eigenproblem, */
+  /*     (void*)(&A) ); */
+
   eigen_results_collected = harvester
     ( 2.,
       1.e100,
@@ -95,7 +109,7 @@ solve_eigenproblem
   eigen_results_collected += harvester
     ( 2.,
       -1.e10,
-      1.,
+      10.,
       RIPPER_LINEAR,
       eigenval_number-eigen_results_collected,
       eigen_results+eigen_results_collected,
@@ -108,7 +122,7 @@ solve_eigenproblem
       HARVESTER_DATA_DIR "eigen" HARVESTER_DEFAULT_EIGEN_EXTENSION,
       k, l, index);
 
-  eigenfile = fopen( eigenfile_name, "w" );
+  eigenfile = fopen( eigenfile_name, "a" );
   fclose( eigenfile );
 
   for ( j = index-2; j >= 0; j-- )
@@ -715,6 +729,92 @@ fevol_shrinker_eigenproblem (double bisec_param, int print, char * filename, voi
   }
 
   return y[2]*pow(t,k-1.)*exp(-t*t/4.);
+}
+
+int
+func_expander_eigenproblem (double t, const double y[], double f[],
+			    void *params)
+{
+  double lambda = *(double*)params;
+  f[0] = y[1];
+  f[1] = l*(l+k-2.)/2.*sin(2.*y[0])/t/t-((k-1.)/t+t/2.)*y[1];
+  f[2] = y[3];
+  f[3] = (l*(l+k-2.)*cos(2.*y[0])/t/t+lambda)*y[2]-((k-1.)/t+t/2.)*y[3];
+  return GSL_SUCCESS;
+}
+
+double
+fevol_expander_eigenproblem (double bisec_param, int print, char * filename, void * p)
+{
+  const gsl_odeiv_step_type * T
+    = STEPPER;
+
+  FILE * file = NULL;
+
+  gsl_odeiv_step * s
+    = gsl_odeiv_step_alloc (T, 4);
+  gsl_odeiv_control * c
+    = gsl_odeiv_control_y_new (STEPPER_ERROR, STEPPER_ERROR);
+  gsl_odeiv_evolve * e
+    = gsl_odeiv_evolve_alloc (4);
+
+  double dt=PRINT_DT, t_last=0.;
+
+  gsl_odeiv_system sys = {func_expander_eigenproblem, jac_dummy, 4, (void*)&bisec_param};
+
+  double t = T0;
+  double h = H0;
+  double A = *(double*)p;
+  double y[4] = {		      /* expressions derived using
+					 ~/SeriesSolve.nb */
+    PI-t*(A - (A*(3 + 4*(-1 + k)*pow (A, 2))*pow (2 + k, -1)*pow (t, 2))/12.),
+    - (A*(3 + 4*(-1 + k)*pow (A, 2))*pow (2 + k, -1)*pow (t, 2))/4.,
+    pow(t,l),
+    l*pow(t,l-1.)
+  };
+
+  if (print){
+    file = fopen(filename, "a");
+    fprintf(file, "# A = %.15f\n# lambda = %.15f\n", A, bisec_param );
+  }
+
+  while (t < 20.)
+    {
+      int status =
+	gsl_odeiv_evolve_apply (e, c, s,
+				&sys,
+				&t, T_MAX,
+				&h, y);
+
+      if (status != GSL_SUCCESS)
+	break;
+      /* are we still in the strip [0,pi]?  is the lienarized solution
+	 reasonably boundaed?*/
+      if ( 0. > y[0]
+	   || y[0] > PI
+	   /* || fabs(y[2]) > 1.e10 */)
+	break;
+
+      if (print /* && t_last+dt < t */)
+	{
+	  fprintf (file,
+		   "%.15E %.15E %.15E %.15E %.15E\n",
+		   t, y[0], y[1], y[2], y[3]);
+	  t_last+=dt;
+	  dt*=PRINT_DT_RATIO;
+	}
+      /* printf("%.15f\r",t); */
+    }
+
+  gsl_odeiv_evolve_free (e);
+  gsl_odeiv_control_free (c);
+  gsl_odeiv_step_free (s);
+  if (print) {
+    fprintf( file, "\n\n\n" );
+    fclose( file );
+  }
+
+  return y[2]*pow(t,k-1.)*exp(t*t/4.);
 }
 
 int

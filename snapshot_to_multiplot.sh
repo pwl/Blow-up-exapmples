@@ -11,7 +11,7 @@ mspace=$((mtot))
 # snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
 #     sort -n -t'_' -k2 | awk '(NR-1) % 1200 == 0'| head -n$mtot)
 snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
-    sort -n -t'_' -k2 | awk 'NR % 1 == 0 && |NR-$mtot| > 1380'| head -n$mtot)
+    sort -n -t'_' -k2 | awk 'NR % 1 == 0 && |NR-13| > 1380'| head -n$mtot)
 blowup_file1="harvester_data/shrinker_k3.00000_l1.0.dat"
 blowup_file2="harvester_data/expander_k3.00000_l1.0.dat"
 startx=0.1

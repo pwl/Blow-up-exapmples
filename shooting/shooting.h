@@ -15,10 +15,10 @@
 #define PRINT_DT				1.e-10
 #define PRINT_DT_RATIO				1.01
 #define T0					1.e-6 /* -7. */
-#define H0					1.e-10
+#define H0					1.e-15
 #define RIPPER_BISEC_EPSILON			1.e-15
-#define HARVESTER_DATA_DIR			"harvester_data/"
-#define PROFILE_FILE_PREFIX			"shrinker"
+#define HARVESTER_DATA_DIR			"harvester_data_expander/"
+#define PROFILE_FILE_PREFIX			"expander"
 #define HARVESTER_DEFAULT_EXTENSION		"_k%.5f_l%.1f.dat"
 #define HARVESTER_DEFAULT_EIGEN_EXTENSION	"_k%.5f_l%.1f_i%i.dat"
 
@@ -171,6 +171,13 @@ fevol_shrinker_eigenproblem_reverse
  char * filename,
  void * p);
 
+
+double
+fevol_expander_eigenproblem (double bisec_param, int print, char * filename, void * p);
+
+int
+func_expander_eigenproblem (double t, const double y[], double f[],
+			    void *params);
 
 
 #endif /* _SHOOTING_H_ */
