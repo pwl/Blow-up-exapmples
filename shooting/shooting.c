@@ -332,7 +332,7 @@ func_shrinker (double t, const double y[], double f[],
 }
 
 double
-fevol_shrinker (double bisec_param, int print, char * filename, void * p)
+fevol_shrinker (double A, int print, char * filename, void * p)
 {
   const gsl_odeiv_step_type * T
     = STEPPER;
@@ -351,30 +351,29 @@ fevol_shrinker (double bisec_param, int print, char * filename, void * p)
   gsl_odeiv_system sys = {func_shrinker, jac_dummy, 2, p};
 
   double En= 0.;
-  double t = T0/bisec_param;
-  double h = H0;
-  double A = bisec_param;
+  double t = T0/A;
+  double h = H0/A;
   double y[2] = {
-    (A + A*l*pow (8*l + 4*k, -1)*
-     pow (t, 2) + (A*l*(2 + l)*pow (2*l + k, -1)*pow (2 + 2*l + k, -1)*
-		   pow (t, 4))/
-     32. + (A*l*(2 + l)*(4 + l)*pow (2*l + k, -1)*
-	    pow (2 + 2*l + k, -1)*pow (4 + 2*l + k, -1)*pow (t, 6))/
-     384.)*pow (t, l),
+    A*t + ((3*A - 4*(-1 + k)*pow(A,3))*pow(2 + k,-1)*pow(t,3))/
+     12. + (A*(15 + 8*(-1 + k)*pow(A,2)*
+          (-5 + (-2 + 4*k)*pow(A,2)))*pow(2 + k,-1)*pow(4 + k,-1)*
+       pow(t,5))/160.,A + ((3*A - 4*(-1 + k)*pow(A,3))*
+       pow(2 + k,-1)*pow(t,2))/4. +
+    (A*(15 + 8*(-1 + k)*pow(A,2)*(-5 + (-2 + 4*k)*pow(A,2)))*
+       pow(2 + k,-1)*pow(4 + k,-1)*pow(t,4))/32.
+    /* (A + A*l*pow (8*l + 4*k, -1)* */
+    /*  pow (t, 2) + (A*l*(2 + l)*pow (2*l + k, -1)*pow (2 + 2*l + k, -1)* */
+    /* 		   pow (t, 4))/ */
+    /*  32. + (A*l*(2 + l)*(4 + l)*pow (2*l + k, -1)* */
+    /* 	    pow (2 + 2*l + k, -1)*pow (4 + 2*l + k, -1)*pow (t, 6))/ */
+    /*  384.)*pow (t, l), */
 
-    (A*l*pow (2*l + k, -1)*pow (2 + 2*l + k, -1)*
-     pow (4 + 2*l + k, -1)*(384*(2*l + k)*(2 + 2*l + k)*(4 + 2*l + k) +
-			    96*(2 + l)*(2 + 2*l + k)*(4 + 2*l + k)*pow (t, 2) +
-			    12*(2 + l)*(4 + l)*(4 + 2*l + k)*
-			    pow (t, 4) + (2 + l)*(4 + l)*(6 + l)*pow (t, 6))*
-     pow (t, -1 + l))/384.
-
-    /* A*t + ((3*A - 4*(-1 + k)*pow(A,3))*pow(2 + k,-1)*pow(t,3))/12. + */
-    /* (A*(15 - 40*(-1 + k)*pow(A,2) + 16*pow(A,4)*(1 - 3*k + 2*pow(k,2)))* */
-    /*  pow(t,5)*pow(8 + 6*k + pow(k,2),-1))/160., */
-    /* A + ((3*A - 4*(-1 + k)*pow(A,3))*pow(2 + k,-1)*pow(t,2))/4. + */
-    /* (A*(15 - 40*(-1 + k)*pow(A,2) + 16*pow(A,4)*(1 - 3*k + 2*pow(k,2)))* */
-    /*  pow(t,4)*pow(8 + 6*k + pow(k,2),-1))/32., */
+    /* (A*l*pow (2*l + k, -1)*pow (2 + 2*l + k, -1)* */
+    /*  pow (4 + 2*l + k, -1)*(384*(2*l + k)*(2 + 2*l + k)*(4 + 2*l + k) + */
+    /* 			    96*(2 + l)*(2 + 2*l + k)*(4 + 2*l + k)*pow (t, 2) + */
+    /* 			    12*(2 + l)*(4 + l)*(4 + 2*l + k)* */
+    /* 			    pow (t, 4) + (2 + l)*(4 + l)*(6 + l)*pow (t, 6))* */
+    /*  pow (t, -1 + l))/384. */
   };
 
 
@@ -394,9 +393,8 @@ fevol_shrinker (double bisec_param, int print, char * filename, void * p)
       if (status != GSL_SUCCESS)
 	break;
       /* are we still in the strip [0,pi]? */
-      if ( 0. > y[0] || y[0] > 3.15 )
+      if ( 0. > y[0] || y[0] > PI )
 	break;
-
 
       if (print)
 	{
@@ -422,7 +420,7 @@ fevol_shrinker (double bisec_param, int print, char * filename, void * p)
     fclose( file );
   }
 
-  return y[1];
+  return y[1]*t*t;
 }
 
 int
@@ -641,7 +639,7 @@ func_shrinker_eigenproblem (double t, const double y[], double f[],
 }
 
 double
-fevol_shrinker_eigenproblem (double bisec_param, int print, char * filename, void * p)
+fevol_shrinker_eigenproblem (double L, int print, char * filename, void * p)
 {
   const gsl_odeiv_step_type * T
     = STEPPER;
@@ -657,34 +655,48 @@ fevol_shrinker_eigenproblem (double bisec_param, int print, char * filename, voi
 
   double dt=PRINT_DT, t_last=0.;
 
-  gsl_odeiv_system sys = {func_shrinker_eigenproblem, jac_dummy, 4, (void*)&bisec_param};
+  gsl_odeiv_system sys = {func_shrinker_eigenproblem, jac_dummy, 4, (void*)&L};
 
-  double t = T0;
-  double h = H0;
+  double t = T0/L;
+  double h = H0/L;
   double A = *(double*)p;
   double y[4] = {		      /* expressions derived using
 					 ~/SeriesSolve.nb */
-    (A + A*l*pow (8*l + 4*k, -1)*
-     pow (t, 2) + (A*l*(2 + l)*pow (2*l + k, -1)*pow (2 + 2*l + k, -1)*
-		   pow (t, 4))/
-     32. + (A*l*(2 + l)*(4 + l)*pow (2*l + k, -1)*
-	    pow (2 + 2*l + k, -1)*pow (4 + 2*l + k, -1)*pow (t, 6))/
-     384.)*pow (t, l),
+    A*t + ((3*A - 4*(-1 + k)*pow(A,3))*pow(2 + k,-1)*pow(t,3))/
+     12. + (A*(15 + 8*(-1 + k)*pow(A,2)*
+          (-5 + (-2 + 4*k)*pow(A,2)))*pow(2 + k,-1)*pow(4 + k,-1)*
+       pow(t,5))/160.,A + ((3*A - 4*(-1 + k)*pow(A,3))*
+       pow(2 + k,-1)*pow(t,2))/4. +
+    (A*(15 + 8*(-1 + k)*pow(A,2)*(-5 + (-2 + 4*k)*pow(A,2)))*
+       pow(2 + k,-1)*pow(4 + k,-1)*pow(t,4))/32.,
+   t + ((1 + 2*L - 4*(-1 + k)*pow(A,2))*pow(2 + k,-1)*pow(t,3))/
+     4. + ((3 + 4*L*(2 + L) - 8*(-1 + k)*(3 + 2*L)*pow(A,2) +
+         16*(-1 + k)*(-1 + 2*k)*pow(A,4))*pow(2 + k,-1)*
+       pow(4 + k,-1)*pow(t,5))/32.,
+   1 + ((3 + 6*L - 12*(-1 + k)*pow(A,2))*pow(2 + k,-1)*pow(t,2))/
+     4. + (5*(3 + 4*L*(2 + L) - 8*(-1 + k)*(3 + 2*L)*pow(A,2) +
+         16*(-1 + k)*(-1 + 2*k)*pow(A,4))*pow(2 + k,-1)*
+       pow(4 + k,-1)*pow(t,4))/32.    /* (A + A*l*pow (8*l + 4*k, -1)* */
+    /*  pow (t, 2) + (A*l*(2 + l)*pow (2*l + k, -1)*pow (2 + 2*l + k, -1)* */
+    /* 		   pow (t, 4))/ */
+    /*  32. + (A*l*(2 + l)*(4 + l)*pow (2*l + k, -1)* */
+    /* 	    pow (2 + 2*l + k, -1)*pow (4 + 2*l + k, -1)*pow (t, 6))/ */
+    /*  384.)*pow (t, l), */
 
-    (A*l*pow (2*l + k, -1)*pow (2 + 2*l + k, -1)*
-     pow (4 + 2*l + k, -1)*(384*(2*l + k)*(2 + 2*l + k)*(4 + 2*l + k) +
-			    96*(2 + l)*(2 + 2*l + k)*(4 + 2*l + k)*pow (t, 2) +
-			    12*(2 + l)*(4 + l)*(4 + 2*l + k)*
-			    pow (t, 4) + (2 + l)*(4 + l)*(6 + l)*pow (t, 6))*
-     pow (t, -1 + l))/384.,
+    /* (A*l*pow (2*l + k, -1)*pow (2 + 2*l + k, -1)* */
+    /*  pow (4 + 2*l + k, -1)*(384*(2*l + k)*(2 + 2*l + k)*(4 + 2*l + k) + */
+    /* 			    96*(2 + l)*(2 + 2*l + k)*(4 + 2*l + k)*pow (t, 2) + */
+    /* 			    12*(2 + l)*(4 + l)*(4 + 2*l + k)* */
+    /* 			    pow (t, 4) + (2 + l)*(4 + l)*(6 + l)*pow (t, 6))* */
+    /*  pow (t, -1 + l))/384., */
     /* A*t + ((3*A - 4*(-1 + k)*pow(A,3))*pow(2 + k,-1)*pow(t,3))/12. + */
     /* (A*(15 - 40*(-1 + k)*pow(A,2) + 16*pow(A,4)*(1 - 3*k + 2*pow(k,2)))* */
     /*  pow(t,5)*pow(8 + 6*k + pow(k,2),-1))/160., */
     /* A + ((3*A - 4*(-1 + k)*pow(A,3))*pow(2 + k,-1)*pow(t,2))/4. + */
     /* (A*(15 - 40*(-1 + k)*pow(A,2) + 16*pow(A,4)*(1 - 3*k + 2*pow(k,2)))* */
     /*  pow(t,4)*pow(8 + 6*k + pow(k,2),-1))/32., */
-    pow(t,l),
-    l*pow(t,l-1.)
+    /* pow(t,l), */
+    /* l*pow(t,l-1.) */
   };
 
   if (print){
@@ -706,7 +718,7 @@ fevol_shrinker_eigenproblem (double bisec_param, int print, char * filename, voi
 	 reasonably boundaed?*/
       if ( 0. > y[0]
 	   || y[0] > PI
-	   || fabs(y[2]) > 1.e10)
+	   || fabs(y[2])*pow(t,-(k-1.)/2.)*exp(t*t/8.) > 1.e3)
 	break;
 
       if (print /* && t_last+dt < t */)
@@ -728,7 +740,7 @@ fevol_shrinker_eigenproblem (double bisec_param, int print, char * filename, voi
     fclose( file );
   }
 
-  return y[2]*pow(t,k-1.)*exp(-t*t/4.);
+  return y[2]*pow(t,-(k-1.)/2.)*exp(t*t/8.);
 }
 
 int
@@ -739,9 +751,9 @@ func_expander_eigenproblem (double t, const double y[], double f[],
   f[0] = y[1];
   f[1] = l*(l+k-2.)/2.*sin(2.*y[0])/t/t-((k-1.)/t+t/2.)*y[1];
   f[2] = y[3];
-  /* f[3] = (l*(l+k-2.)*cos(2.*y[0])/t/t+lambda)*y[2]-((k-1.)/t+t/2.)*y[3]; */
+  f[3] = (l*(l+k-2.)*cos(2.*y[0])/t/t+lambda)*y[2]-((k-1.)/t+t/2.)*y[3];
   /* below we assume l=1 */
-  f[3] = ((pow(2*k+t*t,2)-4-32.*(k-1.)*pow(sin(y[0]),2))/t/t/16.+lambda)*y[2];
+  /* f[3] = ((pow(2*k+t*t,2)-4-32.*(k-1.)*pow(sin(y[0]),2))/t/t/16.+lambda)*y[2]; */
   return GSL_SUCCESS;
 }
 
@@ -765,16 +777,26 @@ fevol_expander_eigenproblem (double bisec_param, int print, char * filename, voi
   gsl_odeiv_system sys = {func_expander_eigenproblem, jac_dummy, 4, (void*)&bisec_param};
 
   double A = *(double*)p;
+  double L = bisec_param;
   double t = T0/A;
   double h = H0/A;
   double y[4] = {		      /* expressions derived using
 					 ~/SeriesSolve.nb */
-    PI-t*(A - (A*(3 + 4*(-1 + k)*pow (A, 2))*pow (2 + k, -1)*pow (t, 2))/12.),
-    - (A*(3 + 4*(-1 + k)*pow (A, 2))*pow (2 + k, -1)*pow (t, 2))/4.,
-    pow(t,l+(k-1)/2),
-    (l+(k-1)/2.)*pow(t,l+(k-3)/2)
-    /* pow(t,l), */
-    /* l*pow(t,l-1.) */
+    A*t - ((3*A + 4*(-1 + k)*pow(A,3))*pow(2 + k,-1)*pow(t,3))/
+     12. + (A*(15 + 8*(-1 + k)*pow(A,2)*
+          (5 + (-2 + 4*k)*pow(A,2)))*pow(2 + k,-1)*pow(4 + k,-1)*
+       pow(t,5))/160.,A - ((3*A + 4*(-1 + k)*pow(A,3))*
+       pow(2 + k,-1)*pow(t,2))/4. +
+    (A*(15 + 8*(-1 + k)*pow(A,2)*(5 + (-2 + 4*k)*pow(A,2)))*
+       pow(2 + k,-1)*pow(4 + k,-1)*pow(t,4))/32.,
+   t + ((-1 + 2*L - 4*(-1 + k)*pow(A,2))*pow(2 + k,-1)*pow(t,3))/
+     4. + ((3 + 4*(-2 + L)*L - 8*(-1 + k)*(-3 + 2*L)*pow(A,2) +
+         16*(-1 + k)*(-1 + 2*k)*pow(A,4))*pow(2 + k,-1)*
+       pow(4 + k,-1)*pow(t,5))/32.,
+   1 + ((-3 + 6*L - 12*(-1 + k)*pow(A,2))*pow(2 + k,-1)*pow(t,2))/
+     4. + (5*(3 + 4*(-2 + L)*L - 8*(-1 + k)*(-3 + 2*L)*pow(A,2) +
+         16*(-1 + k)*(-1 + 2*k)*pow(A,4))*pow(2 + k,-1)*
+       pow(4 + k,-1)*pow(t,4))/32.
   };
 
   if (print){
@@ -818,7 +840,7 @@ fevol_expander_eigenproblem (double bisec_param, int print, char * filename, voi
     fclose( file );
   }
 
-  return y[2]/pow(t,-2*bisec_param-(k+1)/2)/exp(-t*t/8.)
+  return y[2]/exp(-t*t/8.)
     /* *pow(t,(k-1.)/2.)*exp(t*t/8.) */;
 }
 
@@ -827,7 +849,7 @@ func_expander (double t, const double y[], double f[],
 	       void *params)
 {
   f[0] = y[1];
-  f[1] = -sin(2.*y[0])*l*(l+k-2.)/2./t/t-((k-1.)/t+t/2.)*y[1];
+  f[1] = sin(2.*y[0])*l*(l+k-2.)/2./t/t-((k-1.)/t+t/2.)*y[1];
   return GSL_SUCCESS;
 }
 
@@ -850,19 +872,17 @@ fevol_expander (double bisec_param, int print, char * filename, void * p)
 
   gsl_odeiv_system sys = {func_expander, jac_dummy, 2, (void*)&bisec_param};
 
-  double t = T0/bisec_param;
-  double h = H0;
   double A = bisec_param;
+  double t = T0/A;
+  double h = H0/A;
   double y[2] = {
-    -PI/2.+(A*(384 + l*pow(k + 2*l,-1)*pow(2 + k + 2*l,-1)*pow(4 + k + 2*l,-1)*
-	pow(t,2)*(-96*(2 + k + 2*l)*(4 + k + 2*l) +
-		  12*(2 + l)*(4 + k + 2*l)*pow(t,2) - (2 + l)*(4 + l)*pow(t,4)))*
-     pow(t,l))/384.,
-    (A*l*pow(k + 2*l,-1)*pow(2 + k + 2*l,-1)*
-     pow(4 + k + 2*l,-1)*(384*(k + 2*l)*(2 + k + 2*l)*(4 + k + 2*l) -
-			  96*(2 + l)*(2 + k + 2*l)*(4 + k + 2*l)*pow(t,2) +
-			  12*(2 + l)*(4 + l)*(4 + k + 2*l)*pow(t,4) -
-			  (2 + l)*(4 + l)*(6 + l)*pow(t,6))*pow(t,-1 + l))/384.
+    A*t - ((3*A + 4*(-1 + k)*pow(A,3))*pow(2 + k,-1)*pow(t,3))/
+     12. + (A*(15 + 8*(-1 + k)*pow(A,2)*
+          (5 + (-2 + 4*k)*pow(A,2)))*pow(2 + k,-1)*pow(4 + k,-1)*
+       pow(t,5))/160.,A - ((3*A + 4*(-1 + k)*pow(A,3))*
+       pow(2 + k,-1)*pow(t,2))/4. +
+    (A*(15 + 8*(-1 + k)*pow(A,2)*(5 + (-2 + 4*k)*pow(A,2)))*
+       pow(2 + k,-1)*pow(4 + k,-1)*pow(t,4))/32.
   };
 
   if (print){
@@ -881,7 +901,7 @@ fevol_expander (double bisec_param, int print, char * filename, void * p)
       if (status != GSL_SUCCESS)
 	break;
       /* are we still in the strip [0,pi]? */
-      if ( y[0] < -PI/2. || y[0] > PI/2. )
+      if ( fabs(y[0]-PI/2.) > PI/2. )
 	break;
 
       if (print /* && t_last+dt < t */)

@@ -62,15 +62,27 @@ main (void)
   	  /*     NULL ); */
 
 	  results_collected = harvester
-  	    ( 1.,
-  	      1.e10,
-  	      3.,
+  	    ( PI/2.-1.e-10,
+  	      1.e-100,
+  	      1./3.,
   	      RIPPER_EXP,
-  	      7,
+  	      6,
   	      results,
-  	      -0.57314113304,
-  	      fevol_shrinker,
+  	      0.,
+  	      fevol_shrinker_reverse,
   	      NULL );
+
+
+	  /* results_collected = harvester */
+  	  /*   ( 1., */
+  	  /*     1.e10, */
+  	  /*     3., */
+  	  /*     RIPPER_EXP, */
+  	  /*     7, */
+  	  /*     results, */
+  	  /*     -0.57314113304, */
+  	  /*     fevol_shrinker, */
+  	  /*     NULL ); */
 
   	  sprintf
   	    ( shrinkerfile_name,
