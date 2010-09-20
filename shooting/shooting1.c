@@ -62,16 +62,15 @@ main (void)
   	  /*     NULL ); */
 
 	  results_collected = harvester
-  	    ( PI/2.-1.e-10,
-  	      1.e-100,
-  	      1./3.,
+  	    ( 1.e-10,
+  	      1.e100,
+  	      3.,
   	      RIPPER_EXP,
-  	      6,
+  	      1,
   	      results,
   	      0.,
   	      fevol_shrinker_reverse,
   	      NULL );
-
 
 	  /* results_collected = harvester */
   	  /*   ( 1., */
@@ -93,7 +92,7 @@ main (void)
 
 	  for (i = 0; i < results_collected; ++i)
   	    {
-  	      print_profile( results[i], fevol_shrinker );
+  	      /* print_profile( results[i], fevol_shrinker ); */
 	      /* fprintf(common_data,"%.2f   %i   %.15G\n", */
 	      /* 	      k, i, expander_asymptotics_wrapper( results[i] ) ); */
 	      /* fprintf(common_data,"%.2f  %.2f  %i   %.15G\n", */

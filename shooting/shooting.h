@@ -10,7 +10,7 @@
 #define PI					3.14159265358979323846	/* pi */
 
 #define STEPPER					gsl_odeiv_step_rkf45
-#define STEPPER_ERROR				1.e-12
+#define STEPPER_ERROR				1.e-15
 #define T_MAX					3.e2
 #define PRINT_DT				1.e-5
 #define PRINT_DT_RATIO				1.3

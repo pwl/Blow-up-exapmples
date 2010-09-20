@@ -69,10 +69,10 @@ solve_shrinker_eigenproblem
 
 void
 solve_eigenproblem
-(double A,
- int index,
- int eigenval_number,
- double (*fevol_eigenproblem)(double, int, char *, void *))
+( double A,
+  int index,
+  int eigenval_number,
+  double (*fevol_eigenproblem)(double, int, char *, void *) )
 {
   FILE *eigenfile;
   int j, eigen_results_collected;
@@ -346,7 +346,7 @@ fevol_shrinker (double A, int print, char * filename, void * p)
   gsl_odeiv_evolve * e
     = gsl_odeiv_evolve_alloc (2);
 
-  double dt=T0/bisec_param/* PRINT_DT */, t_last=0.;
+  double dt=T0/A/* PRINT_DT */, t_last=0.;
 
   gsl_odeiv_system sys = {func_shrinker, jac_dummy, 2, p};
 
@@ -379,7 +379,7 @@ fevol_shrinker (double A, int print, char * filename, void * p)
 
   if (print){
     file = fopen(filename, "a");
-    fprintf(file, "# A = %.15G\n", bisec_param );
+    fprintf(file, "# A = %.15G\n", A );
   }
 
   while (t < T_MAX)
@@ -701,7 +701,7 @@ fevol_shrinker_eigenproblem (double L, int print, char * filename, void * p)
 
   if (print){
     file = fopen(filename, "a");
-    fprintf(file, "# A = %.15f\n# lambda = %.15f\n", A, bisec_param );
+    fprintf(file, "# A = %.15f\n# lambda = %.15f\n", A, L );
   }
 
   while (t < 10.)
