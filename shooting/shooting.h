@@ -9,16 +9,16 @@
 
 #define PI					3.14159265358979323846	/* pi */
 
-#define STEPPER					gsl_odeiv_step_rkf45
+#define STEPPER					gsl_odeiv_step_rk8pd
 #define STEPPER_ERROR				1.e-15
 #define T_MAX					3.e2
-#define PRINT_DT				1.e-5
-#define PRINT_DT_RATIO				1.3
-#define T0					1.e-7 /* -7. */
-#define H0					1.e-10
+#define PRINT_DT				1.e-7
+#define PRINT_DT_RATIO				1.05
+#define T0					1.e-10 /* -7. */
+#define H0					1.e-15
 #define RIPPER_BISEC_EPSILON			1.e-15
-#define HARVESTER_DATA_DIR			"harvester_data_expander/"
-#define PROFILE_FILE_PREFIX			"expander"
+#define HARVESTER_DATA_DIR			"harvester_data_shrinker/"
+#define PROFILE_FILE_PREFIX			"shrinker"
 #define HARVESTER_DEFAULT_EXTENSION		"_k%.5f_l%.1f.dat"
 #define HARVESTER_DEFAULT_EIGEN_EXTENSION	"_k%.5f_l%.1f_i%i.dat"
 

@@ -82,34 +82,34 @@ solve_eigenproblem
   printf(GREEN1 "solving eigenproblem for index %i in dimension %.3f with l=%.1f\nLambda > 1\n" FORMAT_OFF,
 	 index, k, l);
 
-  /* eigen_results_collected = harvester */
-  /*   ( 0., */
-  /*     3., */
-  /*     .1, */
-  /*     RIPPER_LINEAR, */
-  /*     index-1, */
-  /*     eigen_results, */
-  /*     0., */
-  /*     fevol_eigenproblem, */
-  /*     (void*)(&A) ); */
-
   eigen_results_collected = harvester
     ( 2.,
-      1.e100,
-      1.1,
-      RIPPER_EXP,
+      1.e10,
+      50.,
+      RIPPER_LINEAR,
       index-1,
       eigen_results,
       0.,
       fevol_eigenproblem,
       (void*)(&A) );
 
+  /* eigen_results_collected = harvester */
+  /*   ( 2., */
+  /*     1.e100, */
+  /*     1.1, */
+  /*     RIPPER_EXP, */
+  /*     index-1, */
+  /*     eigen_results, */
+  /*     0., */
+  /*     fevol_eigenproblem, */
+  /*     (void*)(&A) ); */
+
   printf(GREEN1 "Lambda <= 1\n" FORMAT_OFF);
 
   eigen_results_collected += harvester
     ( 2.,
       -1.e10,
-      .01,
+      .1,
       RIPPER_LINEAR,
       eigenval_number-eigen_results_collected,
       eigen_results+eigen_results_collected,
@@ -122,16 +122,16 @@ solve_eigenproblem
       HARVESTER_DATA_DIR "eigen" HARVESTER_DEFAULT_EIGEN_EXTENSION,
       k, l, index);
 
-  eigenfile = fopen( eigenfile_name, "a" );
+  eigenfile = fopen( eigenfile_name, "w" );
   fclose( eigenfile );
 
   for ( j = index-2; j >= 0; j-- )
     {
       eigenfile = fopen( eigenfile_name, "a" );
       fprintf
-	(eigenfile,
-	 "#%.15f %.1f %i %.15f %i %.15f\n",
-	 k, l, index, A, index-j-1, eigen_results[j] );
+  	(eigenfile,
+  	 "#%.15f %.1f %i %.15f %i %.15f\n",
+  	 k, l, index, A, index-j-1, eigen_results[j] );
       fclose( eigenfile );
 
       fevol_eigenproblem(eigen_results[j], 1, eigenfile_name, (void*)(&A));
@@ -141,9 +141,9 @@ solve_eigenproblem
     {
       eigenfile = fopen( eigenfile_name, "a" );
       fprintf
-	(eigenfile,
-	 "#%.15f %.1f %i %.15f %i %.15f\n",
-	 k, l, index, A, j+1, eigen_results[j] );
+  	(eigenfile,
+  	 "#%.15f %.1f %i %.15f %i %.15f\n",
+  	 k, l, index, A, j+1, eigen_results[j] );
       fclose( eigenfile );
 
       fevol_eigenproblem(eigen_results[j], 1, eigenfile_name, (void*)(&A));
@@ -657,11 +657,10 @@ fevol_shrinker_eigenproblem (double L, int print, char * filename, void * p)
 
   gsl_odeiv_system sys = {func_shrinker_eigenproblem, jac_dummy, 4, (void*)&L};
 
-  double t = T0/L;
-  double h = H0/L;
   double A = *(double*)p;
-  double y[4] = {		      /* expressions derived using
-					 ~/SeriesSolve.nb */
+  double t = T0/A;
+  double h = H0/A;
+  double y[4] = {
     A*t + ((3*A - 4*(-1 + k)*pow(A,3))*pow(2 + k,-1)*pow(t,3))/
      12. + (A*(15 + 8*(-1 + k)*pow(A,2)*
           (-5 + (-2 + 4*k)*pow(A,2)))*pow(2 + k,-1)*pow(4 + k,-1)*
@@ -676,27 +675,7 @@ fevol_shrinker_eigenproblem (double L, int print, char * filename, void * p)
    1 + ((3 + 6*L - 12*(-1 + k)*pow(A,2))*pow(2 + k,-1)*pow(t,2))/
      4. + (5*(3 + 4*L*(2 + L) - 8*(-1 + k)*(3 + 2*L)*pow(A,2) +
          16*(-1 + k)*(-1 + 2*k)*pow(A,4))*pow(2 + k,-1)*
-       pow(4 + k,-1)*pow(t,4))/32.    /* (A + A*l*pow (8*l + 4*k, -1)* */
-    /*  pow (t, 2) + (A*l*(2 + l)*pow (2*l + k, -1)*pow (2 + 2*l + k, -1)* */
-    /* 		   pow (t, 4))/ */
-    /*  32. + (A*l*(2 + l)*(4 + l)*pow (2*l + k, -1)* */
-    /* 	    pow (2 + 2*l + k, -1)*pow (4 + 2*l + k, -1)*pow (t, 6))/ */
-    /*  384.)*pow (t, l), */
-
-    /* (A*l*pow (2*l + k, -1)*pow (2 + 2*l + k, -1)* */
-    /*  pow (4 + 2*l + k, -1)*(384*(2*l + k)*(2 + 2*l + k)*(4 + 2*l + k) + */
-    /* 			    96*(2 + l)*(2 + 2*l + k)*(4 + 2*l + k)*pow (t, 2) + */
-    /* 			    12*(2 + l)*(4 + l)*(4 + 2*l + k)* */
-    /* 			    pow (t, 4) + (2 + l)*(4 + l)*(6 + l)*pow (t, 6))* */
-    /*  pow (t, -1 + l))/384., */
-    /* A*t + ((3*A - 4*(-1 + k)*pow(A,3))*pow(2 + k,-1)*pow(t,3))/12. + */
-    /* (A*(15 - 40*(-1 + k)*pow(A,2) + 16*pow(A,4)*(1 - 3*k + 2*pow(k,2)))* */
-    /*  pow(t,5)*pow(8 + 6*k + pow(k,2),-1))/160., */
-    /* A + ((3*A - 4*(-1 + k)*pow(A,3))*pow(2 + k,-1)*pow(t,2))/4. + */
-    /* (A*(15 - 40*(-1 + k)*pow(A,2) + 16*pow(A,4)*(1 - 3*k + 2*pow(k,2)))* */
-    /*  pow(t,4)*pow(8 + 6*k + pow(k,2),-1))/32., */
-    /* pow(t,l), */
-    /* l*pow(t,l-1.) */
+       pow(4 + k,-1)*pow(t,4))/32.
   };
 
   if (print){
@@ -704,7 +683,7 @@ fevol_shrinker_eigenproblem (double L, int print, char * filename, void * p)
     fprintf(file, "# A = %.15f\n# lambda = %.15f\n", A, L );
   }
 
-  while (t < 10.)
+  while (t < 12.)
     {
       int status =
 	gsl_odeiv_evolve_apply (e, c, s,
@@ -718,14 +697,14 @@ fevol_shrinker_eigenproblem (double L, int print, char * filename, void * p)
 	 reasonably boundaed?*/
       if ( 0. > y[0]
 	   || y[0] > PI
-	   || fabs(y[2])*pow(t,-(k-1.)/2.)*exp(t*t/8.) > 1.e3)
+	   /* || ( t > 5. && fabs(y[2])*pow(t,2*L) > 1.) */)
 	break;
 
       if (print /* && t_last+dt < t */)
 	{
 	  fprintf (file,
 		   "%.15E %.15E %.15E %.15E %.15E\n",
-		   t, y[0], y[1], y[2], y[3]);
+		   t, y[0], y[1], y[2]*pow(t,2*L), y[3]);
 	  t_last+=dt;
 	  dt*=PRINT_DT_RATIO;
 	}
@@ -740,7 +719,7 @@ fevol_shrinker_eigenproblem (double L, int print, char * filename, void * p)
     fclose( file );
   }
 
-  return y[2]*pow(t,-(k-1.)/2.)*exp(t*t/8.);
+  return y[3]/y[2]*t+2.*L/* +2.*L/t *//* pow(t,2*L) */;
 }
 
 int

@@ -69,7 +69,7 @@ main (void)
   	      1,
   	      results,
   	      0.,
-  	      fevol_shrinker_reverse,
+  	      fevol_shrinker,
   	      NULL );
 
 	  /* results_collected = harvester */
@@ -92,14 +92,15 @@ main (void)
 
 	  for (i = 0; i < results_collected; ++i)
   	    {
-  	      /* print_profile( results[i], fevol_shrinker ); */
+  	      print_profile( results[i], fevol_shrinker );
 	      /* fprintf(common_data,"%.2f   %i   %.15G\n", */
 	      /* 	      k, i, expander_asymptotics_wrapper( results[i] ) ); */
 	      /* fprintf(common_data,"%.2f  %.2f  %i   %.15G\n", */
 	      /* 	      k, l, i, pow(-1,i)*results[i] ); */
 	      /* fprintf(common_data,"%.2f  %.2f  %i   %.15G   %.15G\n", */
 	      /* 	      k, l, i, results[i], fevol_shrinker_reverse(results[i],0,NULL,NULL)); */
-  	      /* solve_eigenproblem(results[i], i+1, 10, fevol_shrinker_eigenproblem); */
+  	      solve_eigenproblem(results[i], i+1, 10, fevol_shrinker_eigenproblem);
+	      /* fevol_shrinker(results[i], 1, shrinkerfile_name, NULL ); */
 	    }
 
 	  /* fclose(common_data); */
