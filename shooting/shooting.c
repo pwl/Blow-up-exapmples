@@ -704,7 +704,7 @@ fevol_shrinker_eigenproblem (double L, int print, char * filename, void * p)
 	{
 	  fprintf (file,
 		   "%.15E %.15E %.15E %.15E %.15E\n",
-		   t, y[0], y[1], y[2]*pow(t,2*L), y[3]);
+		   t, y[0], y[1], y[2]/* *pow(t,2*L) */, y[3]);
 	  t_last+=dt;
 	  dt*=PRINT_DT_RATIO;
 	}
@@ -719,7 +719,7 @@ fevol_shrinker_eigenproblem (double L, int print, char * filename, void * p)
     fclose( file );
   }
 
-  return y[3]/y[2]*t+2.*L/* +2.*L/t *//* pow(t,2*L) */;
+  return y[2]/* y[3]/y[2]*t+2.*L *//* +2.*L/t *//* *pow(t,2*L)*/;
 }
 
 int

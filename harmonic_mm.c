@@ -11,10 +11,10 @@ int main ( void )
 {
   ODE_solver * s;
   int M = 10, K = 0, i;
-  int N = 100/* 2*(M+K)+1 */;
+  int N = 120/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
   H_DOUBLE x0 = 0., x1 = PI, x;
-  H_DOUBLE t_error = 1.e-15;
+  H_DOUBLE t_error = 1.e-13;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
   gsl_matrix * D = gsl_matrix_alloc(N,N);
@@ -193,7 +193,6 @@ void ODE_set ( void * solver,
   /*     return; */
   /*   } */
 
-#pragma omp parallel for private(u,x,du,ddu,Mxi)
   for ( i = 1; i < N-1; i++) {
     u=ui[i];
     x=xi[i];
@@ -213,7 +212,6 @@ void ODE_set ( void * solver,
     gsl_matrix_set(C, i, i, -du);
   }
 
-#pragma omp parallel for
   for ( i = 1; i < N-1; i++) {
     f[i+1] = gsl_vector_get(fu,i); /* tymczasowe miejsce dla du/dt */
   }
@@ -232,7 +230,6 @@ void ODE_set ( void * solver,
   gsl_blas_dsymv (CblasUpper, -1., D_inv, ftmp, 0., fx); /* D = -d2/de2 */
   gsl_blas_dgemv (CblasNoTrans, -1., C, fx, 1., fu); /* C = -du/dx */
 
-#pragma omp parallel for
   for ( i = 1; i < N-1; i++) {
     f[i+1]   = gt*gsl_vector_get(fu,i);
     f[i+N+1] = gt*gsl_vector_get(fx,i);

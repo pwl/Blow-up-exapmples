@@ -11,9 +11,9 @@ mspace=$((mtot))
 # snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
 #     sort -n -t'_' -k2 | awk '(NR-1) % 1200 == 0'| head -n$mtot)
 snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
-    sort -n -t'_' -k2 | awk 'NR % 700 == 0'| tail -n$mtot)
-blowup_file1="harvester_data/shrinker_k3.00000_l1.0.dat"
-blowup_file2="harvester_data/eigen_k3.00000_l1.0_i1.dat"
+    sort -n -t'_' -k2 | awk 'NR % 1200 == 0'| tail -n$mtot)
+blowup_file1="harvester_data_shrinker/shrinker_k3.00000_l1.0.dat"
+blowup_file2="harvester_data_shrinker/eigen_k3.00000_l1.0_i1.dat"
 startx=0.1
 starty=0.1
 stopx=0.9
@@ -22,7 +22,12 @@ xrange="50"
 yrange="1.2*pi"
 size_mult=1.
 
-tempfile=$(tempfile)
+tempfile1="test1.dat" #$(tempfile)
+tempfile2="test2.dat" #$(tempfile)
+tempfile3="test3.dat" #$(tempfile)
+
+# select the first possible shrinker and
+./extract_block.awk -v block=1 $blowup_file1 | awk '/^[0-9]/ {print}' > $tempfile1
 
 # echo "$snapshot_files"
 # exit 0
@@ -37,14 +42,21 @@ i=0
 
 for snap in $snapshot_files; do
 
-    t=$(./snap_to_time.sh $snap)
-    t=${t:0:3}
+    tempfile2=$(tempfile)
+    tempfile3=$(tempfile)
 
-    g=$(awk '/g = /{print  $4}' $snap)
+    t=$(awk '/t = /{print $4}' $snap)
+    g=$(awk '/g = /{print $4}' $snap)
     s=$(awk '/s = /{printf("%.0f",$4)}' $snap)
     du=$(awk '/du = /{printf("%.0f",$4)}' $snap)
 
-    echo "set logscale x 10" >> plotter.gp
+    awk '/g = / {g=$4} /^[0-9]/ {printf("%.15E %.15E\n", $1/sqrt(g), $2)}' $snap > $tempfile2
+    ./interpolate_at_point.sh $tempfile1 $tempfile2 | join $tempfile2 - 2> /dev/null > $tempfile3
+    norm=$(awk '{printf("%.15E",($2-$3)/$1); exit}' $tempfile3)
+
+    echo $norm
+
+    echo "set logscale xy 10" >> plotter.gp
     echo "set key off" >> plotter.gp
     # switch margins off
     echo "set rmargin 0" >> plotter.gp
@@ -90,37 +102,16 @@ for snap in $snapshot_files; do
 
     echo "set title \"s=$s\" offset screen -.2*$sizex, screen -.25*$sizey" >> plotter.gp
     # plot the data
-    echo -ne "plot [.01:1000] [0:4] \"$snap\" u (\$1/sqrt($g)):(\$2) t\"\" w l," >> plotter.gp
+    echo -ne "plot [.01:15] [.0001:100] \"$tempfile3\" u 1:(abs((\$2-\$3)/$norm)) t\"\" w l," >> plotter.gp
     # echo -ne "\"$snap\" u (\$1/sqrt($g)):(abs(2.*\$4*\$5)) every ::::30 t\"\"," >> plotter.gp
-    echo -ne "\"$blowup_file2\" index 1 w l lt 2 t\"\"\n" >> plotter.gp
+    echo -ne "\"$blowup_file2\" u 1:(abs(\$4)) index 1 w l lt 2 t\"\"\n" >> plotter.gp
     # echo -ne "\"$blowup_file2\" u 1:(abs(\$4-\$1*\$3/2.738753125884604)/1.1e2) index 1 w l lt 2 t\"\"\n" >> plotter.gp
     # echo -ne "x w l lt 2 t\"\"\n" >> plotter.gp
     # echo -ne "\"$blowup_file2\" u 1:(abs(\$4)) w l lt 3 t\"\"\n" >> plotter.gp
 
-    echo "unset logscale xy" >> plotter.gp
-    # echo 'set logscale x2' >> plotter.gp
-    echo "unset xlabel; unset ylabel; unset tics; unset title; unset label" >> plotter.gp
-    orx=$(echo "scale=20;$orx+.6*$sizex"|bc)
-    ory=$(echo "scale=20;$ory+.0*$sizey"|bc)
-    echo "set origin $orx,$ory" >> plotter.gp
-    sizex=$(echo "scale=20;.4*$sizex"|bc)
-    sizey=$(echo "scale=20;.4*$sizey"|bc)
-    echo "set size $sizex,$sizey" >> plotter.gp
-
-    # tics=$(echo "($i%$mrows==0) && (($i/$mcols)+1==$mrows)"|bc)
-    if [ $i -eq 0 ]; then
-    	echo "set tics nomirror in" >> plotter.gp
-	echo 'unset xtics; set x2tics (1.e-4, 1.e-1) format "10^\{%L\}"' >> plotter.gp
-    	echo 'set ytics (0, "{/Symbol p}" pi)' >> plotter.gp
-    	# echo "set xtics 0,pi/2,pi format \"\"" >> plotter.gp
-    	# echo "unset xtics" >> plotter.gp
-    	# echo "set x2tics (\"{/Symbol p}/2\" pi/2)" >> plotter.gp
-    	# echo "set ytics (\"\\\$\\\pi/2\\\$\" pi/2)" >> plotter.gp
-    	# echo "set grid x2tics" >> plotter.gp
-    fi
-
-    echo "plot [1.e-5:] [0:pi] \"$snap\" w l lt 1" >> plotter.gp
+    # echo "plot [1.e-5:] [0:pi] \"$snap\" w l lt 1" >> plotter.gp
     # echo "\"\" u (pi-\$1):(pi-\$2) w l lt 1" >> plotter.gp
+# exit
 
     i=$((i+1))
 done
@@ -128,5 +119,5 @@ done
 echo "unset multiplot" >> plotter.gp
 
 ./snapshot_to_multiplot.gp
-# ps2pdf graphics/snapshot_to_multiplot.ps graphics/snapshot_to_multiplot.pdf
+ps2pdf graphics/snapshot_to_multiplot.ps graphics/snapshot_to_multiplot.pdf
 evince graphics/snapshot_to_multiplot.ps
