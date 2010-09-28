@@ -13,9 +13,9 @@
 #define STEPPER_ERROR				1.e-15
 #define T_MAX					3.e2
 #define PRINT_DT				1.e-7
-#define PRINT_DT_RATIO				1.05
-#define T0					1.e-10 /* -7. */
-#define H0					1.e-15
+#define PRINT_DT_RATIO				1.1
+#define T0					1.e-7 /* -7. */
+#define H0					1.e-10
 #define RIPPER_BISEC_EPSILON			1.e-15
 #define HARVESTER_DATA_DIR			"harvester_data_shrinker/"
 #define PROFILE_FILE_PREFIX			"shrinker"

@@ -719,7 +719,7 @@ fevol_shrinker_eigenproblem (double L, int print, char * filename, void * p)
     fclose( file );
   }
 
-  return y[2]/* y[3]/y[2]*t+2.*L *//* +2.*L/t *//* *pow(t,2*L)*/;
+  return /* y[2] */(y[3]/y[2]*t+2.*L)*y[2]/* +2.*L/t *//* *pow(t,2*L)*/;
 }
 
 int

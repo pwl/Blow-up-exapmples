@@ -30,6 +30,7 @@ tempfile3="test3.dat" #$(tempfile)
 ./extract_block.awk -v block=1 $blowup_file1 | awk '/^[0-9]/ {print}' > $tempfile1
 
 # echo "$snapshot_files"
+# less $tempfile1
 # exit 0
 
 echo "" > plotter.gp
@@ -56,7 +57,7 @@ for snap in $snapshot_files; do
 
     echo $norm
 
-    echo "set logscale xy 10" >> plotter.gp
+    # echo "set logscale y 10" >> plotter.gp
     echo "set key off" >> plotter.gp
     # switch margins off
     echo "set rmargin 0" >> plotter.gp
@@ -102,7 +103,7 @@ for snap in $snapshot_files; do
 
     echo "set title \"s=$s\" offset screen -.2*$sizex, screen -.25*$sizey" >> plotter.gp
     # plot the data
-    echo -ne "plot [.01:15] [.0001:100] \"$tempfile3\" u 1:(abs((\$2-\$3)/$norm)) t\"\" w l," >> plotter.gp
+    echo -ne "plot [.01:] \"$tempfile3\" u 1:(abs((\$2-\$3)/$norm)) t\"\" w l," >> plotter.gp
     # echo -ne "\"$snap\" u (\$1/sqrt($g)):(abs(2.*\$4*\$5)) every ::::30 t\"\"," >> plotter.gp
     echo -ne "\"$blowup_file2\" u 1:(abs(\$4)) index 1 w l lt 2 t\"\"\n" >> plotter.gp
     # echo -ne "\"$blowup_file2\" u 1:(abs(\$4-\$1*\$3/2.738753125884604)/1.1e2) index 1 w l lt 2 t\"\"\n" >> plotter.gp
