@@ -1,6 +1,6 @@
 #!/usr/bin/gnuplot -persist
 
-x_min = 900
+x_min = 500
 x_max = 1000
 file = "log/info_1/log000.dat"
 FIT_LIMIT = 1.e-20

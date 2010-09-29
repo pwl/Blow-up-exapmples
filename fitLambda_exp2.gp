@@ -1,7 +1,7 @@
 #!/usr/bin/gnuplot -persist
 
 x_min = 250
-x_max = 1000
+x_max = 500
 file = "log/info_1/log000.dat"
 FIT_LIMIT = 1.e-20
 
@@ -29,14 +29,15 @@ f3(s)=A0+A1*exp(-s*flim(L1))+A2*exp(-2.*s*flim(L1))+A3*exp(-3.*s*flim(L1))+A4*ex
 # set logscale y
 
 # fit [50:] f(x/100.) file u 1:(exp(-$1/100.)*$5) every 100 via A0,A1,A2,A3,A4,L1,L2
-fit [300:] f1(x/50.) file u 1:($5*sqrt($6/0.02)) every 100 via A0,A1,A2,L1
-fit [80:] f2(x/50.) file u 1:($5*sqrt($6/0.02)) every 100 via A0,A1,A2,A3,A4,L1,L2
+plot file u 1:(abs($5*sqrt($6/0.02)-f2($1/50.))) every 100 w l
+fit [300:x_max] f1(x/50.) file u 1:($5*sqrt($6/0.02)) every 100 via A0,A1,A2,L1
+# fit [80:x_max] f2(x/50.) file u 1:($5*sqrt($6/0.02)) every 100 via A0,A1,A2,A3,A4,L1,L2
 # fit [50:] f2(x/50.) file u 1:($5*sqrt($6/0.02)) every 100 via A0,A1,A2,A3,A4,A5,A6,L1,L2
 
 
 # plot file u 1:(abs($5*sqrt($6/0.02)-f1($1/50.))) every 100 w l
-plot file u 1:(abs($5*sqrt($6/0.02)-f2($1/50.))) every 100 w l
-print flim(L1), "  ",  flim(L2)
+# plot file u 1:(abs($5*sqrt($6/0.02)-f2($1/50.))) every 100 w l
+print flim(L1), "  ",  flim(L2), "  ", T
 # plot file u 1:5 w l
 
 # # plot file u 1:(abs($2-g3($1))) w l
