@@ -1,14 +1,15 @@
 #!/bin/bash
 
 mplotx=
-snapshot_dir="log/snapshot"
+snapshot_dir="log/snapshotN150_rkf45_te-14/"
+logfile="log/info_1/logN150_rkf45_te-14.dat"
 snapshot_name="*.dat"
 mrows=3
 mcols=3
 mtot=$((mcols*mrows))
 mspace=$((mtot))
 snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
-    sort -n -t'_' -k2 | awk 'NR % 1200 == 0'| tail -n$mtot)
+    sort -n -t'_' -k2 | awk 'NR % 24 == 0'| tail -n$mtot)
 blowup_file1="harvester_data_shrinker/shrinker_k3.00000_l1.0.dat"
 blowup_file2="harvester_data_shrinker/eigen_k3.00000_l1.0_i1.dat"
 startx=0.1
@@ -18,6 +19,7 @@ stopy=0.9
 xrange="50"
 yrange="1.2*pi"
 size_mult=1.
+T=$(awk 'BEGIN {max=0} {if($2 > max) max=$2} END {printf("%.15E\n",max)}' $logfile)
 
 tempfile1=$(tempfile)
 tempfile2=$(tempfile)
@@ -47,10 +49,14 @@ for snap in $snapshot_files; do
     g=$(awk '/g = /{print $4}' $snap)
     s=$(awk '/s = /{printf("%.0f",$4)}' $snap)
     du=$(awk '/du = /{printf("%.0f",$4)}' $snap)
+    # T_t=$(echo "scale=20; $T-$t|bc")
 
-    awk '/g = / {g=$4} /^[0-9]/ {printf("%.15E %.15E\n", $1/sqrt(g), $2)}' $snap > $tempfile2
+    # awk '/g = / {g=$4} /^[0-9]/ {printf("%.15E %.15E\n", $1/sqrt(g), $2)}' $snap > $tempfile2
+    awk "/t = / {t=\$4} /^[0-9]/ {printf(\"%.15E %.15E\\n\", \$1/sqrt($T-t), \$2)}" $snap > $tempfile2
     ./interpolate_at_point.sh $tempfile1 $tempfile2 | join $tempfile2 - 2> /dev/null > $tempfile3
-    norm=$(awk '{printf("%.15E",($2-$3)/$1); exit}' $tempfile3)
+    # TODO: norm!
+    norm=$(awk 'NR == 6 {printf("%.15E",($2-$3)/$1); exit}' $tempfile3)
+    # norm=$(awk 'NR == 7 {dx=($2-$3)/$1} {printf("%.15E",($2-$3)/dx); exit}' $tempfile3)
 
     echo $norm
 
@@ -72,7 +78,7 @@ for snap in $snapshot_files; do
     # setup the tics for picture in the lower left corner
     # echo "unset format" >> plotter.gp
     echo "unset tics" >> plotter.gp
-    echo "unset grid" >> plotter.gp
+    # echo "set grid" >> plotter.gp
     tics=$(echo "($i%$mrows==0) && (($i/$mcols)+1==$mrows)"|bc)
     echo "unset xlabel" >> plotter.gp
     echo "unset ylabel" >> plotter.gp
@@ -84,9 +90,9 @@ for snap in $snapshot_files; do
 
     fi
 
-    echo "set title \"s=$s\" offset screen -.2*$sizex, screen -.25*$sizey" >> plotter.gp
-    echo -ne "plot [.01:12] \"$tempfile3\" u 1:(abs((\$2-\$3)/$norm)) t\"\" w l," >> plotter.gp
-    echo -ne "\"$blowup_file2\" u 1:(abs(\$4)) index 1 w l lt 2 t\"\"\n" >> plotter.gp
+    echo "set title \"t=$t\" offset screen -.15*$sizex, screen -.25*$sizey font \"Times-Roman,10\"" >> plotter.gp
+    echo -ne "plot [:12] [-2:2]\"$tempfile3\" u (\$1):(((\$2-\$3)/$norm)) t\"\" w l," >> plotter.gp
+    echo -ne "\"$blowup_file2\" u 1:((\$4)) index 1 w l lt 2 t\"\", 0 t\"\"\n" >> plotter.gp
 
     i=$((i+1))
 done

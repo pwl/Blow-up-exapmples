@@ -11,12 +11,12 @@ int main ( void )
 {
   ODE_solver * s;
   int M = 10, K = 0, i;
-  int N = 50/* 2*(M+K)+1 */;
+  int N = 150/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
   H_DOUBLE x0 = 0., x1 = PI, x;
-  H_DOUBLE t_error = 1.e-15;
+  H_DOUBLE t_error = 1.e-11;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
-  const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rk8pd;
+  const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
   gsl_matrix * D = gsl_matrix_alloc(N,N);
   gsl_permutation * p = gsl_permutation_alloc(N);
   FILE * file;
@@ -62,7 +62,7 @@ int main ( void )
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
   ODE_modules_add ( s, ODE_module_info_1_init( .01, N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
-  ODE_modules_add ( s, ODE_module_snapshot_init( .1 ));
+  ODE_modules_add ( s, ODE_module_snapshot_init( 5. ));
   /* ODE_modules_add ( s, ODE_module_bisection_3_init( .001 )); */
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 
@@ -316,10 +316,11 @@ void M_calc ( double * u, double * x, double * M, int N )
   int i;
   double Mtot=0.;
 
-  for ( i = 1; i < N-1; i++)
+  for ( i = 0; i < N-1; i++)
     {
-      M[i]=fabs( D1( u, x, i, N ) )
-	+ sqrt(fabs( D2( u, x, i, N ) ));
+      M[i]=fabs( D1( u, x, i, N ) ) + sqrt(fabs( D2( u, x, i, N ) ));
+      /* M[i]=15.*D1(u,x,0,N)*(PI/2.-atan(.1*(x[i]*D1(u,x,0,N)-30.)))/PI+ */
+      /* 	20.*fabs( D1( u, x, i, N ) ) + 20.*sqrt(fabs( D2( u, x, i, N ) )); */
       /* Mtot+=(M[i]*(x[i+1]-x[i-1])/2.); */
 
       /* printf("M_calc: i=%i, M[i]=%.15f\n", i, M[i]); */
@@ -329,8 +330,8 @@ void M_calc ( double * u, double * x, double * M, int N )
       assert( M[i] >= 0 );
     }
 
-  M[0]=fabs( D1( u, x, 0, N ) )
-    + sqrt(fabs( D2( u, x, 0, N ) ));
+  /* M[0]=5.*fabs( D1( u, x, 0, N ) ); */
+    /* + sqrt(fabs( D2( u, x, 0, N ) )); */
   M[N-1]=fabs( D1( u, x, N-1, N ) )
     + sqrt(fabs( D2( u, x, N-1, N ) ) );
 
