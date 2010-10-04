@@ -52,7 +52,7 @@ for snap in $snapshot_files; do
     # T_t=$(echo "scale=20; $T-$t|bc")
 
     # awk '/g = / {g=$4} /^[0-9]/ {printf("%.15E %.15E\n", $1/sqrt(g), $2)}' $snap > $tempfile2
-    awk "/t = / {t=\$4} /^[0-9]/ {printf(\"%.15E %.15E\\n\", \$1/sqrt($T-t), \$2)}" $snap > $tempfile2
+    awk "/t = / {t=\$4} /^[0-9]/ {printf(\"%.15E %.15E\\n\", \$1/sqrt($T-t+1.e-8), \$2)}" $snap > $tempfile2
     ./interpolate_at_point.sh $tempfile1 $tempfile2 | join $tempfile2 - 2> /dev/null > $tempfile3
     # TODO: norm!
     norm=$(awk 'NR == 6 {printf("%.15E",($2-$3)/$1); exit}' $tempfile3)
@@ -91,7 +91,7 @@ for snap in $snapshot_files; do
     fi
 
     echo "set title \"t=$t\" offset screen -.15*$sizex, screen -.25*$sizey font \"Times-Roman,10\"" >> plotter.gp
-    echo -ne "plot [:12] [-2:2]\"$tempfile3\" u (\$1):(((\$2-\$3)/$norm)) t\"\" w l," >> plotter.gp
+    echo -ne "plot [:10] [-1.8:.5]\"$tempfile3\" u (\$1):(((\$2-\$3)/$norm)) t\"\" w l," >> plotter.gp
     echo -ne "\"$blowup_file2\" u 1:((\$4)) index 1 w l lt 2 t\"\", 0 t\"\"\n" >> plotter.gp
 
     i=$((i+1))

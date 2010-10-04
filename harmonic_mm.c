@@ -14,7 +14,7 @@ int main ( void )
   int N = 150/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
   H_DOUBLE x0 = 0., x1 = PI, x;
-  H_DOUBLE t_error = 1.e-11;
+  H_DOUBLE t_error = 1.e-14;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
   gsl_matrix * D = gsl_matrix_alloc(N,N);
@@ -54,7 +54,7 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  ODE_modules_add ( s, ODE_module_plot_init( 1. ) );
+  /* ODE_modules_add ( s, ODE_module_plot_init( 1. ) ); */
   /* modul do drukowania w konsoli czasu symulacji */
   /* ODE_modules_add ( s, ODE_module_print_time_init ( .01 ) ); */
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
@@ -62,7 +62,7 @@ int main ( void )
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
   ODE_modules_add ( s, ODE_module_info_1_init( .01, N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
-  ODE_modules_add ( s, ODE_module_snapshot_init( 5. ));
+  ODE_modules_add ( s, ODE_module_snapshot_init( 1. ));
   /* ODE_modules_add ( s, ODE_module_bisection_3_init( .001 )); */
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 
@@ -178,7 +178,7 @@ void ODE_set ( void * solver,
   H_DOUBLE dt = *(s->state->dt);
 
   /* definicje zmiennych pomocniczych */
-  epsilon = 5.e-3;
+  epsilon = 1.e-3;
   de	  = 1./(N-1);
   M_calc( ui, xi, m, N );
   /* gt = g( y, N ); */
