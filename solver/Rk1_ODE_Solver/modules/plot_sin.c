@@ -21,15 +21,21 @@ void plot_sin_step ( void * solver, void * module )
   H_DOUBLE * t = s->state->t;
   int i;
   double x;
+  double * f=s->state->f;
 
   N=(N-1)/2;
 
-  for(i = 0; i < N-1; i++)
+  for(i = 1; i < N-1; i++)
     {
-      x=s->state->f[2+N+i];
-      s->params->Dtemp[0][0][i]=s->state->f[2+i]/x;
-      s->params->Dtemp[0][1][i]=log(x)/log(10.);
+      x=s->state->f[i+N+1];
+      s->params->Dtemp[0][0][i]=s->state->f[1+i]/sin(x);
+      s->params->Dtemp[0][1][i]=x;
     }
+
+  s->params->Dtemp[0][0][0]=D1(f+1,f+N+1,0,N);
+  s->params->Dtemp[0][0][N-1]=-D1(f+1,f+N+1,N-1,N);
+  s->params->Dtemp[0][1][0]=f[1+N];
+  s->params->Dtemp[0][1][N-1]=f[1+N+N-1];
 
   gnuplot_resetplot( plotter );
   /* set plot title */
@@ -43,7 +49,7 @@ void plot_sin_step ( void * solver, void * module )
   gnuplot_plot_xy( plotter,
   		   s->params->Dtemp[0][1],
   		   s->params->Dtemp[0][0],
-  		   N-1,
+  		   N,
   		   title );
   /* gnuplot_plot_x( plotter, */
   /* 		  s->state->f+1+N, */
@@ -76,7 +82,8 @@ ODE_module * ODE_module_plot_sin_init ( H_DOUBLE dt )
 
   data->plotter = gnuplot_init();
   gnuplot_setstyle( data->plotter, "linespoints" );
-  /* gnuplot_cmd( data->plotter, "set logscale x\n" ); */
+  gnuplot_cmd( data->plotter, "set xrange [0:pi]\n" );
+  gnuplot_cmd( data->plotter, "set yrange [0:3*pi]\n" );
 
   plot_sin_module->data = data;
 

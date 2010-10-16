@@ -1165,3 +1165,104 @@ fevol_harmonic_eigenproblem (double bisec_param, int print, char * filename, voi
 
   return y[2];
 }
+
+int
+func_shrinker_regularized (double t, const double y[], double f[],
+	       void *params)
+{
+  f[0] = y[1];
+  /* f[1] = (sin(2.*y[0])*l*(l+k-2.)/2./t-(k-1.)*y[1])/t+t/2.*y[1]; */
+  f[1] = exp(-t*t/4.)*t*sin(2.*y[0]*exp(t*t/4.)/t/t/t)-(-4./t+t/2.)*y[1]-6.*y[0]/t/t;
+  return GSL_SUCCESS;
+}
+
+double
+fevol_shrinker_regularized (double A, int print, char * filename, void * p)
+{
+  const gsl_odeiv_step_type * T
+    = STEPPER;
+
+  FILE * file = NULL;
+
+  gsl_odeiv_step * s
+    = gsl_odeiv_step_alloc (T, 2);
+  gsl_odeiv_control * c
+    = gsl_odeiv_control_y_new (STEPPER_ERROR, STEPPER_ERROR);
+  gsl_odeiv_evolve * e
+    = gsl_odeiv_evolve_alloc (2);
+
+  double dt=T0/A/* PRINT_DT */, t_last=0.;
+
+  gsl_odeiv_system sys = {func_shrinker_regularized, jac_dummy, 2, p};
+
+  double En= 0.;
+  double t = T0/A;
+  double h = H0/A;
+  double y[2] = {
+    pow(t,3)*exp(t*t/4.)*(A*t + ((3*A - 4*(-1 + k)*pow(A,3))*pow(2 + k,-1)*pow(t,3))/
+     12. + (A*(15 + 8*(-1 + k)*pow(A,2)*
+          (-5 + (-2 + 4*k)*pow(A,2)))*pow(2 + k,-1)*pow(4 + k,-1)*
+	    pow(t,5))/160.),
+    0.				/* filled in below */
+  };
+
+  double y_prev=y[0];
+
+  y[1]=(3./t+t/2.)*y[0]+pow(t,3)*exp(t*t/4.)*(A + ((3*A - 4*(-1 + k)*pow(A,3))*
+       pow(2 + k,-1)*pow(t,2))/4. +
+    (A*(15 + 8*(-1 + k)*pow(A,2)*(-5 + (-2 + 4*k)*pow(A,2)))*
+     pow(2 + k,-1)*pow(4 + k,-1)*pow(t,4))/32.);
+
+
+
+  if (print){
+    file = fopen(filename, "a");
+    fprintf(file, "# A = %.15G\n", A );
+  }
+
+  while (t < T_MAX)
+    {
+      int status =
+	gsl_odeiv_evolve_apply (e, c, s,
+				&sys,
+				&t, T_MAX,
+				&h, y);
+
+      if (status != GSL_SUCCESS || isnan(y[0]*y[1]))
+	{
+	  y[0]=y_prev;
+	  break;
+	}
+
+      y_prev=y[0];
+
+      /* are we still in the strip [0,pi]? */
+      /* if ( 0. > y[0] || y[0] > PI ) */
+      /* 	break; */
+
+      if (print)
+	{
+	  /* En+=h*(y[1]*y[1]/2.+(k-1.)*sin(y[0])*sin(y[0])/t/t)*exp(-t*t/4.)*pow(t,k-1)/2.; */
+	  if (t > t_last )
+	    {
+	      fprintf (file,
+		       "%.15G %.15G %.15G\n",
+		       t, y[0], y[1]/* , y[2], y[3] */);
+	      t_last+=dt;
+	      dt*=PRINT_DT_RATIO;
+	    }
+	}
+      /* printf("%.15G %.15G\n",t,y[0]); */
+    }
+
+  gsl_odeiv_evolve_free (e);
+  gsl_odeiv_control_free (c);
+  gsl_odeiv_step_free (s);
+
+  if (print) {
+    /* fprintf( file, "# En = %.15G\n\n\n\n", En ); */
+    fclose( file );
+  }
+
+  return y[0];
+}

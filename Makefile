@@ -18,12 +18,12 @@ export LIBS = -lm -lgsl -lgslcblas # -lfftw3
 export ARCHIVE = $(PWD)/libyapdes.a
 export MAKEFILES = $(PWD)/Makefile.common
 export INCLUDES = $(PWD)/solver
-export SHOOTING_OBJECTS = shooting1 shooting2 shooting3
+export SHOOTING_OBJECTS = shooting1 shooting2 shooting3 shooting4
 DIRS = "solver"
 RM = /bin/rm -f
 # $(patsubst %/,%,$(wildcard */))
 
-.PHONY : clean spectral ODE_solver harmonic_mm harmonic_mm_bubbling shooting1 shooting2
+.PHONY : clean spectral ODE_solver harmonic_mm harmonic_mm_bubbling $SHOOTING_OBJECTS
 
 project: $(DIRS)
 

@@ -26,4 +26,9 @@ void plot_sin_data_free ( void * solver, void * module );
    and is called by the user */
 ODE_module * ODE_module_plot_sin_init ( H_DOUBLE dt );
 
+double D1 ( double * u, double * x, int i, int N );
+
+double D2 ( double * u, double * x, int i, int N );
+
+
 #endif /* _PLOT_SIN_H_ */

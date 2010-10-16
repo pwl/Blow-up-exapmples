@@ -10,8 +10,8 @@
 #define PI					3.14159265358979323846	/* pi */
 
 #define STEPPER					gsl_odeiv_step_rk8pd
-#define STEPPER_ERROR				1.e-15
-#define T_MAX					3.e2
+#define STEPPER_ERROR				1.e-13
+#define T_MAX					1.e2
 #define PRINT_DT				1.e-7
 #define PRINT_DT_RATIO				1.1
 #define T0					1.e-7 /* -7. */
@@ -178,6 +178,14 @@ fevol_expander_eigenproblem (double bisec_param, int print, char * filename, voi
 int
 func_expander_eigenproblem (double t, const double y[], double f[],
 			    void *params);
+
+
+int
+func_shrinker_regularized (double t, const double y[], double f[],
+	       void *params);
+
+double
+fevol_shrinker_regularized (double A, int print, char * filename, void * param);
 
 
 #endif /* _SHOOTING_H_ */
