@@ -9,7 +9,7 @@ mcols=3
 mtot=$((mcols*mrows))
 mspace=$((mtot))
 snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
-    sort -n -t'_' -k2 | awk 'NR % 24 == 0'| tail -n$mtot)
+    sort -n -t'_' -k2 | awk 'NR % 24 == 0'| tail -n$mtot|awk 'NR%1==0 {print}')
 blowup_file1="harvester_data_shrinker/shrinker_k3.00000_l1.0.dat"
 blowup_file2="harvester_data_shrinker/eigen_k3.00000_l1.0_i1.dat"
 startx=0.1
@@ -23,13 +23,15 @@ T=$(awk 'BEGIN {max=0} {if($2 > max) max=$2} END {printf("%.15E\n",max)}' $logfi
 
 tempfile1=$(tempfile)
 tempfile2=$(tempfile)
+tempfile2="temp2.dat"
 tempfile3=$(tempfile)
+tempfile3="temp3.dat"
 
 # select the first possible shrinker and
 ./extract_block.awk -v block=1 $blowup_file1 | awk '/^[0-9]/ {print}' > $tempfile1
 
 # echo "$snapshot_files"
-# less $tempfile1
+# # less $tempfile1
 # exit 0
 
 echo "" > plotter.gp
@@ -51,11 +53,11 @@ for snap in $snapshot_files; do
     du=$(awk '/du = /{printf("%.0f",$4)}' $snap)
     # T_t=$(echo "scale=20; $T-$t|bc")
 
-    # awk '/g = / {g=$4} /^[0-9]/ {printf("%.15E %.15E\n", $1/sqrt(g), $2)}' $snap > $tempfile2
-    awk "/t = / {t=\$4} /^[0-9]/ {printf(\"%.15E %.15E\\n\", \$1/sqrt($T-t+1.e-8), \$2)}" $snap > $tempfile2
+    # awk '/g = / {g=$4} /^[0-9]/ {printf("%.20E %.20E\n", $1/sqrt(g), $2)}' $snap > $tempfile2
+    awk "/t = / {t=\$4} /^[0-9]/ {printf(\"%.20G %.20G\\n\", \$1/sqrt($T-t+1.e-8), \$2)}" $snap > $tempfile2
     ./interpolate_at_point.sh $tempfile1 $tempfile2 | join $tempfile2 - 2> /dev/null > $tempfile3
     # TODO: norm!
-    norm=$(awk 'NR == 6 {printf("%.15E",($2-$3)/$1); exit}' $tempfile3)
+    norm=$(awk 'NR == 6 {printf("%.20G",($2-$3)/$1); exit}' $tempfile3)
     # norm=$(awk 'NR == 7 {dx=($2-$3)/$1} {printf("%.15E",($2-$3)/dx); exit}' $tempfile3)
 
     echo $norm

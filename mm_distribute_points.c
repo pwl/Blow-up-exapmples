@@ -7,22 +7,22 @@ double mm_A=0.;
 double mm_u
 ( double x )
 {
-  /* return sin(x)+3.*x; */
-  return (exp (pow (x, 2))*sin (x))/300.;
+  return sin(x)+x;
+  /* return (exp (pow (x, 2))*sin (x))/300.; */
 }
 
 double mm_du
 ( double x )
 {
-  /* return cos(x)+3.; */
-  return (exp (pow (x, 2))*(cos (x) + 2*x*sin (x)))/300.;
+  return cos(x);
+  /* return (exp (pow (x, 2))*(cos (x) + 2*x*sin (x)))/300.; */
 }
 
 double mm_ddu
 ( double x )
 {
-  /* return -sin(x); */
-  return (exp (pow (x, 2))*(sin (x) + 4*x*(cos (x) + x*sin (x))))/300.;
+  return -sin(x);
+  /* return (exp (pow (x, 2))*(sin (x) + 4*x*(cos (x) + x*sin (x))))/300.; */
 }
 
 double mm_M
@@ -86,7 +86,7 @@ void mm_setup_mesh ( double * x, int N )
   printf(RED1 "Relaxing mesh...\n" FORMAT_OFF);
 
   s = ODE_solver_init ( N, /*rk=*/ 1, T, x0, x1, t_error, basis, mm_ODE_set, stepper );
-  ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) );
+  /* ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) ); */
   /* ODE_modules_add ( s, ODE_module_plot_init ( .0 ) ); */
 
   /* s->state->f=x; */

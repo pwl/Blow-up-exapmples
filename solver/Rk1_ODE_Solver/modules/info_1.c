@@ -40,7 +40,7 @@ void info_1_step ( void * solver, void * module )
 
 
   file = fopen ( data->fileNames[0], "a" );
-  fprintf( file, "%.15G %.15G %.15G %.15G %.15G %.15G %.15G %.15G %.15G %.15G\n",
+  fprintf( file, "%.20G %.20G %.20G %.20G %.20G %.20G %.20G %.20G %.20G %.20G\n",
   	   tau, t, u[1], x[1], dx, g, *dtau, df[2], d2fdtdx, ddx );
   fclose( file );
 }
