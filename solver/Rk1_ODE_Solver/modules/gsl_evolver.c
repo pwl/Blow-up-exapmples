@@ -104,9 +104,18 @@ int gsl_evolver_ODE_flow ( H_DOUBLE t,	       /* time */
 
 
 /* phony jacobian */
-int gsl_evolver_jac (double t, const double y[], double *dfdy, double dfdt[], void *params)
+int gsl_evolver_jac (double t, const double y[], double *dfdy, double dfdt[], void *solver)
 {
+  ODE_solver * s = (ODE_solver*)solver;
+
+  if(!s->params->ODE_jac)
+    return GSL_FAILURE;
+  else
+    {
+      s->params->ODE_jac( s, t, y, dfdy, dfdt);
+      return GSL_SUCCESS;
+    }
+
   /* if called will throw out this message */
-  printf("# This algorithm needs jacobian, please define it\n");
-  return GSL_FAILURE;
+  /* printf("# This algorithm needs jacobian, please define it\n"); */
 }

@@ -41,4 +41,7 @@ bisec(double A0,
 
 double mAnalyical (double x);
 
+void M_smoothen ( double * M, double * Mtemp, int N, double gamma, int ip );
+
+
 #endif

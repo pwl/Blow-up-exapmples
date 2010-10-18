@@ -26,6 +26,7 @@ ODE_solver * ODE_solver_init ( int N,
 			       H_DOUBLE t_error,
 			       h_basis_functions * basis,
 			       void (*ODE_set)(void * ODE_solver, H_DOUBLE t, H_DOUBLE * y, H_DOUBLE * f ),
+			       void (*ODE_jac)(void * ODE_solver, H_DOUBLE t, H_DOUBLE * y, H_DOUBLE * dfdy, H_DOUBLE * dfdt ),
 			       gsl_odeiv_step_type * stepper );
 
 void ODE_solver_free ( ODE_solver * s );

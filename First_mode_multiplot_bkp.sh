@@ -1,8 +1,8 @@
 #!/bin/bash
 
 mplotx=
-snapshot_dir="log/snapshotN150_rkf45_te-14/"
-logfile="log/info_1/logN150_rkf45_te-14.dat"
+snapshot_dir="log/snapshot/"
+logfile="log/info_1/log000.dat"
 snapshot_name="*.dat"
 mrows=3
 mcols=3
@@ -53,8 +53,8 @@ for snap in $snapshot_files; do
     du=$(awk '/du = /{printf("%.0f",$4)}' $snap)
     # T_t=$(echo "scale=20; $T-$t|bc")
 
-    # awk '/g = / {g=$4} /^[0-9]/ {printf("%.20E %.20E\n", $1/sqrt(g), $2)}' $snap > $tempfile2
-    awk "/t = / {t=\$4} /^[0-9]/ {printf(\"%.20G %.20G\\n\", \$1/sqrt($T-t+1.e-8), \$2)}" $snap > $tempfile2
+    awk '/g = / {g=$4} /^[0-9]/ {printf("%.20E %.20E\n", $1/sqrt(g), $2)}' $snap > $tempfile2
+    # awk "/t = / {t=\$4} /^[0-9]/ {printf(\"%.20G %.20G\\n\", \$1/sqrt($T-t+1.e-8), \$2)}" $snap > $tempfile2
     ./interpolate_at_point.sh $tempfile1 $tempfile2 | join $tempfile2 - 2> /dev/null > $tempfile3
     # TODO: norm!
     norm=$(awk 'NR == 6 {printf("%.20G",($2-$3)/$1); exit}' $tempfile3)

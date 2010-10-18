@@ -33,6 +33,7 @@ typedef struct
 				   functions */
   /* the set of ODE equations used to evolve initial values */
   void (*ODE_set)(void * ODE_solver, H_DOUBLE t, H_DOUBLE * y, H_DOUBLE * f );
+  void (*ODE_jac)(void * ODE_solver, H_DOUBLE t, H_DOUBLE * y, H_DOUBLE * dfdy, H_DOUBLE * dfdt );
 } ODE_static;			/**< This structure holds the
 				   variables that are not going to be
 				   changed during runtime of
