@@ -31,4 +31,7 @@ ODE_module * ODE_module_info_1_init (H_DOUBLE dt, int N );
 double D1 ( double * u, double * x, int i, int N );
 double D2 ( double * u, double * x, int i, int N );
 
+double D3_at_0 (double * u, double * x);
+double D1_at_0 (double * u, double * x);
+
 #endif /* _INFO_1_H_ */

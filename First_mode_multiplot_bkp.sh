@@ -23,9 +23,9 @@ T=$(awk 'BEGIN {max=0} {if($2 > max) max=$2} END {printf("%.15E\n",max)}' $logfi
 
 tempfile1=$(tempfile)
 tempfile2=$(tempfile)
-tempfile2="temp2.dat"
+# tempfile2="temp2.dat"
 tempfile3=$(tempfile)
-tempfile3="temp3.dat"
+# tempfile3="temp3.dat"
 
 # select the first possible shrinker and
 ./extract_block.awk -v block=1 $blowup_file1 | awk '/^[0-9]/ {print}' > $tempfile1
@@ -92,8 +92,9 @@ for snap in $snapshot_files; do
 
     fi
 
-    echo "set title \"t=$t\" offset screen -.15*$sizex, screen -.25*$sizey font \"Times-Roman,10\"" >> plotter.gp
+    echo "set title \"g=$g\" offset screen -.15*$sizex, screen -.25*$sizey font \"Times-Roman,10\"" >> plotter.gp
     echo -ne "plot [:10] [-1.8:.5]\"$tempfile3\" u (\$1):(((\$2-\$3)/$norm)) t\"\" w l," >> plotter.gp
+    # echo -ne "plot [:10] [0.:3.]\"$tempfile2\" u (\$1):(\$2) t\"\" w l\n" >> plotter.gp
     echo -ne "\"$blowup_file2\" u 1:((\$4)) index 1 w l lt 2 t\"\", 0 t\"\"\n" >> plotter.gp
 
     i=$((i+1))

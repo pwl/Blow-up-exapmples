@@ -31,8 +31,9 @@ void info_1_step ( void * solver, void * module )
   H_DOUBLE * x = f+1+N;
   H_DOUBLE g = (s->state->df[0]);
   H_DOUBLE t = f[0];
-  H_DOUBLE dx = D1(u,x,0,N);
+  H_DOUBLE dx = D1_at_0(u,x);/* D1(u,x,0,N); */
   H_DOUBLE ddx = D2(u,x,0,N);
+  H_DOUBLE dddx = D3_at_0(u,x);
   H_DOUBLE min = 1.;
   H_DOUBLE d2fdtdx = D1(df+1,x,0,N);
   FILE * file;
@@ -40,8 +41,8 @@ void info_1_step ( void * solver, void * module )
 
 
   file = fopen ( data->fileNames[0], "a" );
-  fprintf( file, "%.20G %.20G %.20G %.20G %.20G %.20G %.20G %.20G %.20G %.20G\n",
-  	   tau, t, u[1], x[1], dx, g, *dtau, df[2], d2fdtdx, ddx );
+  fprintf( file, "%.20G %.20G %.20G %.20G %.20G %.20G %.20G %.20G %.20G %.20G %.20G\n",
+  	   tau, t, u[1], x[1], dx, g, *dtau, df[2], d2fdtdx, ddx, dddx );
   fclose( file );
 }
 
@@ -105,4 +106,26 @@ ODE_module * ODE_module_info_1_init( H_DOUBLE dt, int N )
   sprintf(m->name, "info_1");
 
   return m;
+}
+
+double D3_at_0 (double * u, double * x)
+{
+  return 6*u[1]*(x[4]*x[5] + x[3]*(x[4] + x[5]) + x[2]*(x[3] + x[4] + x[5]))*pow(x[1],-1)*pow(x[1] - x[2],-1)*
+    pow(x[1] - x[3],-1)*pow(x[1] - x[4],-1)*pow(x[1] - x[5],-1) -
+   6*u[2]*(x[4]*x[5] + x[3]*(x[4] + x[5]) + x[1]*(x[3] + x[4] + x[5]))*pow(x[1] - x[2],-1)*pow(x[2],-1)*
+    pow(x[2] - x[3],-1)*pow(x[2] - x[4],-1)*pow(x[2] - x[5],-1) +
+   6*u[3]*(x[4]*x[5] + x[2]*(x[4] + x[5]) + x[1]*(x[2] + x[4] + x[5]))*pow(x[1] - x[3],-1)*
+    pow(x[2] - x[3],-1)*pow(x[3],-1)*pow(x[3] - x[4],-1)*pow(x[3] - x[5],-1) -
+   6*u[4]*(x[3]*x[5] + x[2]*(x[3] + x[5]) + x[1]*(x[2] + x[3] + x[5]))*pow(x[3] - x[4],-1)*pow(x[4],-1)*
+    pow(-x[1] + x[4],-1)*pow(-x[2] + x[4],-1)*pow(x[4] - x[5],-1) -
+   6*u[5]*(x[3]*x[4] + x[2]*(x[3] + x[4]) + x[1]*(x[2] + x[3] + x[4]))*pow(x[3] - x[5],-1)*pow(x[5],-1)*
+    pow(-x[1] + x[5],-1)*pow(-x[2] + x[5],-1)*pow(-x[4] + x[5],-1);
+}
+
+double D1_at_0 (double * u, double * x)
+{
+  return -(u[1]*x[2]*x[3]*x[4]*pow(x[1],-1)*pow(x[1] - x[2],-1)*pow(x[1] - x[3],-1)*pow(x[1] - x[4],-1)) +
+   u[2]*x[1]*x[3]*x[4]*pow(x[1] - x[2],-1)*pow(x[2],-1)*pow(x[2] - x[3],-1)*pow(x[2] - x[4],-1) +
+   u[3]*x[1]*x[2]*x[4]*pow(x[2] - x[3],-1)*pow(x[3],-1)*pow(-x[1] + x[3],-1)*pow(x[3] - x[4],-1) +
+    u[4]*x[1]*x[2]*x[3]*pow(x[2] - x[4],-1)*pow(x[4],-1)*pow(-x[1] + x[4],-1)*pow(-x[3] + x[4],-1);
 }
