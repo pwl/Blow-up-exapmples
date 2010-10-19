@@ -52,6 +52,9 @@ shooting.o:	shooting/shooting.c shooting/shooting.h
 harmonic_bubbling: harmonic_mm_bubbling.o $(DIRS)
 	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_mm_bubbling.o $(ARCHIVE) -o $@
 
+harmonic_experimental: harmonic_mm_experimental.o $(DIRS)
+	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_mm_experimental.o $(ARCHIVE) -o $@
+
 harmonic_multiple_blowup: harmonic_multiple_blowup.o $(DIRS)
 	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_multiple_blowup.o  mm_distribute_points.o $(ARCHIVE) -o $@
 
@@ -71,6 +74,9 @@ mm_distribute_points.o: mm_distribute_points.c mm_distribute_points.h
 	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
 
 harmonic_mm_bubbling.o: harmonic_mm_bubbling.c harmonic.h
+	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
+
+harmonic_mm_experimental.o: harmonic_mm_experimental.c harmonic.h
 	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
 
 harmonic_multiple_blowup.o: harmonic_multiple_blowup.c harmonic.h mm_distribute_points.o

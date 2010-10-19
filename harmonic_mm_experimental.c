@@ -50,7 +50,7 @@ int main ( void )
   gsl_linalg_LU_invert(D, p, D_inv);
 
   /* inicjalizacja struktury przechowującej informacje dot. dymulacji */
-  s = ODE_solver_init ( 2*N+1, /*rk=*/ 1, T, x0, x1, t_error, basis, ODE_set, ODE_jac, stepper );
+  s = ODE_solver_init ( 2*N+1, /*rk=*/ 1, T, x0, x1, t_error, basis, ODE_set, NULL, stepper );
   /* inicjalizacja modułów obrazujących przebieg symulacji, pierwszy
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
@@ -196,15 +196,15 @@ void ODE_set ( void * solver,
   f[0]=gt;
 }
 
-void (*ODE_jac)
-(void * ODE_solver,
- H_DOUBLE t,
- H_DOUBLE * y,
- H_DOUBLE * dfdy,
- H_DOUBLE * dfdt )
-{
+/* void (*ODE_jac) */
+/* (void * ODE_solver, */
+/*  H_DOUBLE t, */
+/*  H_DOUBLE * y, */
+/*  H_DOUBLE * dfdy, */
+/*  H_DOUBLE * dfdt ) */
+/* { */
 
-}
+/* } */
 
 
 
@@ -340,7 +340,7 @@ void M_calc ( double * u, double * x, double * M, int N )
       assert( M[i]-M[i]==0. );
       assert( M[i] >= 0 );
     }
-  M_smoothen ( M, mtemp, N, .1, 3 );
+  /* M_smoothen ( M, mtemp, N, .1, 3 ); */
 }
 
 void M_smoothen ( double * M, double * Mtemp, int N, double gamma, int ip )
