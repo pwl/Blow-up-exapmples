@@ -1,7 +1,7 @@
 #include "harmonic.h"
 
 gsl_matrix * D_inv, * C;
-double * m;
+double * m, *mtemp;
 gsl_vector * fx, * fu, * ftmp;
 
 double k=3.;
@@ -14,7 +14,7 @@ int main ( void )
   int N = 50/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
   H_DOUBLE x0 = 0., x1 = PI, x;
-  H_DOUBLE t_error = 1.e-8;
+  H_DOUBLE t_error = 1.e-10;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   const gsl_odeiv_step_type * stepper = gsl_odeiv_step_gear1;
   gsl_matrix * D = gsl_matrix_alloc(N,N);
@@ -26,6 +26,7 @@ int main ( void )
   /* Alokacja pamięci i inicjalizacja oraz odwrócenie macierzy przy
      użyciu GSL */
   m = malloc( N*sizeof(double) );
+  mtemp = malloc( N*sizeof(double) );
   D_inv = gsl_matrix_alloc(N,N);
   C = gsl_matrix_alloc(N,N);
   fx = gsl_vector_alloc(N);
@@ -182,7 +183,7 @@ void ODE_set ( void * solver,
   M_calc( ui, xi, m, N );
   /* epsilon = min(max(1.e-3,m[0]),1.e-1); */
   gt = .01*2*pow(fabs(D1(ui,xi,0,N)/2.73875312588499),-2); /* gt=alpha*du/dx/(d2u/dxdt)|x=0 */
-  epsilon = min(max(1.e-5,10.*gt),1.e-1);
+  epsilon = sqrt(1.e2*gt);/* min(max(1.e-5,1.e2*gt),1.e-1); */
   /* gt = g( y, N ); */
   /* gt=1.; */
   /* assert(!isnan(gt)); */
@@ -391,33 +392,13 @@ void M_calc ( double * u, double * x, double * M, int N )
   int i;
   double Mtot=0.;
 
-  for ( i = 0; i < N-1; i++)
+  for ( i = 0; i < N; i++)
     {
       M[i]=fabs( D1( u, x, i, N ) ) + sqrt(fabs( D2( u, x, i, N ) ));
-      /* M[i]=15.*D1(u,x,0,N)*(PI/2.-atan(.1*(x[i]*D1(u,x,0,N)-30.)))/PI+ */
-      /* 	20.*fabs( D1( u, x, i, N ) ) + 20.*sqrt(fabs( D2( u, x, i, N ) )); */
-      /* Mtot+=(M[i]*(x[i+1]-x[i-1])/2.); */
-
-      /* printf("M_calc: i=%i, M[i]=%.15f\n", i, M[i]); */
-      /* printf("M_calc: M[i]-M[i]=%.15f\n", M[i]-M[i]); */
-
       assert( M[i]-M[i]==0. );
       assert( M[i] >= 0 );
     }
-
-  /* M[0]=5.*fabs( D1( u, x, 0, N ) ); */
-    /* + sqrt(fabs( D2( u, x, 0, N ) )); */
-  M[N-1]=fabs( D1( u, x, N-1, N ) )
-    + sqrt(fabs( D2( u, x, N-1, N ) ) );
-
-  /* Mtot+=M[0]*(x[1]-x[0])+M[N-1]*(x[N-1]-x[N-2]); */
-
-  /* for ( i = 0; i < N; i++ ) */
-  /*   { */
-      /* M[i]+=.1*Mtot; */
-      /* M[i]+=.1; */
-      /* M[i]+=.01*(1.+sin(x[i])); */
-    /* } */
+  /* M_smoothen ( M, mtemp, N, 10., 3 ); */
 }
 
 double bisection_wrapper(double A, void * p)
@@ -502,4 +483,51 @@ bisec(double A0,
   printf("\n");
 
   return .5*(A0+A1);
+}
+
+void M_smoothen ( double * M, double * Mtemp, int N, double gamma, int ip )
+{
+  double sumdenom, sumnom;
+  int i,j;
+
+  sumdenom = 0.;
+  for ( j = -ip; j <= ip; j++ )
+    sumdenom += pow(gamma/(1+gamma),abs(j));
+
+  for ( i = ip; i < N - ip; i++ )
+    {
+      sumnom = 0.;
+      for ( j = -ip; j <= ip; j++ )
+	sumnom += pow( M[i+j], 2 ) * pow( gamma/(1+gamma), abs(j) );
+      Mtemp[i] = sqrt( sumnom / sumdenom );
+    }
+
+  for ( i = 0; i < ip; i++ )
+    {
+      sumnom = 0.;
+      for ( j = 0; j <= i+ip; j++ )
+	sumnom += pow( M[j], 2 ) * pow( gamma/(1+gamma), abs(i-j) );
+      for ( j = i-ip; j < 0; j++ ) /* assuming M[i]=M[0] for i<0 */
+	sumnom += pow( M[0], 2 ) * pow( gamma/(1+gamma), abs(i-j) );
+
+      Mtemp[i] = sqrt( sumnom / sumdenom );
+    }
+
+  for ( i = N-ip; i < N; i++ )
+    {
+      sumnom = 0.;
+      for ( j = i-ip; j < N; j++ )
+	sumnom += pow( M[j], 2 ) * pow( gamma/(1+gamma), abs(i-j) );
+      for ( j = N; j <= i+ip; j++ ) /* assuming M[i]=M[N-1] for i>N-1 */
+	sumnom += pow( M[N-1], 2 ) * pow( gamma/(1+gamma), abs(i-j) );
+
+      Mtemp[i] = sqrt( sumnom / sumdenom );
+    }
+
+
+  /* write the somoothened function to M */
+  for ( i = 0; i < N; i++ )
+    {
+      M[i]=Mtemp[i];
+    }
 }
