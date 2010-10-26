@@ -346,7 +346,7 @@ fevol_shrinker (double A, int print, char * filename, void * p)
   gsl_odeiv_evolve * e
     = gsl_odeiv_evolve_alloc (2);
 
-  double dt=T0/A/* PRINT_DT */, t_last=0.;
+  double dt=.01/* T0/A *//* PRINT_DT */, t_last=0.;
 
   gsl_odeiv_system sys = {func_shrinker, jac_dummy, 2, p};
 
@@ -380,7 +380,8 @@ fevol_shrinker (double A, int print, char * filename, void * p)
   if (print){
     file = fopen(filename, "a");
     fprintf(file, "# A = %.15G\n", A );
-  }
+    fprintf (file,"0. 0. 0.\n");
+}
 
   while (t < T_MAX)
     {
@@ -399,13 +400,13 @@ fevol_shrinker (double A, int print, char * filename, void * p)
       if (print)
 	{
 	  En+=h*(y[1]*y[1]/2.+(k-1.)*sin(y[0])*sin(y[0])/t/t)*exp(-t*t/4.)*pow(t,k-1)/2.;
-	  if (t > t_last )
+	  if (t > t_last+dt )
 	    {
 	      fprintf (file,
 		       "%.15G %.15G %.15G\n",
 		       t, y[0], y[1]/* , y[2], y[3] */);
 	      t_last+=dt;
-	      dt*=PRINT_DT_RATIO;
+	      /* dt*=PRINT_DT_RATIO; */
 	    }
 	}
       /* printf("%.15f\r",t); */
