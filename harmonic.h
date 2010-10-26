@@ -13,6 +13,7 @@
 #include "gsl/gsl_linalg.h"
 
 #include "mm_distribute_points.h"
+#include "derivatives.h"
 
 #define min(a,b) a<b?a:b
 #define max(a,b) a>b?a:b
@@ -21,10 +22,6 @@ void ODE_set ( void * solver,
 	       H_DOUBLE t,
 	       H_DOUBLE * y,
 	       H_DOUBLE * f );
-
-double D1 ( double * u, double * x, int i, int N );
-
-double D2 ( double * u, double * x, int i, int N );
 
 void M_calc ( double * u, double * x, double * M, int N );
 

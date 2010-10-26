@@ -19,6 +19,7 @@ export ARCHIVE = $(PWD)/libyapdes.a
 export MAKEFILES = $(PWD)/Makefile.common
 export INCLUDES = $(PWD)/solver
 export SHOOTING_OBJECTS = shooting1 shooting2 shooting3 shooting4
+export REQUIRED = mm_distribute_points.o derivatives.o
 DIRS = "solver"
 RM = /bin/rm -f
 # $(patsubst %/,%,$(wildcard */))
@@ -28,7 +29,7 @@ RM = /bin/rm -f
 project: $(DIRS)
 
 harmonic: harmonic_mm.o $(DIRS)
-	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_mm.o mm_distribute_points.o $(ARCHIVE) -o $@
+	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_mm.o $(ARCHIVE) $(REQUIRED) -o $@
 
 run:	harmonic
 	$(RM) log/{snapshot,movie}/*
@@ -49,28 +50,31 @@ $(SHOOTING_OBJECTS): % : shooting/%.c shooting/%.h shooting.o
 shooting.o:	shooting/shooting.c shooting/shooting.h
 	$(CC) $(FLAGS) -c -o shooting/$@ $<
 
-harmonic_bubbling: harmonic_mm_bubbling.o $(DIRS)
-	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_mm_bubbling.o $(ARCHIVE) -o $@
+harmonic_bubbling: harmonic_mm_bubbling.o $(DIRS)  $(REQUIRED)
+	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_mm_bubbling.o $(ARCHIVE) $(REQUIRED) -o $@
 
-harmonic_experimental: harmonic_mm_experimental.o $(DIRS)
-	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_mm_experimental.o $(ARCHIVE) -o $@
+harmonic_experimental: harmonic_mm_experimental.o $(DIRS)  $(REQUIRED)
+	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_mm_experimental.o $(ARCHIVE) $(REQUIRED) -o $@
 
-harmonic_multiple_blowup: harmonic_multiple_blowup.o $(DIRS)
-	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_multiple_blowup.o  mm_distribute_points.o $(ARCHIVE) -o $@
+harmonic_multiple_blowup: harmonic_multiple_blowup.o $(DIRS)  $(REQUIRED)
+	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_multiple_blowup.o $(ARCHIVE) $(REQUIRED) -o $@
 
-harmonic_multiple_blowup_S3_to_S3: harmonic_multiple_blowup_S3_to_S3.o $(DIRS)
-	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_multiple_blowup_S3_to_S3.o  mm_distribute_points.o $(ARCHIVE) -o $@
+harmonic_multiple_blowup_S3_to_S3: harmonic_multiple_blowup_S3_to_S3.o $(DIRS)  $(REQUIRED)
+	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_multiple_blowup_S3_to_S3.o $(ARCHIVE) $(REQUIRED) -o $@
 
-harmonic_multiple_blowup_R3_to_S3: harmonic_multiple_blowup_R3_to_S3.o $(DIRS)
-	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_multiple_blowup_R3_to_S3.o  mm_distribute_points.o $(ARCHIVE) -o $@
+harmonic_multiple_blowup_R3_to_S3: harmonic_multiple_blowup_R3_to_S3.o $(DIRS) $(REQUIRED)
+	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_multiple_blowup_R3_to_S3.o $(ARCHIVE) $(REQUIRED) -o $@
 
-harmonic_ys_bisection: harmonic_ys_bisection.o $(DIRS)
+harmonic_ys_bisection: harmonic_ys_bisection.o $(DIRS) $(REQUIRED)
 	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_ys_bisection.o $(ARCHIVE) -o $@
 
-harmonic_mm.o: harmonic_mm.c harmonic.h mm_distribute_points.o
+harmonic_mm.o: harmonic_mm.c harmonic.h
 	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
 
-mm_distribute_points.o: mm_distribute_points.c mm_distribute_points.h
+mm_distribute_points.o: mm_distribute_points.c mm_distribute_points.h derivatives.o
+	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
+
+derivatives.o: derivatives.c derivatives.h
 	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
 
 harmonic_mm_bubbling.o: harmonic_mm_bubbling.c harmonic.h
@@ -79,13 +83,13 @@ harmonic_mm_bubbling.o: harmonic_mm_bubbling.c harmonic.h
 harmonic_mm_experimental.o: harmonic_mm_experimental.c harmonic.h
 	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
 
-harmonic_multiple_blowup.o: harmonic_multiple_blowup.c harmonic.h mm_distribute_points.o
+harmonic_multiple_blowup.o: harmonic_multiple_blowup.c harmonic.h
 	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
 
-harmonic_multiple_blowup_S3_to_S3.o: harmonic_multiple_blowup_S3_to_S3.c harmonic.h mm_distribute_points.o
+harmonic_multiple_blowup_S3_to_S3.o: harmonic_multiple_blowup_S3_to_S3.c harmonic.h
 	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
 
-harmonic_multiple_blowup_R3_to_S3.o: harmonic_multiple_blowup_R3_to_S3.c harmonic.h mm_distribute_points.o
+harmonic_multiple_blowup_R3_to_S3.o: harmonic_multiple_blowup_R3_to_S3.c harmonic.h
 	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
 
 harmonic_ys_bisection.o: harmonic_ys_bisection.c harmonic.h

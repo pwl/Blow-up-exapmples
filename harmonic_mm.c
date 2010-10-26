@@ -11,10 +11,10 @@ int main ( void )
 {
   ODE_solver * s;
   int M = 10, K = 0, i;
-  int N = 50/* 2*(M+K)+1 */;
+  int N = 150/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
   H_DOUBLE x0 = 0., x1 = PI, x;
-  H_DOUBLE t_error = 1.e-10;
+  H_DOUBLE t_error = 1.e-8;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   const gsl_odeiv_step_type * stepper = gsl_odeiv_step_gear1;
   gsl_matrix * D = gsl_matrix_alloc(N,N);
@@ -55,7 +55,7 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  ODE_modules_add ( s, ODE_module_plot_init( 0.1 ) );
+  ODE_modules_add ( s, ODE_module_plot_init( 1. ) );
   /* modul do drukowania w konsoli czasu symulacji */
   /* ODE_modules_add ( s, ODE_module_print_time_init ( .01 ) ); */
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
@@ -182,8 +182,8 @@ void ODE_set ( void * solver,
   de	  = 1./(N-1);
   M_calc( ui, xi, m, N );
   /* epsilon = min(max(1.e-3,m[0]),1.e-1); */
-  gt = .01*2*pow(fabs(D1(ui,xi,0,N)/2.73875312588499),-2); /* gt=alpha*du/dx/(d2u/dxdt)|x=0 */
-  epsilon = sqrt(1.e2*gt);/* min(max(1.e-5,1.e2*gt),1.e-1); */
+  /* gt = .01*2*pow(fabs(D1(ui,xi,0,N)/2.73875312588499),-2); /\* gt=alpha*du/dx/(d2u/dxdt)|x=0 *\/ */
+  /* epsilon = sqrt(1.e2*gt);/\* min(max(1.e-5,1.e2*gt),1.e-1); *\/ */
   /* gt = g( y, N ); */
   /* gt=1.; */
   /* assert(!isnan(gt)); */
@@ -211,7 +211,7 @@ void ODE_set ( void * solver,
     gsl_vector_set(fu, i,
 		   (ddu+(k-1.)/x*du-(k-1.)/2.*sin(2.*u)/x/x));
     gsl_vector_set(ftmp, i,
-		   1./epsilon*Mxi);
+		   Mxi);
     gsl_matrix_set(C, i, i, -du);
   }
 
@@ -220,7 +220,8 @@ void ODE_set ( void * solver,
   }
 
   /* printf ("%.5G\n",.01*dt*D1(ui,xi,0,N)/D1(f+1,xi,0,N)); */
-  /* gt = .01*(fabs(D1(ui,xi,0,N)/D1(f+1,xi,0,N))); /\* gt=alpha*du/dx/(d2u/dxdt)|x=0 *\/ */
+  gt = .01*(fabs(D1(ui,xi,0,N)/D1(f+1,xi,0,N))); /* gt=alpha*du/dx/(d2u/dxdt)|x=0 */
+  epsilon = sqrt(1.e2*gt);/* min(max(1.e-5,1.e2*gt),1.e-1); */
 
   if( gt*dt < 1.e-15)
     {
@@ -230,7 +231,7 @@ void ODE_set ( void * solver,
     }
 
   /* przepisanie wynikow do tablicy pochodnej czasowej */
-  gsl_blas_dsymv (CblasUpper, -1., D_inv, ftmp, 0., fx); /* D = -d2/de2 */
+  gsl_blas_dsymv (CblasUpper, -1./epsilon, D_inv, ftmp, 0., fx); /* D = -d2/de2 */
   gsl_blas_dgemv (CblasNoTrans, -1., C, fx, 1., fu); /* C = -du/dx */
 
   for ( i = 1; i < N-1; i++) {
@@ -247,128 +248,6 @@ void ODE_set ( void * solver,
   f[0]=gt;
 }
 
-/* obliczanie pierwszej pochodnej */
-double D1 ( double * u, double * x, int i, int N )
-{
-  double du;
-
-  /* for ( i = 0; i < N; i++ ) */
-  /*   printf("%i %.15f %.15f\n", i, x[i], u[i]); */
-
-  if( i > 0 && i < N-1 )
-    du=
-      (u[-1+i]-u[i])/(x[-1+i]-x[i])+
-      (-u[-1+i]+u[1+i])/(x[-1+i]-x[1+i])+
-      (u[i]-u[1+i])/(x[i]-x[1+i]);
-  else if( i == 0 )
-    du=
-      (u[1]-u[0])/(x[1]-x[0])
-      +(u[2]-u[0])/(x[2]-x[0])
-      -(u[2]-u[1])/(x[2]-x[1]);
-  else if( i == N-1 )
-    du=
-      (-u[-3+N]+u[-2+N])/(x[-3+N]-x[-2+N])
-      +(u[-3+N]-u[-1+N])/(x[-3+N]-x[-1+N])
-      +(u[-2+N]-u[-1+N])/(x[-2+N]-x[-1+N]);
-  else du = 0.;
-
-  /* printf("D1: i=%i du=%.15f\n", i, du); */
-  return du;
-}
-
-/* obliczanie drugiej pochodnej */
-double D2 ( double * u, double * x, int i, int N )
-{
-  if( i > 1 && i < N-2 )
-    return ((u[i+1]-u[i])/(x[i+1]-x[i])
-	    -(u[i]-u[i-1])/(x[i]-x[i-1]))
-      *2./(x[i+1]-x[i-1]);
-  else if (i == 0)
-    return 2*(-(u[3 + i]*(x[i] - x[1 + i])*(x[i] - x[2 + i])*
-        (2*x[i] - x[1 + i] - x[2 + i])*(x[1 + i] - x[2 + i])) +
-     u[2 + i]*(x[i] - x[1 + i])*(x[i] - x[3 + i])*
-      (2*x[i] - x[1 + i] - x[3 + i])*(x[1 + i] - x[3 + i]) +
-     (x[2 + i] - x[3 + i])*
-      (-(u[1 + i]*(x[i] - x[2 + i])*(x[i] - x[3 + i])*
-           (2*x[i] - x[2 + i] - x[3 + i])) -
-        u[i]*(x[1 + i] - x[2 + i])*(x[1 + i] - x[3 + i])*
-         (-3*x[i] + x[1 + i] + x[2 + i] + x[3 + i])))*
-   pow(x[i] - x[1 + i],-1)*pow(x[i] - x[2 + i],-1)*
-   pow(x[1 + i] - x[2 + i],-1)*pow(x[i] - x[3 + i],-1)*
-      pow(x[1 + i] - x[3 + i],-1)*pow(x[2 + i] - x[3 + i],-1);
-    /* return (2.* */
-    /* 	    ( (u[i]-u[2+i])/(x[i]-x[2+i]) */
-    /* 	      +(-u[1+i]+u[2+i])/(x[1+i]-x[2+i])) */
-    /* 	    )/(x[i]-x[1+i]); */
-  else if (i==1)
-    return   2*(u[2 + i]*(x[-1 + i] - x[i])*(x[-1 + i] - x[1 + i])*
-      (x[i] - x[1 + i])*(x[-1 + i] - 2*x[i] + x[1 + i]) -
-     u[1 + i]*(x[-1 + i] - x[i])*(x[-1 + i] - x[2 + i])*
-      (x[i] - x[2 + i])*(x[-1 + i] - 2*x[i] + x[2 + i]) +
-     (x[1 + i] - x[2 + i])*
-      (u[-1 + i]*(x[i] - x[1 + i])*(x[i] - x[2 + i])*
-         (2*x[i] - x[1 + i] - x[2 + i]) +
-        u[i]*(x[-1 + i] - x[1 + i])*(x[-1 + i] - x[2 + i])*
-         (x[-1 + i] - 3*x[i] + x[1 + i] + x[2 + i])))*
-   pow(x[-1 + i] - x[i],-1)*pow(x[-1 + i] - x[1 + i],-1)*
-   pow(x[i] - x[1 + i],-1)*pow(x[-1 + i] - x[2 + i],-1)*
-      pow(x[i] - x[2 + i],-1)*pow(x[1 + i] - x[2 + i],-1);
-  else if (i==N-2)
-    return 2*(u[1 + i]*(x[-2 + i] - x[-1 + i])*
-      (x[-2 + i] + x[-1 + i] - 2*x[i])*(x[-2 + i] - x[i])*
-      (x[-1 + i] - x[i]) -
-     u[i]*(x[-2 + i] - x[-1 + i])*(x[-2 + i] - x[1 + i])*
-      (x[-1 + i] - x[1 + i])*
-      (x[-2 + i] + x[-1 + i] - 3*x[i] + x[1 + i]) +
-     (x[i] - x[1 + i])*(u[-1 + i]*(x[-2 + i] - x[i])*
-         (x[-2 + i] - x[1 + i])*(x[-2 + i] - 2*x[i] + x[1 + i]) -
-        u[-2 + i]*(x[-1 + i] - x[i])*(x[-1 + i] - x[1 + i])*
-         (x[-1 + i] - 2*x[i] + x[1 + i])))*
-   pow(x[-2 + i] - x[-1 + i],-1)*pow(x[-2 + i] - x[i],-1)*
-   pow(x[-1 + i] - x[i],-1)*pow(x[-2 + i] - x[1 + i],-1)*
-      pow(x[-1 + i] - x[1 + i],-1)*pow(x[i] - x[1 + i],-1);
-  else if (i==N-1)
-    return 2*(u[i]*(x[-3 + i] - x[-2 + i])*(x[-3 + i] - x[-1 + i])*
-      (x[-2 + i] - x[-1 + i])*
-      (x[-3 + i] + x[-2 + i] + x[-1 + i] - 3*x[i]) -
-     u[-1 + i]*(x[-3 + i] - x[-2 + i])*
-      (x[-3 + i] + x[-2 + i] - 2*x[i])*(x[-3 + i] - x[i])*
-      (x[-2 + i] - x[i]) +
-     (u[-2 + i]*(x[-3 + i] - x[-1 + i])*
-         (x[-3 + i] + x[-1 + i] - 2*x[i])*(x[-3 + i] - x[i]) -
-        u[-3 + i]*(x[-2 + i] - x[-1 + i])*
-         (x[-2 + i] + x[-1 + i] - 2*x[i])*(x[-2 + i] - x[i]))*
-      (x[-1 + i] - x[i]))*pow(x[-3 + i] - x[-2 + i],-1)*
-   pow(x[-3 + i] - x[-1 + i],-1)*pow(x[-2 + i] - x[-1 + i],-1)*
-   pow(x[-3 + i] - x[i],-1)*pow(x[-2 + i] - x[i],-1)*
-      pow(x[-1 + i] - x[i],-1);
-
-    /* return (2.* */
-    /* 	    ( (u[-2+i]-u[i])/(x[-2+i]-x[i]) */
-    /* 	      +(-u[-1+i]+u[i])/(x[-1+i]-x[i]) */
-    /* 	      ) */
-    /* 	    )/(x[-2+i]-x[-1+i]); */
-  else return 0.;
-}
-/* double D2 ( double * u, double * x, int i, int N ) */
-/* { */
-/*   if( i > 0 && i < N-1 ) */
-/*     return ((u[i+1]-u[i])/(x[i+1]-x[i]) */
-/* 	    -(u[i]-u[i-1])/(x[i]-x[i-1])) */
-/*       *2./(x[i+1]-x[i-1]); */
-/*   else if (i == 0) */
-/*     return (2.* */
-/* 	    ( (u[i]-u[2+i])/(x[i]-x[2+i]) */
-/* 	      +(-u[1+i]+u[2+i])/(x[1+i]-x[2+i])) */
-/* 	    )/(x[i]-x[1+i]); */
-/*   else if (i==N-1) */
-/*     return (2.* */
-/* 	    ( (u[-2+i]-u[i])/(x[-2+i]-x[i]) */
-/* 	      +(-u[-1+i]+u[i])/(x[-1+i]-x[i]) */
-/* 	      ) */
-/* 	    )/(x[-2+i]-x[-1+i]); */
-/*   else return 0.; */
-/* } */
 
 /* funkcja definiujaca transformacje Sundmana
    dt/dtau=g(u)=0.01/(du/dx(0,tau))^2 */

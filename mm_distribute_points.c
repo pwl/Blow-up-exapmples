@@ -14,7 +14,7 @@ double mm_u
 double mm_du
 ( double x )
 {
-  return cos(x);
+  return cos(x)+1.;
   /* return (exp (pow (x, 2))*(cos (x) + 2*x*sin (x)))/300.; */
 }
 
@@ -77,11 +77,11 @@ void mm_setup_mesh ( double * x, int N )
   ODE_solver *		s;
   double		T	= 1.e10;
   double		x0	= 0., x1 = 1.;
-  double		t_error = 1.e-14;
+  double		t_error = 1.e-10;
   h_basis_functions *	basis	= h_basis_finite_difference_5_function_init();
   gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
   int i;
-  FILE * F = fopen("test.dat","w");
+  FILE * F = fopen("test2.dat","w");
 
   printf(RED1 "Relaxing mesh...\n" FORMAT_OFF);
 
