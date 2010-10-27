@@ -86,8 +86,8 @@ void mm_setup_mesh ( double * x, int N )
   printf(RED1 "Relaxing mesh...\n" FORMAT_OFF);
 
   s = ODE_solver_init ( N, /*rk=*/ 1, T, x0, x1, t_error, basis, mm_ODE_set, NULL, stepper );
-  /* ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) ); */
-  /* ODE_modules_add ( s, ODE_module_plot_init ( .0 ) ); */
+  ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) );
+  /* ODE_modules_add ( s, ODE_module_plot_init ( .01 ) ); */
 
   /* s->state->f=x; */
 
@@ -102,7 +102,7 @@ void mm_setup_mesh ( double * x, int N )
   }
 
   for ( i = 0; i < N; i++ ) {
-    fprintf(F,"%2i %10.5G %10.5G\n",i,x[i],mm_M(x[i]));
+    fprintf(F,"%2i %.20G %.20G\n",i,x[i],mm_M(x[i]));
   }
 
   fclose(F);

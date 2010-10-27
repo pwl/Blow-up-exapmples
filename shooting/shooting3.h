@@ -14,11 +14,18 @@
 double lambda_at_given_A(double A, int z, char * f, void * ptr);
 double lambda_0_at_given_A(double A, int z, char * f, void * ptr);
 double asymptotic_gsl_wrapper( double A, void * ptr );
-double d1_asymptotic_gsl_wrapper
+double d1_asymptotic_harvester_wrapper
 ( double A,
   int i,
   char * c,
   void * ptr );
+double asymptotic_harvester_wrapper
+( double A,
+  int i,
+  char * c,
+  void * ptr );
+
+
 
 
 #endif /* _SHOOTING2_H_ */

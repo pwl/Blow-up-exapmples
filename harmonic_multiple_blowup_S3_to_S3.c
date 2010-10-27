@@ -10,7 +10,7 @@ extern double mm_A;
 int main ( void )
 {
   ODE_solver * s;
-  int i, N = 100/* 2*(M+K)+1 */;
+  int i, N = 200/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
   H_DOUBLE x0 = 0., x1 = PI, x, du, ddu;
   H_DOUBLE t_error = 1.e-8;
@@ -53,8 +53,8 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  ODE_modules_add ( s, ODE_module_plot_sin_init( .1 ) );
-  ODE_modules_add ( s, ODE_module_plot_init( .1 ) );
+  ODE_modules_add ( s, ODE_module_plot_sin_init( 1. ) );
+  ODE_modules_add ( s, ODE_module_plot_init( 1. ) );
   /* modul do drukowania w konsoli czasu symulacji */
   ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) );
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
@@ -82,18 +82,25 @@ int main ( void )
     /* printf("%5.5G %5.5G\n", x, mm_u(x)*sin(x)); */
   }
 
+  for ( i = 1; i < N-1; i++)
+    s->params->basis->ai_temp[i]=s->state->f[i+1]/sin(s->state->f[i+N+1]);
+
+  s->params->basis->ai_temp[0]=D1(s->state->f+1,s->state->f+1+N,0,N);
+  s->params->basis->ai_temp[N-1]=-D1(s->state->f+1,s->state->f+1+N,N-1,N);
+
+  M_calc( s->params->basis->ai_temp, s->state->f+N+1, m, N );
   /* M_calc( s->state->f+1, s->state->f+N+1, m, N ); */
 
-  /* file=fopen("test.dat","w"); */
+  file=fopen("test.dat","w");
 
-  /* for ( i = 0; i < N; i++ ) { */
-  /*   x=s->state->f[i+1+N]; */
-  /*   du=D1(s->state->f+1,s->state->f+1+N,i,N); */
-  /*   ddu=D2(s->state->f+1,s->state->f+1+N,i,N); */
-  /*   fprintf(file,"%i %.20G %.20G %.20G %.20G %.20G\n", i, x, s->state->f[1+i], m[i], du, ddu); */
-  /* } */
+  for ( i = 0; i < N; i++ ) {
+    x=s->state->f[i+1+N];
+    du=D1(s->state->f+1,s->state->f+1+N,i,N);
+    ddu=D2(s->state->f+1,s->state->f+1+N,i,N);
+    fprintf(file,"%i %.20G %.20G %.20G %.20G %.20G %.20G\n", i, x, s->state->f[1+i], m[i], du, ddu, s->params->basis->ai_temp[i]);
+  }
 
-  /* fclose(file); */
+  fclose(file);
 
   s->state->f[0]=0.;
 
@@ -179,11 +186,11 @@ void ODE_set ( void * solver,
   /* printf ("%.5G\n",.01*dt*D1(ui,xi,0,N)/D1(f+1,xi,0,N)); */
   gt = .01*min(fabs(D2(ui,xi,0,N)/D2(f+1,xi,0,N)),
 	       fabs(D2(ui,xi,N-1,N)/D2(f+1,xi,N-1,N)));	/* gt=alpha*du/dx/(d2u/dxdt)|x=0 */
-  epsilon = sqrt(1.e2*gt);/* min(max(1.e-5,1.e2*gt),1.e-1); */
+  epsilon = 1.e-3;/* sqrt(1.e2*gt); *//* min(max(1.e-5,1.e2*gt),1.e-1); */
 
   /* gt=1.; */
 
-  if( gt*dt < 1.e-14)
+  if( f[0] > .01 && gt*dt < 1.e-14)
     {
       gt=1.e-14/dt;
       for ( i = 1; i < N-1; i++) {
