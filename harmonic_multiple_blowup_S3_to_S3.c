@@ -10,12 +10,13 @@ extern double mm_A;
 int main ( void )
 {
   ODE_solver * s;
-  int i, N = 200/* 2*(M+K)+1 */;
+  int M = 10, K = 0, i;
+  int N = 50/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
   H_DOUBLE x0 = 0., x1 = PI, x, du, ddu;
-  H_DOUBLE t_error = 1.e-8;
+  H_DOUBLE t_error = 1.e-13;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
-  const gsl_odeiv_step_type * stepper = gsl_odeiv_step_gear1;
+  const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
   gsl_matrix * D = gsl_matrix_alloc(N,N);
   gsl_permutation * p = gsl_permutation_alloc(N);
   FILE * file;
@@ -48,13 +49,12 @@ int main ( void )
   gsl_linalg_LU_invert(D, p, D_inv);
 
   /* inicjalizacja struktury przechowującej informacje dot. dymulacji */
-  s = ODE_solver_init ( 2*N+1, /*rk=*/ 1, T, x0, x1, t_error, basis, ODE_set, NULL, stepper );
+  s = ODE_solver_init ( 2*N+1, /*rk=*/ 1, T, x0, x1, t_error, basis, ODE_set, stepper );
   /* inicjalizacja modułów obrazujących przebieg symulacji, pierwszy
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  ODE_modules_add ( s, ODE_module_plot_sin_init( 1. ) );
-  ODE_modules_add ( s, ODE_module_plot_init( 1. ) );
+  ODE_modules_add ( s, ODE_module_plot_sin_init( .01 ) );
   /* modul do drukowania w konsoli czasu symulacji */
   ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) );
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
@@ -82,25 +82,13 @@ int main ( void )
     /* printf("%5.5G %5.5G\n", x, mm_u(x)*sin(x)); */
   }
 
-  for ( i = 1; i < N-1; i++)
-    s->params->basis->ai_temp[i]=s->state->f[i+1]/sin(s->state->f[i+N+1]);
-
-  s->params->basis->ai_temp[0]=D1(s->state->f+1,s->state->f+1+N,0,N);
-  s->params->basis->ai_temp[N-1]=-D1(s->state->f+1,s->state->f+1+N,N-1,N);
-
-  M_calc( s->params->basis->ai_temp, s->state->f+N+1, m, N );
   /* M_calc( s->state->f+1, s->state->f+N+1, m, N ); */
-
-  file=fopen("test.dat","w");
-
-  for ( i = 0; i < N; i++ ) {
-    x=s->state->f[i+1+N];
-    du=D1(s->state->f+1,s->state->f+1+N,i,N);
-    ddu=D2(s->state->f+1,s->state->f+1+N,i,N);
-    fprintf(file,"%i %.20G %.20G %.20G %.20G %.20G %.20G\n", i, x, s->state->f[1+i], m[i], du, ddu, s->params->basis->ai_temp[i]);
-  }
-
-  fclose(file);
+  /* for ( i = 0; i < N; i++ ) { */
+  /*   x=s->state->f[i+1+N]; */
+  /*   du=D1(s->state->f+1,s->state->f+1+N,i,N); */
+  /*   ddu=D2(s->state->f+1,s->state->f+1+N,i,N); */
+  /*   printf("%i %10.5G %10.5G\n", i, x, m[i]); */
+  /* } */
 
   s->state->f[0]=0.;
 
@@ -139,6 +127,7 @@ void ODE_set ( void * solver,
   H_DOUBLE dt = *(s->state->dt);
 
   /* definicje zmiennych pomocniczych */
+  epsilon = 1.e-3;
   de	  = 1./(N-1);
   /* sleep(1); */
 
@@ -174,7 +163,7 @@ void ODE_set ( void * solver,
     gsl_vector_set(fu, i,
 		   (ddu+u-sin(2.*u/sin(x))/sin(x)));
     gsl_vector_set(ftmp, i,
-		   Mxi);
+		   1./epsilon*Mxi);
     gsl_matrix_set(C, i, i, -du);
   }
 
@@ -186,16 +175,15 @@ void ODE_set ( void * solver,
   /* printf ("%.5G\n",.01*dt*D1(ui,xi,0,N)/D1(f+1,xi,0,N)); */
   gt = .01*min(fabs(D2(ui,xi,0,N)/D2(f+1,xi,0,N)),
 	       fabs(D2(ui,xi,N-1,N)/D2(f+1,xi,N-1,N)));	/* gt=alpha*du/dx/(d2u/dxdt)|x=0 */
-  epsilon = 1.e-3;/* sqrt(1.e2*gt); *//* min(max(1.e-5,1.e2*gt),1.e-1); */
 
   /* gt=1.; */
 
-  if( f[0] > .01 && gt*dt < 1.e-14)
+  if( gt*dt < 1.e-14)
     {
       gt=1.e-14/dt;
       for ( i = 1; i < N-1; i++) {
-  	gsl_vector_set(ftmp,i,0.); /* tymczasowe miejsce dla du/dt */
-  	/* printf("%i %5.5G\n",i,gsl_vector_get(ftmp,i)); */
+	gsl_vector_set(ftmp,i,0.); /* tymczasowe miejsce dla du/dt */
+	/* printf("%i %5.5G\n",i,gsl_vector_get(ftmp,i)); */
       }
       /* printf("STOP: gt*dt = %.5G < 1.e-15\n", gt*dt); */
       /* s->state->status = SOLVER_STATUS_STOP; */
@@ -203,7 +191,7 @@ void ODE_set ( void * solver,
     }
 
   /* przepisanie wynikow do tablicy pochodnej czasowej */
-  gsl_blas_dsymv (CblasUpper, -1./epsilon, D_inv, ftmp, 0., fx); /* D = -d2/de2 */
+  gsl_blas_dsymv (CblasUpper, -1., D_inv, ftmp, 0., fx); /* D = -d2/de2 */
   gsl_blas_dgemv (CblasNoTrans, -1., C, fx, 1., fu); /* C = -du/dx */
 
   for ( i = 1; i < N-1; i++) {
@@ -220,6 +208,71 @@ void ODE_set ( void * solver,
   f[0]=gt;
 }
 
+/* obliczanie pierwszej pochodnej */
+double D1 ( double * u, double * x, int i, int N )
+{
+  double du;
+
+  /* for ( i = 0; i < N; i++ ) */
+  /*   printf("%i %.15f %.15f\n", i, x[i], u[i]); */
+
+  if( i > 0 && i < N-1 )
+    du=
+      (u[-1+i]-u[i])/(x[-1+i]-x[i])+
+      (-u[-1+i]+u[1+i])/(x[-1+i]-x[1+i])+
+      (u[i]-u[1+i])/(x[i]-x[1+i]);
+  else if( i == 0 )
+    du=
+      (u[1]-u[0])/(x[1]-x[0])
+      +(u[2]-u[0])/(x[2]-x[0])
+      -(u[2]-u[1])/(x[2]-x[1]);
+  else if( i == N-1 )
+    du=
+      (-u[-3+N]+u[-2+N])/(x[-3+N]-x[-2+N])
+      +(u[-3+N]-u[-1+N])/(x[-3+N]-x[-1+N])
+      +(u[-2+N]-u[-1+N])/(x[-2+N]-x[-1+N]);
+  else du = 0.;
+
+  /* printf("D1: i=%i du=%.15f\n", i, du); */
+  return du;
+}
+
+/* obliczanie drugiej pochodnej */
+double D2 ( double * u, double * x, int i, int N )
+{
+  if( i > 0 && i < N-1 )
+    return ((u[i+1]-u[i])/(x[i+1]-x[i])
+	    -(u[i]-u[i-1])/(x[i]-x[i-1]))
+      *2./(x[i+1]-x[i-1]);
+  else if (i == 0)
+    return (2.*
+	    ( (u[i]-u[2+i])/(x[i]-x[2+i])
+	      +(-u[1+i]+u[2+i])/(x[1+i]-x[2+i]))
+	    )/(x[i]-x[1+i]);
+  else if (i==N-1)
+    return (2.*
+	    ( (u[-2+i]-u[i])/(x[-2+i]-x[i])
+	      +(-u[-1+i]+u[i])/(x[-1+i]-x[i])
+	      )
+	    )/(x[-2+i]-x[-1+i]);
+  else return 0.;
+}
+
+/* funkcja definiujaca transformacje Sundmana
+   dt/dtau=g(u)=0.01/(du/dx(0,tau))^2 */
+double g ( double * y, int N )
+{
+  /* return 0.01*pow(fabs(D1(y+1,y+1+N,0,N))+fabs(D1(y+1,y+1+N,N-1,N)),-2); */
+  H_DOUBLE * ui = y + 1;
+  H_DOUBLE * xi = y + 1 + N;
+  double du=D1(ui,xi,1,N),ddu=D2(ui,xi,1,N);
+  double x=xi[1];
+  double u=ui[1];
+  double ut=(ddu+((k-1.)/x-x/2.)*du-(k-1.)/2.*sin(2.*u)/x/x);
+  /* printf("du=%f, ut=%f, x=%f\n",du,ut,x); */
+  return .01*(fabs(x*du/ut));
+}
+
 /* funkcja rozkladu punktow fizycznej siatki (
    M(x)=du/dx+sqrt(d2u/dx2) ) */
 void M_calc ( double * u, double * x, double * M, int N )
@@ -232,6 +285,11 @@ void M_calc ( double * u, double * x, double * M, int N )
       du=D1( u, x, i, N );
       ddu=D2( u, x, i, N );
       M[i]=fabs(du) + sqrt(fabs(ddu));
+      /* Mtot+=(M[i]*(x[i+1]-x[i-1])/2.); */
+
+      /* printf("M_calc: i=%i, M[i]=%.15f\n", i, M[i]); */
+      /* printf("M_calc: M[i]-M[i]=%.15f\n", M[i]-M[i]); */
+
       assert( !isnan(M[i]) );
       assert( M[i] >= 0 );
     }
