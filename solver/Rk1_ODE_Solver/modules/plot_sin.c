@@ -22,6 +22,7 @@ void plot_sin_step ( void * solver, void * module )
   int i;
   double x;
   double * f=s->state->f;
+  double * df=s->state->df;
 
   N=(N-1)/2;
 
@@ -29,17 +30,17 @@ void plot_sin_step ( void * solver, void * module )
     {
       x=s->state->f[i+N+1];
       s->params->Dtemp[0][0][i]=s->state->f[1+i]/sin(x);
-      s->params->Dtemp[0][1][i]=x;
+      s->params->Dtemp[0][1][i]=x/sqrt(df[0]);
     }
 
   s->params->Dtemp[0][0][0]=D1(f+1,f+N+1,0,N);
   s->params->Dtemp[0][0][N-1]=-D1(f+1,f+N+1,N-1,N);
   s->params->Dtemp[0][1][0]=f[1+N];
-  s->params->Dtemp[0][1][N-1]=f[1+N+N-1];
+  s->params->Dtemp[0][1][N-1]=f[1+N+N-1]/sqrt(df[0]);
 
   gnuplot_resetplot( plotter );
   /* set plot title */
-  sprintf( title, "t = %.10E", s->state->f[0] );
+  sprintf( title, "t = %1.10E", s->state->f[0] );
   /* plot function */
   /* gnuplot_plot_xy( plotter, */
   /* 		   s->params->basis->collocation_points, */

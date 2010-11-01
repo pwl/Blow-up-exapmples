@@ -10,13 +10,12 @@ extern double mm_A;
 int main ( void )
 {
   ODE_solver * s;
-  int M = 10, K = 0, i;
-  int N = 50/* 2*(M+K)+1 */;
+  int i, N = 30;
   H_DOUBLE T =1.e10;
-  H_DOUBLE x0 = 0., x1 = PI, x, du, ddu;
-  H_DOUBLE t_error = 1.e-13;
+  H_DOUBLE x0 = 0., x1 = M_PI, x, du, ddu;
+  H_DOUBLE t_error = 1.e-8;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
-  const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
+  const gsl_odeiv_step_type * stepper = gsl_odeiv_step_gear1;
   gsl_matrix * D = gsl_matrix_alloc(N,N);
   gsl_permutation * p = gsl_permutation_alloc(N);
   FILE * file;
@@ -49,12 +48,13 @@ int main ( void )
   gsl_linalg_LU_invert(D, p, D_inv);
 
   /* inicjalizacja struktury przechowującej informacje dot. dymulacji */
-  s = ODE_solver_init ( 2*N+1, /*rk=*/ 1, T, x0, x1, t_error, basis, ODE_set, stepper );
+  s = ODE_solver_init ( 2*N+1, /*rk=*/ 1, T, x0, x1, t_error, basis, ODE_set, NULL, stepper );
   /* inicjalizacja modułów obrazujących przebieg symulacji, pierwszy
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
   ODE_modules_add ( s, ODE_module_plot_sin_init( .01 ) );
+  ODE_modules_add ( s, ODE_module_plot_init( .01 ) );
   /* modul do drukowania w konsoli czasu symulacji */
   ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) );
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
@@ -62,7 +62,7 @@ int main ( void )
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
   ODE_modules_add ( s, ODE_module_info_1_init( .001, N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
-  ODE_modules_add ( s, ODE_module_snapshot_init( .1 ));
+  /* ODE_modules_add ( s, ODE_module_snapshot_init( .1 )); */
   /* ODE_modules_add ( s, ODE_module_bisection_3_init( .001 )); */
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 
@@ -89,6 +89,25 @@ int main ( void )
   /*   ddu=D2(s->state->f+1,s->state->f+1+N,i,N); */
   /*   printf("%i %10.5G %10.5G\n", i, x, m[i]); */
   /* } */
+  for ( i = 1; i < N-1; i++)
+    s->params->basis->ai_temp[i]=s->state->f[i+1]/sin(s->state->f[i+N+1]);
+
+  s->params->basis->ai_temp[0]=D1(s->state->f+1,s->state->f+1+N,0,N);
+  s->params->basis->ai_temp[N-1]=-D1(s->state->f+1,s->state->f+1+N,N-1,N);
+
+  M_calc( s->params->basis->ai_temp, s->state->f+N+1, m, N );
+   /* M_calc( s->state->f+1, s->state->f+N+1, m, N ); */
+
+  file=fopen("test.dat","w");
+
+  for ( i = 0; i < N; i++ ) {
+    x=s->state->f[i+1+N];
+    du=D1(s->state->f+1,s->state->f+1+N,i,N);
+    ddu=D2(s->state->f+1,s->state->f+1+N,i,N);
+    fprintf(file,"%i %.20G %.20G %.20G %.20G %.20G %.20G\n", i, x, s->state->f[1+i], m[i], du, ddu, s->params->basis->ai_temp[i]);
+  }
+
+  fclose(file);
 
   s->state->f[0]=0.;
 
@@ -206,56 +225,6 @@ void ODE_set ( void * solver,
   f[2*N]=0.;
 
   f[0]=gt;
-}
-
-/* obliczanie pierwszej pochodnej */
-double D1 ( double * u, double * x, int i, int N )
-{
-  double du;
-
-  /* for ( i = 0; i < N; i++ ) */
-  /*   printf("%i %.15f %.15f\n", i, x[i], u[i]); */
-
-  if( i > 0 && i < N-1 )
-    du=
-      (u[-1+i]-u[i])/(x[-1+i]-x[i])+
-      (-u[-1+i]+u[1+i])/(x[-1+i]-x[1+i])+
-      (u[i]-u[1+i])/(x[i]-x[1+i]);
-  else if( i == 0 )
-    du=
-      (u[1]-u[0])/(x[1]-x[0])
-      +(u[2]-u[0])/(x[2]-x[0])
-      -(u[2]-u[1])/(x[2]-x[1]);
-  else if( i == N-1 )
-    du=
-      (-u[-3+N]+u[-2+N])/(x[-3+N]-x[-2+N])
-      +(u[-3+N]-u[-1+N])/(x[-3+N]-x[-1+N])
-      +(u[-2+N]-u[-1+N])/(x[-2+N]-x[-1+N]);
-  else du = 0.;
-
-  /* printf("D1: i=%i du=%.15f\n", i, du); */
-  return du;
-}
-
-/* obliczanie drugiej pochodnej */
-double D2 ( double * u, double * x, int i, int N )
-{
-  if( i > 0 && i < N-1 )
-    return ((u[i+1]-u[i])/(x[i+1]-x[i])
-	    -(u[i]-u[i-1])/(x[i]-x[i-1]))
-      *2./(x[i+1]-x[i-1]);
-  else if (i == 0)
-    return (2.*
-	    ( (u[i]-u[2+i])/(x[i]-x[2+i])
-	      +(-u[1+i]+u[2+i])/(x[1+i]-x[2+i]))
-	    )/(x[i]-x[1+i]);
-  else if (i==N-1)
-    return (2.*
-	    ( (u[-2+i]-u[i])/(x[-2+i]-x[i])
-	      +(-u[-1+i]+u[i])/(x[-1+i]-x[i])
-	      )
-	    )/(x[-2+i]-x[-1+i]);
-  else return 0.;
 }
 
 /* funkcja definiujaca transformacje Sundmana

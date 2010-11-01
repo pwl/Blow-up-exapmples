@@ -31,7 +31,7 @@ void info_1_step ( void * solver, void * module )
   H_DOUBLE * x = f+1+N;
   H_DOUBLE g = (s->state->df[0]);
   H_DOUBLE t = f[0];
-  H_DOUBLE dx = D1_at_0(u,x);/* D1(u,x,0,N); */
+  H_DOUBLE dx = /* D1_at_0(u,x); */D1(u,x,0,N);
   H_DOUBLE ddx = D2(u,x,0,N);
   H_DOUBLE dddx = D3_at_0(u,x);
   H_DOUBLE min = 1.;

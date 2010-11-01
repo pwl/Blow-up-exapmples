@@ -4,6 +4,9 @@
 #include "stdlib.h"
 #include "assert.h"
 
+#define __USE_BSD
+
+#include "math.h"
 #include "solver/Rk1_ODE_Solver/ODE_solver.h"
 #include "omp.h"
 #include "gsl/gsl_matrix.h"
