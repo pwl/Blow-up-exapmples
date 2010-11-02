@@ -1,7 +1,7 @@
 #include "harmonic.h"
 
 gsl_matrix * D_inv, * C;
-double * m;
+double * m, *mtemp;
 gsl_vector * fx, * fu, * ftmp;
 
 double k=3.;
@@ -10,7 +10,7 @@ extern double mm_A;
 int main ( void )
 {
   ODE_solver * s;
-  int i, N = 30;
+  int i, N = 50;
   H_DOUBLE T =1.e10;
   H_DOUBLE x0 = 0., x1 = M_PI, x, du, ddu;
   H_DOUBLE t_error = 1.e-8;
@@ -25,6 +25,7 @@ int main ( void )
   /* Alokacja pamięci i inicjalizacja oraz odwrócenie macierzy przy
      użyciu GSL */
   m = malloc( N*sizeof(double) );
+  mtemp = malloc( N*sizeof(double) );
   D_inv = gsl_matrix_alloc(N,N);
   C = gsl_matrix_alloc(N,N);
   fx = gsl_vector_alloc(N);
@@ -53,8 +54,8 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  ODE_modules_add ( s, ODE_module_plot_sin_init( .01 ) );
-  ODE_modules_add ( s, ODE_module_plot_init( .01 ) );
+  ODE_modules_add ( s, ODE_module_plot_sin_init( 1. ) );
+  ODE_modules_add ( s, ODE_module_plot_init( 1. ) );
   /* modul do drukowania w konsoli czasu symulacji */
   ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) );
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
@@ -146,7 +147,7 @@ void ODE_set ( void * solver,
   H_DOUBLE dt = *(s->state->dt);
 
   /* definicje zmiennych pomocniczych */
-  epsilon = 1.e-3;
+  /* epsilon = 1.e-3; */
   de	  = 1./(N-1);
   /* sleep(1); */
 
@@ -162,14 +163,6 @@ void ODE_set ( void * solver,
     u=ui[i];
     x=xi[i];
 
-    /* if ( x < 0. ) */
-    /*   { */
-    /* 	printf("STOP: x[%i]=%.5G < 0.\n", i, x); */
-    /* 	s->state->status = SOLVER_STATUS_STOP; */
-    /* 	/\* break; *\/ */
-    /* 	/\* assert( x > 0.); *\/ */
-    /*   } */
-
     /* obliczenie pochodnych w punkcie "i" */
     du=D1(ui,xi,i,N);
     ddu=D2(ui,xi,i,N);
@@ -182,35 +175,34 @@ void ODE_set ( void * solver,
     gsl_vector_set(fu, i,
 		   (ddu+u-sin(2.*u/sin(x))/sin(x)));
     gsl_vector_set(ftmp, i,
-		   1./epsilon*Mxi);
+		   Mxi);
     gsl_matrix_set(C, i, i, -du);
   }
 
   for ( i = 1; i < N-1; i++) {
     f[i+1] = gsl_vector_get(fu,i); /* tymczasowe miejsce dla du/dt */
-    /* printf("%i %5.5G\n",i,gsl_vector_get(ftmp,i)); */
   }
 
-  /* printf ("%.5G\n",.01*dt*D1(ui,xi,0,N)/D1(f+1,xi,0,N)); */
-  gt = .01*min(fabs(D2(ui,xi,0,N)/D2(f+1,xi,0,N)),
-	       fabs(D2(ui,xi,N-1,N)/D2(f+1,xi,N-1,N)));	/* gt=alpha*du/dx/(d2u/dxdt)|x=0 */
+  /* gt = .01*min(fabs(D2(ui,xi,0,N)/D2(f+1,xi,0,N)), */
+  /* 	       fabs(D2(ui,xi,N-1,N)/D2(f+1,xi,N-1,N)));	/\* gt=alpha*du/dx/(d2u/dxdt)|x=0 *\/ */
+  gt = .01*min(fabs(.5/pow(D2(ui,xi,0,N),2)),
+	       fabs(.5/pow(D2(ui,xi,N-1,N),2)));	/* gt=alpha*du/dx/(d2u/dxdt)|x=0 */
+  /* gt = min(1.e1,gt); */
+  epsilon = /* 1.e-2; */sqrt(1.e2*gt);
 
-  /* gt=1.; */
-
-  if( gt*dt < 1.e-14)
+  if( gt < 1.e-14)
     {
-      gt=1.e-14/dt;
+      /* gt=1.e-10; */
       for ( i = 1; i < N-1; i++) {
-	gsl_vector_set(ftmp,i,0.); /* tymczasowe miejsce dla du/dt */
-	/* printf("%i %5.5G\n",i,gsl_vector_get(ftmp,i)); */
+      	gsl_vector_set(ftmp,i,0.);
       }
-      /* printf("STOP: gt*dt = %.5G < 1.e-15\n", gt*dt); */
-      /* s->state->status = SOLVER_STATUS_STOP; */
-      /* return; */
+      s->state->status = SOLVER_STATUS_STOP;
+      return;
     }
 
+
   /* przepisanie wynikow do tablicy pochodnej czasowej */
-  gsl_blas_dsymv (CblasUpper, -1., D_inv, ftmp, 0., fx); /* D = -d2/de2 */
+  gsl_blas_dsymv (CblasUpper, -1./epsilon, D_inv, ftmp, 0., fx); /* D = -d2/de2 */
   gsl_blas_dgemv (CblasNoTrans, -1., C, fx, 1., fu); /* C = -du/dx */
 
   for ( i = 1; i < N-1; i++) {
@@ -227,21 +219,6 @@ void ODE_set ( void * solver,
   f[0]=gt;
 }
 
-/* funkcja definiujaca transformacje Sundmana
-   dt/dtau=g(u)=0.01/(du/dx(0,tau))^2 */
-double g ( double * y, int N )
-{
-  /* return 0.01*pow(fabs(D1(y+1,y+1+N,0,N))+fabs(D1(y+1,y+1+N,N-1,N)),-2); */
-  H_DOUBLE * ui = y + 1;
-  H_DOUBLE * xi = y + 1 + N;
-  double du=D1(ui,xi,1,N),ddu=D2(ui,xi,1,N);
-  double x=xi[1];
-  double u=ui[1];
-  double ut=(ddu+((k-1.)/x-x/2.)*du-(k-1.)/2.*sin(2.*u)/x/x);
-  /* printf("du=%f, ut=%f, x=%f\n",du,ut,x); */
-  return .01*(fabs(x*du/ut));
-}
-
 /* funkcja rozkladu punktow fizycznej siatki (
    M(x)=du/dx+sqrt(d2u/dx2) ) */
 void M_calc ( double * u, double * x, double * M, int N )
@@ -254,96 +231,55 @@ void M_calc ( double * u, double * x, double * M, int N )
       du=D1( u, x, i, N );
       ddu=D2( u, x, i, N );
       M[i]=fabs(du) + sqrt(fabs(ddu));
-      /* Mtot+=(M[i]*(x[i+1]-x[i-1])/2.); */
-
-      /* printf("M_calc: i=%i, M[i]=%.15f\n", i, M[i]); */
-      /* printf("M_calc: M[i]-M[i]=%.15f\n", M[i]-M[i]); */
-
       assert( !isnan(M[i]) );
       assert( M[i] >= 0 );
     }
+  M_smoothen ( M, mtemp, N, 1., 2 );
 }
 
-double bisection_wrapper(double A, void * p)
+void M_smoothen ( double * M, double * Mtemp, int N, double gamma, int ip )
 {
-  ODE_solver * s = (ODE_solver*)p;
-  ODE_module * m = ODE_modules_get_by_name(s,"bisection");
-  double x0 = s->params->basis->params->x0;
-  double x1 = s->params->basis->params->x1;
-  double x,A1,B1;
-  int i, N = (s->params->Nx-1)/2;
+  double sumdenom, sumnom;
+  int i,j;
 
-  s->state->f[0]=0.;
-  /* s->state->t[0]=0.; */
-  s->state->f[1+N]=0.;
-  s->state->f[1]=0.;
+  sumdenom = 0.;
+  for ( j = -ip; j <= ip; j++ )
+    sumdenom += pow(gamma/(1+gamma),abs(j));
 
-  mm_A=A;
-
-  for ( i = 0; i < N; i++ ) {
-    x=i*(x1-x0)/(N-1);
-    s->state->f[i+1+N]=x;
-  }
-
-  mm_setup_mesh( s->state->f+1+N, N );
-
-  for ( i = 0; i < N; i++ ) {
-    x=s->state->f[i+1+N];
-    s->state->f[i+1]=mm_u(x)*x;
-  }
-  /* for ( i = 0; i < N; i++ ) { */
-  /*   x=i*(x1-x0)/(N-1); */
-  /*   s->state->f[i+1+N]=x; */
-  /*   s->state->f[i+1]=x+A*sin(2.*x); */
-  /*   /\* s->state->f[i+1]=A*sin(x); *\/ */
-  /* } */
-
-  s->state->status = SOLVER_STATUS_OK;
-
-  ODE_solve(s);
-
-  printf("T_max = %.15f\n",s->state->t[0]);
-
-  return ((bisection_3_module_data*)m->data)->result;
-}
-
-
-double
-bisec(double A0,
-      double A1,
-      double e,
-      double val,
-      double (*fevol)(double, void *),
-      void * param)
-{
-  double f,f0,f1;
-  int i=1;
-  double B;
-
-  /* swap the values if they are not sorted */
-  if ( A0 > A1 )
+  for ( i = ip; i < N - ip; i++ )
     {
-      B = A0;
-      A0 = A1;
-      A1 = B;
+      sumnom = 0.;
+      for ( j = -ip; j <= ip; j++ )
+	sumnom += pow( M[i+j], 2 ) * pow( gamma/(1+gamma), abs(j) );
+      Mtemp[i] = sqrt( sumnom / sumdenom );
     }
 
-  f0 = fevol( A0, param ) - val;
-  f1 = fevol( A1, param ) - val;
-
-  while( 2.*(A1-A0)/fabs(A1+A0) > e) /* relative error measure */
+  for ( i = 0; i < ip; i++ )
     {
-      printf( "%03i, A=%.20f, delta/A=%.1E\r",
-	      i++, .5*(A0+A1), 2.*(A1-A0)/(A0+A1) );
+      sumnom = 0.;
+      for ( j = 0; j <= i+ip; j++ )
+	sumnom += pow( M[j], 2 ) * pow( gamma/(1+gamma), abs(i-j) );
+      for ( j = i-ip; j < 0; j++ ) /* assuming M[i]=M[0] for i<0 */
+	sumnom += pow( M[0], 2 ) * pow( gamma/(1+gamma), abs(i-j) );
 
-      f = fevol(.5*(A0+A1), param ) - val;
-
-      if( f*f0 > 0 )
-	A0=.5*(A0+A1);
-      else
-	A1=.5*(A0+A1);
+      Mtemp[i] = sqrt( sumnom / sumdenom );
     }
-  printf("\n");
 
-  return .5*(A0+A1);
+  for ( i = N-ip; i < N; i++ )
+    {
+      sumnom = 0.;
+      for ( j = i-ip; j < N; j++ )
+	sumnom += pow( M[j], 2 ) * pow( gamma/(1+gamma), abs(i-j) );
+      for ( j = N; j <= i+ip; j++ ) /* assuming M[i]=M[N-1] for i>N-1 */
+	sumnom += pow( M[N-1], 2 ) * pow( gamma/(1+gamma), abs(i-j) );
+
+      Mtemp[i] = sqrt( sumnom / sumdenom );
+    }
+
+
+  /* write the somoothened function to M */
+  for ( i = 0; i < N; i++ )
+    {
+      M[i]=Mtemp[i];
+    }
 }

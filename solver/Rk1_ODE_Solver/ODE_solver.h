@@ -3,6 +3,7 @@
 
 #include "Rk1_ODE_Solver/modules/gsl_evolver.h"
 #include "Rk1_ODE_Solver/modules/plot_sin.h"
+#include "Rk1_ODE_Solver/modules/plot_x.h"
 #include "Rk1_ODE_Solver/modules/plot.h"
 #include "Rk1_ODE_Solver/modules/initial_function.h"
 #include "Rk1_ODE_Solver/modules/print_time.h"

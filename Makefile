@@ -28,7 +28,7 @@ RM = /bin/rm -f
 
 project: $(DIRS)
 
-harmonic: harmonic_mm.o $(DIRS)
+harmonic: harmonic_mm.o $(DIRS) $(REQUIRED)
 	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_mm.o $(ARCHIVE) $(REQUIRED) -o $@
 
 run:	harmonic

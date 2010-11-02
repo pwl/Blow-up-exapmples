@@ -165,7 +165,7 @@ void plot_step ( void * solver, void * module )
 
   gnuplot_resetplot( plotter );
   /* set plot title */
-  sprintf( title, "t = %.10E", s->state->f[0] );
+  sprintf( title, "t = %1.15G", s->state->f[0] );
   /* plot function */
   /* gnuplot_plot_xy( plotter, */
   /* 		   s->params->basis->collocation_points, */
