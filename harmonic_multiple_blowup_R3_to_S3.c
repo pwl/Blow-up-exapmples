@@ -13,10 +13,10 @@ int main ( void )
 {
   ODE_solver * s;
   int M = 10, K = 0, i;
-  int N = 50/* 2*(M+K)+1 */;
-  H_DOUBLE T =1.e10;
+  int N = 200/* 2*(M+K)+1 */;
+  H_DOUBLE T =1.e4;
   H_DOUBLE x0 = 0., x1 = PI, x, du, ddu;
-  H_DOUBLE t_error = 1.e-10;
+  H_DOUBLE t_error = 1.e-12;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
   gsl_matrix * D = gsl_matrix_alloc(N,N);
@@ -43,10 +43,12 @@ int main ( void )
       gsl_matrix_set(D, i, i, -2.);
       gsl_matrix_set(D, i, i-1, 1.);
       gsl_matrix_set(D, i-1, i, 1.);
+      gsl_vector_set(ftmp, i, 0.);
     }
 
   gsl_matrix_set(D, N-1, N-1, 1.);
   gsl_matrix_set(D, 0, 0, 1.);
+  gsl_vector_set(ftmp,0,0.);
 
   gsl_linalg_LU_decomp(D, p, &i );
   gsl_linalg_LU_invert(D, p, D_inv);
@@ -83,22 +85,11 @@ int main ( void )
   for ( i = 0; i < N; i++ ) {
     x=s->state->f[i+1+N];
     s->state->f[i+1]=mm_u(x)*x;
-    /* printf("%5.5G %5.5G\n", x, mm_u(x)*x); */
   }
-
-  /* M_calc( s->state->f+1, s->state->f+N+1, m, N ); */
-  /* for ( i = 0; i < N; i++ ) { */
-  /*   x=s->state->f[i+1+N]; */
-  /*   du=D1(s->state->f+1,s->state->f+1+N,i,N); */
-  /*   ddu=D2(s->state->f+1,s->state->f+1+N,i,N); */
-  /*   printf("%i %10.5G %10.5G\n", i, x, m[i]); */
-  /* } */
 
   s->state->f[0]=0.;
 
   ODE_solve ( s );
-
-/* #pragma omp parallel end */
 
   /* uwolnienie zaalokowanej pamieci */
   ODE_solver_free( s );
@@ -132,10 +123,7 @@ void ODE_set ( void * solver,
   H_DOUBLE x1 = s->params->basis->params->x1;
   H_DOUBLE dt = *(s->state->dt);
 
-  /* definicje zmiennych pomocniczych */
-  /* epsilon = 1.e-3; */
   de	  = 1./(N-1);
-  /* sleep(1); */
 
   for ( i = 1; i < N; i++)
     s->params->basis->ai_temp[i]=ui[i]/xi[i];
@@ -154,7 +142,7 @@ void ODE_set ( void * solver,
 
     /* prawa strona rownania macierzowego */
     Mxi = ((m[i+1]+m[i])*(xi[i+1]-xi[i])-(m[i]+m[i-1])*(xi[i]-xi[i-1]))/2./de/de;
-    assert(!isnan(Mxi));
+    /* assert(!isnan(Mxi)); */
     /* Mxi=0.; */
 
     gsl_vector_set(fu, i,
@@ -171,15 +159,15 @@ void ODE_set ( void * solver,
   gt = .01*fabs(D2(ui,xi,0,N)/D2(f+1,xi,0,N));	/* gt=alpha*du/dx/(d2u/dxdt)|x=0 */
   /* gt = .01*fabs(.5/pow(D2(ui,xi,0,N),2));	/\* gt=alpha*du/dx/(d2u/dxdt)|x=0 *\/ */
   /* gt = min(1.e1,gt); */
-  epsilon = sqrt(1.e2*gt);
+  epsilon = sqrt(1.e4*gt);
+  /* gt=.0002; */
 
 
-  /* if( gt < 1.e-11 ) */
-  /*   for ( i = 1; i < N-1; i++) */
-  /*     gsl_vector_set(ftmp,i,0.); */
+  if( gt < 1.e-7 )
+    for ( i = 1; i < N-1; i++)
+      gsl_vector_set(ftmp,i,0.);
 
-
-  gt = max( 1.e-13, gt );
+  /* gt = max( 1.e-7, gt ); */
 
 
   /* przepisanie wynikow do tablicy pochodnej czasowej */
@@ -212,8 +200,8 @@ void M_calc ( double * u, double * x, double * M, int N )
       du=D1( u, x, i, N );
       ddu=D2( u, x, i, N );
       M[i]=fabs(du) + sqrt(fabs(ddu));
-      assert( !isnan(M[i]) );
-      assert( M[i] >= 0 );
+      /* assert( !isnan(M[i]) ); */
+      /* assert( M[i] >= 0 ); */
     }
   /* M_smoothen ( M, mtemp, N, .5, 4 ); */
 }

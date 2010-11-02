@@ -24,7 +24,7 @@ void ODE_state_init ( ODE_solver * s )
 
   /* setup some initial values */
   *s->state->t = 0.;
-  *s->state->dt= 1.e-10;		/* TODO: change into something reasonable */
+  *s->state->dt= 1.e-8;		/* TODO: change into something reasonable */
   s->state->status = SOLVER_STATUS_OK;
 
   /* this fill the function-values with zeros, should be removed
