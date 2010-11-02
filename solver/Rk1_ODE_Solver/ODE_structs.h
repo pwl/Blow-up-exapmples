@@ -10,7 +10,7 @@
 #include "gsl/gsl_odeiv.h"
 
 
-/* ODE_params structure contains all the data that is not going to be
+/* ODE_params structure contains all the data that is not going to
    change during the evolution and change of which will require the
    reinitialization of ODE_solver */
 typedef struct

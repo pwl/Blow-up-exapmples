@@ -6,17 +6,19 @@ gsl_vector * fx, * fu, * ftmp;
 
 double k=3.;
 extern double mm_A;
+int hold_mesh=0;
+
 
 int main ( void )
 {
   ODE_solver * s;
   int M = 10, K = 0, i;
-  int N = 30/* 2*(M+K)+1 */;
+  int N = 50/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
   H_DOUBLE x0 = 0., x1 = PI, x, du, ddu;
-  H_DOUBLE t_error = 1.e-8;
+  H_DOUBLE t_error = 1.e-10;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
-  const gsl_odeiv_step_type * stepper = gsl_odeiv_step_gear1;
+  const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
   gsl_matrix * D = gsl_matrix_alloc(N,N);
   gsl_permutation * p = gsl_permutation_alloc(N);
   FILE * file;
@@ -169,17 +171,15 @@ void ODE_set ( void * solver,
   gt = .01*fabs(D2(ui,xi,0,N)/D2(f+1,xi,0,N));	/* gt=alpha*du/dx/(d2u/dxdt)|x=0 */
   /* gt = .01*fabs(.5/pow(D2(ui,xi,0,N),2));	/\* gt=alpha*du/dx/(d2u/dxdt)|x=0 *\/ */
   /* gt = min(1.e1,gt); */
-  epsilon = /* 1.e-2; */sqrt(1.e2*gt);
+  epsilon = sqrt(1.e2*gt);
 
-  if( gt < 1.e-10)
-    {
-      gt=1.e-10;
-      for ( i = 1; i < N-1; i++) {
-      	gsl_vector_set(ftmp,i,0.);
-      }
-      /* s->state->status = SOLVER_STATUS_STOP; */
-      /* return; */
-    }
+
+  /* if( gt < 1.e-11 ) */
+  /*   for ( i = 1; i < N-1; i++) */
+  /*     gsl_vector_set(ftmp,i,0.); */
+
+
+  gt = max( 1.e-13, gt );
 
 
   /* przepisanie wynikow do tablicy pochodnej czasowej */
@@ -215,7 +215,7 @@ void M_calc ( double * u, double * x, double * M, int N )
       assert( !isnan(M[i]) );
       assert( M[i] >= 0 );
     }
-  /* M_smoothen ( M, mtemp, N, 1., 2 ); */
+  /* M_smoothen ( M, mtemp, N, .5, 4 ); */
 }
 
 void M_smoothen ( double * M, double * Mtemp, int N, double gamma, int ip )

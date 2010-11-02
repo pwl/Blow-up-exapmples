@@ -14,13 +14,22 @@ void gsl_evolver_step ( void * solver, void * module )
   ODE_solver * s = (ODE_solver*)solver;
 
   gsl_odeiv_evolve_apply( data->e,
-			  data->c,
-			  data->s,
-			  data->sys,
-			  s->state->t,
-			  s->params->T,
-			  s->state->dt,
-			  s->state->f );
+  			  data->c,
+  			  data->s,
+  			  data->sys,
+  			  s->state->t,
+  			  s->params->T,
+  			  s->state->dt,
+  			  s->state->f );
+  /* gsl_odeiv_step_apply(   data->s, */
+  /* 			  s->state->t[0], */
+  /* 			  s->state->dt[0], */
+  /* 			  s->state->f, */
+  /* 			  s->params->Dtemp[0][0], */
+  /* 			  NULL, */
+  /* 			  s->state->df, */
+  /* 			  data->sys ); */
+  /* s->state->t[0]+=s->state->dt[0]; */
 }
 
 void gsl_evolver_stop ( void * solver, void * module )
