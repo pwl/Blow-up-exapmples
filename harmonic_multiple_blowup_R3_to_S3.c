@@ -13,10 +13,10 @@ int main ( void )
 {
   ODE_solver * s;
   int M = 10, K = 0, i;
-  int N = 50/* 2*(M+K)+1 */;
-  H_DOUBLE T =1.e10;
+  int N = 150/* 2*(M+K)+1 */;
+  H_DOUBLE T =1.e11;
   H_DOUBLE x0 = 0., x1 = PI, x, du, ddu;
-  H_DOUBLE t_error = 1.e-12;
+  H_DOUBLE t_error = 1.e-11;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
   gsl_matrix * D = gsl_matrix_alloc(N,N);
@@ -59,8 +59,8 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  ODE_modules_add ( s, ODE_module_plot_init( 0. ) );
-  ODE_modules_add ( s, ODE_module_plot_x_init( 0. ) );
+  ODE_modules_add ( s, ODE_module_plot_init( 10. ) );
+  ODE_modules_add ( s, ODE_module_plot_x_init( 10. ) );
   /* modul do drukowania w konsoli czasu symulacji */
   ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) );
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
@@ -68,7 +68,7 @@ int main ( void )
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
   ODE_modules_add ( s, ODE_module_info_1_init( .01, N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
-  /* ODE_modules_add ( s, ODE_module_snapshot_init( 1. )); */
+  ODE_modules_add ( s, ODE_module_snapshot_init( .1 ));
   /* ODE_modules_add ( s, ODE_module_bisection_3_init( .001 )); */
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 
@@ -80,7 +80,7 @@ int main ( void )
     s->state->f[i+1+N]=x;
   }
 
-  mm_setup_mesh( s->state->f+1+N, N );
+  /* mm_setup_mesh( s->state->f+1+N, N ); */
 
   for ( i = 0; i < N; i++ ) {
     x=s->state->f[i+1+N];
@@ -152,20 +152,20 @@ void ODE_set ( void * solver,
     gsl_matrix_set(C, i, i, -du);
   }
 
-  for ( i = 1; i < N-1; i++) {
+  for ( i = 1; i < N-1; i++)
     f[i+1] = gsl_vector_get(fu,i); /* tymczasowe miejsce dla du/dt */
-  }
 
-  gt = .01*fabs(D2(ui,xi,0,N)/D2(f+1,xi,0,N));	/* gt=alpha*du/dx/(d2u/dxdt)|x=0 */
+  gt = .01*(fabs(D2(ui,xi,0,N))+1.)/fabs(D2(f+1,xi,0,N));	/* gt=alpha*du/dx/(d2u/dxdt)|x=0 */
   /* gt = .01*fabs(.5/pow(D2(ui,xi,0,N),2));	/\* gt=alpha*du/dx/(d2u/dxdt)|x=0 *\/ */
   /* gt = min(1.e1,gt); */
-  /* epsilon = 0.; */
+  /* epsilon = 1.e-3; */
   /* gt=.0002; */
 
 
-  gt=max(gt,1.e-10);
+  gt+=1.e-12;
 
-  epsilon = 1.e1*sqrt(gt);
+
+  epsilon = 1.e2*sqrt(gt)+1.e-1;
 
   /* if( gt < 1.e-14 ) */
   /*   { */
@@ -206,7 +206,7 @@ void M_calc ( double * u, double * x, double * M, int N )
       /* assert( !isnan(M[i]) ); */
       /* assert( M[i] >= 0 ); */
     }
-  M_smoothen ( M, mtemp, N, .5, 4 );
+  M_smoothen ( M, mtemp, N, 5., 5 );
 }
 
 void M_smoothen ( double * M, double * Mtemp, int N, double gamma, int ip )
