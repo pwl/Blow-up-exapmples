@@ -487,7 +487,7 @@ fevol_shrinker_reverse (double bisec_param, int print, char * filename, void * p
 	    {
 	      fprintf (file,
 		       "%.15G %.15G %.15G\n",
-		       -t, y[0], y[1]/* , y[2], y[3] */);
+		       exp(-t), y[0], y[1]/* , y[2], y[3] */);
 	      t_last+=dt;
 	      /* dt*=PRINT_DT_RATIO; */
 	    }

@@ -68,7 +68,7 @@ int main ( void )
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
   ODE_modules_add ( s, ODE_module_info_1_init( .01, N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
-  ODE_modules_add ( s, ODE_module_snapshot_init( .1 ));
+  ODE_modules_add ( s, ODE_module_snapshot_init( 1. ));
   /* ODE_modules_add ( s, ODE_module_bisection_3_init( .001 )); */
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 

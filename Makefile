@@ -18,7 +18,7 @@ export LIBS = -lm -lgsl -lgslcblas # -lfftw3
 export ARCHIVE = $(PWD)/libyapdes.a
 export MAKEFILES = $(PWD)/Makefile.common
 export INCLUDES = $(PWD)/solver
-export SHOOTING_OBJECTS = shooting1 shooting2 shooting3 shooting4
+export SHOOTING_OBJECTS = shooting1 shooting2 shooting3 shooting4 shooting_expander shooting_shrinker_reversed
 export REQUIRED = mm_distribute_points.o derivatives.o
 DIRS = "solver"
 RM = /bin/rm -f
@@ -34,15 +34,6 @@ harmonic: harmonic_mm.o $(DIRS) $(REQUIRED)
 run:	harmonic
 	$(RM) log/{snapshot,movie}/*
 	time ./harmonic
-
-# shooting2:	shooting/shooting2.c
-# 	$(CC) $(LIBS) $(FLAGS) -o $@ $<
-
-# shooting1_stability:	shooting/shooting1_stability.c
-# 	$(CC) $(LIBS) $(FLAGS) -o $@ $<
-
-# shooting1: shooting/shooting1.c shooting.o
-# 	$(CC) $(LIBS) $(FLAGS) -o $@ $<
 
 $(SHOOTING_OBJECTS): % : shooting/%.c shooting/%.h shooting.o
 	$(CC) $(FLAGS) $(LIBS) shooting/shooting.o $< -o $@

@@ -7,14 +7,14 @@ double mm_A=0.;
 double mm_u
 ( double x )
 {
-  return sin(x)+3.*x;
+  return sin(x)+x;
   /* return (exp (pow (x, 2))*sin (x))/300.; */
 }
 
 double mm_du
 ( double x )
 {
-  return cos(x)+3.;
+  return cos(x)+1.;
   /* return (exp (pow (x, 2))*(cos (x) + 2*x*sin (x)))/300.; */
 }
 

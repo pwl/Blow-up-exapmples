@@ -2,8 +2,8 @@
 
 set xlabel "x"
 set ylabel "u(x)"
-# set yrange [0:4*pi]
-set xrange [1e-7:]
+set xrange [1.e-8:pi]
+set yrange [0:pi]
 
 set logscale x 10
 set term png
