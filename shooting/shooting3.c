@@ -14,30 +14,20 @@ main (void)
   k=3.;
   l=1.;
 
-  /* fevol_expander(2.,1,"test.dat",NULL); */
 
-  /* /\* #pragma omp parallel for *\/ */
-  /* for ( A = 1.; A < 100.; A*=1.01 ) */
+  /* num_results = harvester(3.,3000.,2.,RIPPER_EXP,3,results1,0.,lambda_0_at_given_A,NULL); */
+  /* num_results = harvester(3.,3000.,2.,RIPPER_EXP,10,results2,0.,d1_asymptotic_harvester_wrapper,NULL); */
+  /* num_results = harvester(3.,3000.,2.,RIPPER_EXP,10,results2,0.,asymptotic_harvester_wrapper,NULL); */
+  /* for( i = 0; i < num_results; i++ ) */
   /*   { */
-  /*     /\* solve_eigenproblem(0.01*pow(1.5,i), 1, 2, fevol_expander_eigenproblem); *\/ */
-  /*     printf("%.5G %.5G\n", A, fevol_shrinker_eigenproblem(-A,0,NULL,&L)); */
-  /*     /\* printf("%.5E %.5E\n",L,fevol_expander_eigenproblem(L, 0, NULL, &A)); *\/ */
-  /*     /\* fprintf(file,"%.5E %.5E\n",A,fevol_expander_eigenproblem(A, 0, NULL, &l)); *\/ */
+  /*     fprintf(file,"%.10G %.10G\n",results1[i], results2[i]); */
   /*   } */
 
-  num_results = harvester(3.,3000.,2.,RIPPER_EXP,3,results1,0.,lambda_0_at_given_A,NULL);
-  num_results = harvester(3.,3000.,2.,RIPPER_EXP,10,results2,0.,d1_asymptotic_harvester_wrapper,NULL);
-  num_results = harvester(3.,3000.,2.,RIPPER_EXP,10,results2,0.,asymptotic_harvester_wrapper,NULL);
-  for( i = 0; i < num_results; i++ )
+  for ( A=.01; A < 5000; A*=1.1 )
     {
-      fprintf(file,"%.10G %.10G\n",results1[i], results2[i]);
+      printf("%.5E %.5E\n",A,fevol_expander(A,0,NULL,NULL));
+      fprintf(file, "%.5E %.5E\n",A,fevol_expander(A,0,NULL,NULL));
     }
-
-  /* for ( A=.01; A < 10; A+=.001 ) */
-  /*   { */
-  /*     printf("%.5E %.5E\n",A,fevol_expander(A,0,NULL,NULL)); */
-  /*     fprintf(file, "%.5E %.5E\n",A,fevol_expander(A,0,NULL,NULL)); */
-  /*   } */
 
 
   fclose(file);

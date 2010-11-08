@@ -10,12 +10,12 @@ extern double mm_A;
 int main ( void )
 {
   ODE_solver * s;
-  int i, N = 50;
+  int i, N = 100;
   H_DOUBLE T =1.e10;
-  H_DOUBLE x0 = 0., x1 = M_PI, x, du, ddu;
-  H_DOUBLE t_error = 1.e-8;
+  H_DOUBLE x0 = 0., x1 = 2.*asin(1.), x, du, ddu;
+  H_DOUBLE t_error = 1.e-10;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
-  const gsl_odeiv_step_type * stepper = gsl_odeiv_step_gear1;
+  const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
   gsl_matrix * D = gsl_matrix_alloc(N,N);
   gsl_permutation * p = gsl_permutation_alloc(N);
   FILE * file;
@@ -54,8 +54,8 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  ODE_modules_add ( s, ODE_module_plot_sin_init( 1. ) );
-  ODE_modules_add ( s, ODE_module_plot_init( 1. ) );
+  ODE_modules_add ( s, ODE_module_plot_sin_init( 10. ) );
+  ODE_modules_add ( s, ODE_module_plot_init( 10. ) );
   /* modul do drukowania w konsoli czasu symulacji */
   ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) );
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
@@ -63,7 +63,7 @@ int main ( void )
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
   ODE_modules_add ( s, ODE_module_info_1_init( .001, N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
-  /* ODE_modules_add ( s, ODE_module_snapshot_init( .1 )); */
+  ODE_modules_add ( s, ODE_module_snapshot_init( 1. ));
   /* ODE_modules_add ( s, ODE_module_bisection_3_init( .001 )); */
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 
@@ -75,40 +75,13 @@ int main ( void )
     s->state->f[i+1+N]=x;
   }
 
-  mm_setup_mesh( s->state->f+1+N, N );
+  /* mm_setup_mesh( s->state->f+1+N, N ); */
 
   for ( i = 0; i < N; i++ ) {
     x=s->state->f[i+1+N];
     s->state->f[i+1]=mm_u(x)*sin(x);
     /* printf("%5.5G %5.5G\n", x, mm_u(x)*sin(x)); */
   }
-
-  /* M_calc( s->state->f+1, s->state->f+N+1, m, N ); */
-  /* for ( i = 0; i < N; i++ ) { */
-  /*   x=s->state->f[i+1+N]; */
-  /*   du=D1(s->state->f+1,s->state->f+1+N,i,N); */
-  /*   ddu=D2(s->state->f+1,s->state->f+1+N,i,N); */
-  /*   printf("%i %10.5G %10.5G\n", i, x, m[i]); */
-  /* } */
-  for ( i = 1; i < N-1; i++)
-    s->params->basis->ai_temp[i]=s->state->f[i+1]/sin(s->state->f[i+N+1]);
-
-  s->params->basis->ai_temp[0]=D1(s->state->f+1,s->state->f+1+N,0,N);
-  s->params->basis->ai_temp[N-1]=-D1(s->state->f+1,s->state->f+1+N,N-1,N);
-
-  M_calc( s->params->basis->ai_temp, s->state->f+N+1, m, N );
-   /* M_calc( s->state->f+1, s->state->f+N+1, m, N ); */
-
-  file=fopen("test.dat","w");
-
-  for ( i = 0; i < N; i++ ) {
-    x=s->state->f[i+1+N];
-    du=D1(s->state->f+1,s->state->f+1+N,i,N);
-    ddu=D2(s->state->f+1,s->state->f+1+N,i,N);
-    fprintf(file,"%i %.20G %.20G %.20G %.20G %.20G %.20G\n", i, x, s->state->f[1+i], m[i], du, ddu, s->params->basis->ai_temp[i]);
-  }
-
-  fclose(file);
 
   s->state->f[0]=0.;
 
@@ -142,7 +115,7 @@ void ODE_set ( void * solver,
      funkcji w odpowiednich punktach */
   H_DOUBLE * ui = y + 1;
   H_DOUBLE * xi = y + 1 + N;
-  H_DOUBLE u,x,du,ddu,Mxi,de,epsilon,gt,du0;
+  H_DOUBLE u,x,du,ddu,Mxi,de,epsilon,gt,gtleft,gtright,du0;
   H_DOUBLE x1 = s->params->basis->params->x1;
   H_DOUBLE dt = *(s->state->dt);
 
@@ -183,22 +156,28 @@ void ODE_set ( void * solver,
     f[i+1] = gsl_vector_get(fu,i); /* tymczasowe miejsce dla du/dt */
   }
 
-  /* gt = .01*min(fabs(D2(ui,xi,0,N)/D2(f+1,xi,0,N)), */
-  /* 	       fabs(D2(ui,xi,N-1,N)/D2(f+1,xi,N-1,N)));	/\* gt=alpha*du/dx/(d2u/dxdt)|x=0 *\/ */
-  gt = .01*min(fabs(.5/pow(D2(ui,xi,0,N),2)),
-	       fabs(.5/pow(D2(ui,xi,N-1,N),2)));	/* gt=alpha*du/dx/(d2u/dxdt)|x=0 */
-  /* gt = min(1.e1,gt); */
-  epsilon = /* 1.e-2; */sqrt(1.e2*gt);
+  gtleft=(fabs(D2(ui,xi,0,N))+1.)/fabs(D2(f+1,xi,0,N));
+  gtright=(fabs(D2(ui,xi,N-1,N))+1.)/fabs(D2(f+1,xi,N-1,N));
 
-  if( gt < 1.e-14)
-    {
-      /* gt=1.e-10; */
-      for ( i = 1; i < N-1; i++) {
-      	gsl_vector_set(ftmp,i,0.);
-      }
-      s->state->status = SOLVER_STATUS_STOP;
-      return;
-    }
+  /* gtleft=(1/sqrt(fabs(D2(ui,xi,0,N)))); */
+  /* gtright=(1/sqrt(fabs(D2(ui,xi,N-1,N)))); */
+
+  gt=0.01/(1./gtleft+1./gtright);
+
+  gt+=1.e-12;
+
+  epsilon = 1.e2*sqrt(gt)+1.e-1;
+
+
+  /* if( gt < 1.e-14) */
+  /*   { */
+  /*     /\* gt=1.e-10; *\/ */
+  /*     for ( i = 1; i < N-1; i++) { */
+  /*     	gsl_vector_set(ftmp,i,0.); */
+  /*     } */
+  /*     s->state->status = SOLVER_STATUS_STOP; */
+  /*     return; */
+  /*   } */
 
 
   /* przepisanie wynikow do tablicy pochodnej czasowej */
@@ -234,7 +213,7 @@ void M_calc ( double * u, double * x, double * M, int N )
       assert( !isnan(M[i]) );
       assert( M[i] >= 0 );
     }
-  M_smoothen ( M, mtemp, N, 1., 2 );
+  M_smoothen ( M, mtemp, N, 5., 5 );
 }
 
 void M_smoothen ( double * M, double * Mtemp, int N, double gamma, int ip )

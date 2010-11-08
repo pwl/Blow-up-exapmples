@@ -7,21 +7,21 @@ double mm_A=0.;
 double mm_u
 ( double x )
 {
-  return sin(x)+x;
+  return /* sin(x)+ */3.*x;
   /* return (exp (pow (x, 2))*sin (x))/300.; */
 }
 
 double mm_du
 ( double x )
 {
-  return cos(x)+1.;
+  return /* cos(x)+ */3.;
   /* return (exp (pow (x, 2))*(cos (x) + 2*x*sin (x)))/300.; */
 }
 
 double mm_ddu
 ( double x )
 {
-  return -sin(x);
+  return /* -sin(x) */+0.;
   /* return (exp (pow (x, 2))*(sin (x) + 4*x*(cos (x) + x*sin (x))))/300.; */
 }
 
