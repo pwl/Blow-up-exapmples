@@ -13,7 +13,7 @@ int main ( void )
   int i, N = 100;
   H_DOUBLE T =1.e10;
   H_DOUBLE x0 = 0., x1 = 2.*asin(1.), x, du, ddu;
-  H_DOUBLE t_error = 1.e-10;
+  H_DOUBLE t_error = 1.e-9;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
   gsl_matrix * D = gsl_matrix_alloc(N,N);
@@ -156,13 +156,18 @@ void ODE_set ( void * solver,
     f[i+1] = gsl_vector_get(fu,i); /* tymczasowe miejsce dla du/dt */
   }
 
-  gtleft=(fabs(D2(ui,xi,0,N))+1.)/fabs(D2(f+1,xi,0,N));
-  gtright=(fabs(D2(ui,xi,N-1,N))+1.)/fabs(D2(f+1,xi,N-1,N));
+  /* gtleft=(fabs(D2(ui,xi,0,N))+1.)/fabs(D2(f+1,xi,0,N)); */
+  /* gtright=(fabs(D2(ui,xi,N-1,N))+1.)/fabs(D2(f+1,xi,N-1,N)); */
 
-  /* gtleft=(1/sqrt(fabs(D2(ui,xi,0,N)))); */
-  /* gtright=(1/sqrt(fabs(D2(ui,xi,N-1,N)))); */
+  gtleft=(pow(D2(ui,xi,0,N),2)+1.)/pow(D2(f+1,xi,0,N),2);
+  gtright=(pow(D2(ui,xi,N-1,N),2)+1.)/pow(D2(f+1,xi,N-1,N),2);
 
-  gt=0.01/(1./gtleft+1./gtright);
+  gt=0.01/(sqrt(1./gtleft+1./gtright));
+
+  /* gtleft=(1/sqrt(fabs(D2(ui,xi,0,N))+1.)); */
+  /* gtright=(1/sqrt(fabs(D2(ui,xi,N-1,N))+1.)); */
+
+  /* gt=0.01/(1./gtleft+1./gtright); */
 
   gt+=1.e-12;
 
