@@ -32,12 +32,11 @@ void snapshot_step ( void * solver, void * module )
 	  D1( ui, xi, 0, N ) );
   fprintf(file,"# g = %.15G\n", g );
 
-  /* fprintf */
-    (file,"%.15G %.15G %.15G %.15G\n",
+  fprintf(file,"%.15G %.15G %.15G %.15G\n",
      0., 0., D1(ui,xi,0,N), 0., g);
 
-    (file,"%.15G %.15G %.15G %.15G\n",
-     0., D1(ui,xi,0,N), D1(ui,xi,0,N), 0., g);
+  /* fprintf(file,"%.15G %.15G %.15G %.15G\n", */
+  /* 	  0., D1(ui,xi,0,N), D1(ui,xi,0,N), 0., g); */
 
 
   for( i=1; i<N; i++)
@@ -48,10 +47,11 @@ void snapshot_step ( void * solver, void * module )
       du=D1(ui,xi,i,N);
       ddu=D2(ui,xi,i,N);
       dudt=ddu+(k-1.)/x*du-(k-1.)/2.*sin(2.*u)/x/x;
+      dudt=ddu-sin(2.*u/x)/x;
       /* fprintf(f,"%f %f\n",s->params->basis->collocation_points[i],s->state->f[i]); */
       fprintf
 	(file,"%.15G %.15G %.15G %.15G %.15G\n",
-	 xi[i], ui[i]/xi[i], du, dudt, g
+	 xi[i], ui[i], du, dudt, g
 	 /* (xi[i]*D1(ui,xi,i,N)-2./exps*dudt)*norm */
 	 );
     }
