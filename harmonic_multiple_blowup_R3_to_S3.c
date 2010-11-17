@@ -165,7 +165,7 @@ void ODE_set ( void * solver,
   gt+=1.e-12;
 
 
-  epsilon = 1.e2*sqrt(gt)+1.e-1;
+  epsilon = 1.e2*sqrt(gt)+.5e-1;
 
   /* if( gt < 1.e-14 ) */
   /*   { */

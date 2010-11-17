@@ -12,7 +12,7 @@ int main ( void )
   ODE_solver * s;
   int i, N = 100;
   H_DOUBLE T =1.e10;
-  H_DOUBLE x0 = 0., x1 = 2.*asin(1.), x, du, ddu;
+  H_DOUBLE x0 = 0., x1 = 2.d*asin(1.d), x, du, ddu;
   H_DOUBLE t_error = 1.e-9;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
