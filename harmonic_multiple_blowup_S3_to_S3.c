@@ -12,7 +12,7 @@ int main ( void )
   ODE_solver * s;
   int i, N = 100;
   H_DOUBLE T =1.e10;
-  H_DOUBLE x0 = 0., x1 = 2.d*asin(1.d), x, du, ddu;
+  H_DOUBLE x0 = 0., x1 = PI, x, du, ddu;
   H_DOUBLE t_error = 1.e-9;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
@@ -82,6 +82,8 @@ int main ( void )
     s->state->f[i+1]=mm_u(x)*sin(x);
     /* printf("%5.5G %5.5G\n", x, mm_u(x)*sin(x)); */
   }
+
+  /* s->state->f[N]=0.; */
 
   s->state->f[0]=0.;
 
@@ -164,26 +166,9 @@ void ODE_set ( void * solver,
 
   gt=0.01/(sqrt(1./gtleft+1./gtright));
 
-  /* gtleft=(1/sqrt(fabs(D2(ui,xi,0,N))+1.)); */
-  /* gtright=(1/sqrt(fabs(D2(ui,xi,N-1,N))+1.)); */
-
-  /* gt=0.01/(1./gtleft+1./gtright); */
-
   gt+=1.e-12;
 
   epsilon = 1.e2*sqrt(gt)+1.e-1;
-
-
-  /* if( gt < 1.e-14) */
-  /*   { */
-  /*     /\* gt=1.e-10; *\/ */
-  /*     for ( i = 1; i < N-1; i++) { */
-  /*     	gsl_vector_set(ftmp,i,0.); */
-  /*     } */
-  /*     s->state->status = SOLVER_STATUS_STOP; */
-  /*     return; */
-  /*   } */
-
 
   /* przepisanie wynikow do tablicy pochodnej czasowej */
   gsl_blas_dsymv (CblasUpper, -1./epsilon, D_inv, ftmp, 0., fx); /* D = -d2/de2 */

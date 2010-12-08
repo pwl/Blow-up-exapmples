@@ -65,6 +65,9 @@ harmonic_mm.o: harmonic_mm.c harmonic.h
 mm_distribute_points.o: mm_distribute_points.c mm_distribute_points.h derivatives.o
 	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
 
+d1: d1.c derivatives.o
+	$(CC) $(FLAGS) derivatives.o -o $@ $<
+
 derivatives.o: derivatives.c derivatives.h
 	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
 

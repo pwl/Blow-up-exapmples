@@ -12,8 +12,7 @@ int hold_mesh=0;
 int main ( void )
 {
   ODE_solver * s;
-  int M = 10, K = 0, i;
-  int N = 100/* 2*(M+K)+1 */;
+  int N = 100, i;
   H_DOUBLE T =1.e11;
   H_DOUBLE x0 = 0., x1 = PI, x, du, ddu;
   H_DOUBLE t_error = 1.e-11;

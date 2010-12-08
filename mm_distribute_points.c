@@ -7,21 +7,35 @@ double mm_A=0.;
 double mm_u
 ( double x )
 {
-  return sin(x)+x;
-  /* return (exp (pow (x, 2))*sin (x))/300.; */
+  /* return sin(x)+3.*x; */
+  return 2*atan (5*tan (x/2.)) +
+ sin (2*atan (5*tan (x/2.)))*(1 +
+    exp (-pow ((-4*PI)/5. + 2*atan (5*tan (x/2.)), 2))*
+     sin (10*atan (5*tan (x/2.))));
+    /* return (exp (pow (x, 2))*sin (x))/300.; */
 }
 
 double mm_du
 ( double x )
 {
-  return cos(x)+1.;
+  /* return cos(x)+3.; */
+  /* return cos(x)+1.; */
+  return 1 + cos(x)*(1 + 2*cos(10*x)*exp(-pow(-PI/2. + x,2))) +
+    sin(x)*(-4*(-PI/2. + x)*cos(10*x)*exp(-pow(-PI/2. + x,2)) - 20*exp(-pow(-PI/2. + x,2))*sin(10*x));
+
   /* return (exp (pow (x, 2))*(cos (x) + 2*x*sin (x)))/300.; */
 }
 
 double mm_ddu
 ( double x )
 {
-  return -sin(x);
+  /* return -sin(x); */
+  return -((1 + 2*cos(10*x)*exp(-pow(-PI/2. + x,2)))*sin(x)) +
+    2*cos(x)*(-4*(-PI/2. + x)*cos(10*x)*exp(-pow(-PI/2. + x,2)) -
+       20*exp(-pow(-PI/2. + x,2))*sin(10*x)) +
+    sin(x)*(-204*cos(10*x)*exp(-pow(-PI/2. + x,2)) +
+       8*cos(10*x)*exp(-pow(-PI/2. + x,2))*pow(-PI/2. + x,2) +
+       80*(-PI/2. + x)*exp(-pow(-PI/2. + x,2))*sin(10*x));
   /* return (exp (pow (x, 2))*(sin (x) + 4*x*(cos (x) + x*sin (x))))/300.; */
 }
 
@@ -87,7 +101,7 @@ void mm_setup_mesh ( double * x, int N )
 
   s = ODE_solver_init ( N, /*rk=*/ 1, T, x0, x1, t_error, basis, mm_ODE_set, NULL, stepper );
   /* ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) ); */
-  /* ODE_modules_add ( s, ODE_module_plot_init ( .01 ) ); */
+  ODE_modules_add ( s, ODE_module_plot_init ( .01 ) );
 
   /* s->state->f=x; */
 

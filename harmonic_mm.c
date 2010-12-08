@@ -11,7 +11,7 @@ int main ( void )
 {
   ODE_solver * s;
   int M = 10, K = 0, i;
-  int N = 50/* 2*(M+K)+1 */;
+  int N = 150/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
   H_DOUBLE x0 = 0., x1 = PI, x;
   H_DOUBLE t_error = 1.e-8;
@@ -63,7 +63,7 @@ int main ( void )
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
   ODE_modules_add ( s, ODE_module_info_1_init( .01, N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
-  ODE_modules_add ( s, ODE_module_snapshot_init( 1. ));
+  ODE_modules_add ( s, ODE_module_snapshot_init( 0.1 ));
   /* ODE_modules_add ( s, ODE_module_bisection_3_init( .001 )); */
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 
@@ -123,7 +123,7 @@ int main ( void )
     s->state->f[i+1+N]=x;
   }
 
-  mm_setup_mesh( s->state->f+1+N, N );
+  /* mm_setup_mesh( s->state->f+1+N, N ); */
 
   for ( i = 0; i < N; i++ ) {
     x=s->state->f[i+1+N];
@@ -301,7 +301,7 @@ double bisection_wrapper(double A, void * p)
     s->state->f[i+1+N]=x;
   }
 
-  mm_setup_mesh( s->state->f+1+N, N );
+  /* mm_setup_mesh( s->state->f+1+N, N ); */
 
   for ( i = 0; i < N; i++ ) {
     x=s->state->f[i+1+N];

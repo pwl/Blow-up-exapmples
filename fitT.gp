@@ -2,7 +2,7 @@
 
 x_min = 500
 x_max = 1000
-file = "log/info_1/logN100_rkf45_te-14.dat"
+file = "log/info_1/log000.data"
 FIT_LIMIT = 1.e-20
 
 load "plotter.gp"
