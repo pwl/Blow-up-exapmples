@@ -58,7 +58,7 @@ for snap in $snapshot_files; do
     du=$(awk '/du = /{printf("%.0f",$4)}' $snap)
     # T_t=$(echo "scale=20; $T-$t|bc"|awk '{printf("%1.2E",$1)}')
 
-    # echo "set logscale x 10" >> plotter.gp
+    echo "set logscale x 10" >> plotter.gp
     echo "set key off" >> plotter.gp
     # switch margins off
     echo "set rmargin 0" >> plotter.gp
@@ -89,7 +89,7 @@ for snap in $snapshot_files; do
 
     echo "set title \"T-t=$gprint\" offset screen -.05*$sizex, screen -.80*$sizey font \"Times-Roman,10\"" >> plotter.gp
     # echo "set title \"t=$t\" offset screen -$sizex/$mcols, screen -($sizey+.1)/$mrows font \"Times-Roman,10\"" >> plotter.gp
-    echo -ne "plot [0:10] [0:pi]\"$snap\" u (\$1/sqrt($g)):(\$2/(\$1)) t\"\" w l," >> plotter.gp
+    echo -ne "plot [1e-2,1e4] \"$snap\" u (\$1/sqrt($g)):(\$2/(\$1)) t\"\" w l," >> plotter.gp
     echo -ne "\"$blowup_file1\" t\"\" w l," >> plotter.gp
     echo -ne "\"$blowup_file2\" u 1:(pi-\$2) t\"\" w l\n" >> plotter.gp
     # echo -ne "\"$blowup_file2\" u 1:((\$4)) index 1 w l lt 2 t\"\", 0 t\"\"\n" >> plotter.gp

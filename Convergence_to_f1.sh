@@ -1,8 +1,8 @@
 #!/bin/bash
 
 mplotx=
-snapshot_dir="log/snapshot/"
-logfile="log/info_1/log000.dat"
+snapshot_dir="log/snapshot_Convergence_to_f1/"
+logfile="log/info_1/log000_Convergence_to_f1.dat"
 snapshot_name="*.dat"
 mrows=3
 mcols=3

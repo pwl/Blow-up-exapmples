@@ -7,7 +7,7 @@ double mm_A=0.;
 double mm_u
 ( double x )
 {
-  /* return sin(x)+3.*x; */
+  /* return sin(x)+x; */
   return 2*atan (5*tan (x/2.)) +
  sin (2*atan (5*tan (x/2.)))*(1 +
     exp (-pow ((-4*PI)/5. + 2*atan (5*tan (x/2.)), 2))*
@@ -101,7 +101,7 @@ void mm_setup_mesh ( double * x, int N )
 
   s = ODE_solver_init ( N, /*rk=*/ 1, T, x0, x1, t_error, basis, mm_ODE_set, NULL, stepper );
   /* ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) ); */
-  ODE_modules_add ( s, ODE_module_plot_init ( .01 ) );
+  ODE_modules_add ( s, ODE_module_plot_init ( .0 ) );
 
   /* s->state->f=x; */
 
