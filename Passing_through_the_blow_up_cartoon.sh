@@ -1,20 +1,19 @@
 #!/bin/bash
 
 mplotx=
-snapshot_dir="log/snapshot/"
-logfile="log/info_1/log000.dat"
+snapshot_dir="log/snapshot_multiple_blow-up_S3_S3/"
+logfile="log/info_1/log000_multiple_blow-up_S3_S3.dat"
 snapshot_name="*.dat"
-mrows=5
-mcols=5
+mrows=4
+mcols=4
 mtot=$((mcols*mrows))
 mspace=$((mtot))
-snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
-    sort -n -t'_' -k2 | awk 'NR % 365 == 0 && NR >= 0' | head -n$mtot|awk 'NR%1==0 {print}')
+# snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
+#     sort -n -t'_' -k2 | awk 'NR % 365 == 0 && NR >= 0' | head -n$mtot|awk 'NR%1==0 {print}')
 # snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
 #     sort -n -t'_' -k2 | ./select_by_time.sh .04 | head -n$mtot|awk 'NR%1==0 {print}')
-blowup_file1="harvester_data_shrinker/shrinker_k3.00000_l1.0.dat"
-# blowup_file2="harvester_data_shrinker/eigen_k3.00000_l1.0_i1.dat"
-blowup_file2="harvester_data_expander/expander_k3.00000_l1.0.dat"
+snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
+    sort -n -t'_' -k2 | ./select_by_time.sh .06 | head -n$mtot|awk 'NR%1==0 {print}')
 startx=0.1
 starty=0.1
 stopx=0.9
@@ -28,21 +27,21 @@ set nokey;\
 set noxtic; set noytic;\
 unset border;\
 unset grid;\
-set xrange [-2:2];\
-set yrange [-2:2];\
+set xrange [-1.6:1.6];\
+set yrange [-1.6:1.6];\
 " > plotter.gp
 
-echo "set terminal postscript enhanced color size 7,7" >> plotter.gp
+echo "set terminal postscript enhanced size 7,7" >> plotter.gp
 echo "set output \"graphics/Passing_through_the_blow_up_cartoon.ps\"" >> plotter.gp
 # echo "set size $size_mult,$size_mult" >> plotter.gp
-echo "set multiplot title \"Passing through the blow-up\"" >> plotter.gp
+echo "set multiplot title #\"Passing through the blow-up\"" >> plotter.gp
 
 i=0
 
 for snap in $snapshot_files; do
 
     t=$(awk '/t = /{print $4}' $snap)
-    t=$(awk '/t = /{printf("%.7f\n",$4)}' $snap)
+    t=$(awk '/t = /{printf("%.2f\n",$4)}' $snap)
     g=$(awk '/g = /{print $4}' $snap)
     gprint=$(awk '/g = /{printf("%1.2E\n",$4)}' $snap)
     s=$(awk '/s = /{printf("%.0f",$4)}' $snap)
@@ -73,8 +72,8 @@ for snap in $snapshot_files; do
     echo "unset xlabel" >> plotter.gp
     echo "unset ylabel" >> plotter.gp
 
-    echo "set title \"t=$t\" offset screen .05*$sizex, screen -.4*$sizey font \"Times-Roman,10\"" >> plotter.gp
-    echo -ne "plot \"$snap\" u ((1.+.3*sin(\$1))*sin(\$2/sin(\$1))):((1.+.3*sin(\$1))*cos(\$2/sin(\$1))) w l lw 2, sin(t),cos(t)\n" >> plotter.gp
+    echo "set title \"t = $t\" offset screen .06*$sizex, screen -.85*$sizey font \"Times-Roman,10\"" >> plotter.gp
+    echo -ne "plot sin(t),cos(t) lw 1 lt 2, \"$snap\" u ((1.+.3*sin(\$1))*sin(\$2/sin(\$1))):((1.+.3*sin(\$1))*cos(\$2/sin(\$1))) w l lw 2 lt 1\n" >> plotter.gp
 
     i=$((i+1))
 done

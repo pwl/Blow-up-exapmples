@@ -54,14 +54,14 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  ODE_modules_add ( s, ODE_module_plot_sin_init( 10. ) );
-  ODE_modules_add ( s, ODE_module_plot_init( 10. ) );
+  ODE_modules_add ( s, ODE_module_plot_sin_init( 1. ) );
+  ODE_modules_add ( s, ODE_module_plot_init( 1. ) );
   /* modul do drukowania w konsoli czasu symulacji */
   ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) );
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
      informacji dot. funkcji, w kolejnosci sa to:
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
-  ODE_modules_add ( s, ODE_module_info_1_init( .001, N ) );
+  ODE_modules_add ( s, ODE_module_info_1_init( .1, N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
   ODE_modules_add ( s, ODE_module_snapshot_init( 1. ));
   /* ODE_modules_add ( s, ODE_module_bisection_3_init( .001 )); */

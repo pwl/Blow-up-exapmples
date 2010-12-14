@@ -26,7 +26,7 @@ T=$(awk 'BEGIN {max=0} {if($2 > max) max=$2} END {printf("%.15E\n",max)}' $logfi
 cat << EOF > plotter.gp
 set terminal postscript enhanced size 7,7
 set output "graphics/Convergence_to_f1.ps"
-set label "Convergence to the blow-up profile" at screen 0.3, 0.95 font "Times-Roman,10"
+# set label "Convergence to the blow-up profile" at screen 0.3, 0.95 font "Times-Roman,10"
 set multiplot title ""
 EOF
 
@@ -66,16 +66,16 @@ for snap in $snapshot_files; do
     if [ $tics -eq 1 ]; then
     	echo "set tics nomirror in" >> plotter.gp
 	echo 'set ytics (0,  "{/Symbol p}" pi)' >> plotter.gp
-	echo 'set xtics (1,  1e2, 1e4)' >> plotter.gp
+	echo 'set xtics (1e-2, 1,  1e2, 1e4)' >> plotter.gp
 	echo "set xlabel \"y\"" >> plotter.gp
-	echo "set ylabel \"u(t,y(T-t)^{1/2})\" rotate offset screen .05*$sizex, 0." >> plotter.gp
+	echo "set ylabel \"u(t,(T-t)^{1/2}y)\" rotate offset screen .05*$sizex, 0." >> plotter.gp
 	echo 'set format x "10^{%L}"' >> plotter.gp
     fi
 
     echo "set title \"T-t=$gprint\" offset screen .05*$sizex, screen -1.0*$sizey font \"Times-Roman,10\"" >> plotter.gp
     # echo -ne "plot [:pi] [ 0:pi ] \"$snap\" u (\$1/sqrt(abs($T-$t))):1 w l lw 2," >> plotter.gp
-    echo -ne "plot [1e-2:1e4] [0:1.2*pi] \"$snap\" u (\$1/sqrt(abs($T-$t))):2 w l lw 1," >> plotter.gp
-    echo -ne "\"$blowup_file1\" u 1:(\$1<10?\$2:1/0) index 0 w l lt 2 lw 2, pi w l lt 3 lw 1, x>10?pi/2+0.573141133043885:1/0 w l lt 2 lw 2 \n" >> plotter.gp
+    echo -ne "plot [1e-2:1e4] [0:1.2*pi] \"$snap\" u (\$1/sqrt(abs($T-$t))):2 w l lw 2," >> plotter.gp
+    echo -ne "\"$blowup_file1\" u 1:(\$1<10?\$2:1/0) index 0 w l lt 2 lw 1, pi w l lt 3 lw 1, x>10?pi/2+0.573141133043885:1/0 w l lt 2 lw 1 \n" >> plotter.gp
 
     i=$((i+1))
 done

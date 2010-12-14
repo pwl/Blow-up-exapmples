@@ -11,9 +11,7 @@ mspace=$((mtot))
 # snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
 #     sort -n -t '_' -k2 | awk 'NR > 1100' | awk 'NR % 5 == 0' | head -n $mtot  )
 snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
-    sort -n -t '_' -k2  | awk 'NR % 10800 == 1' | head -n $mtot  )
-blowup_file1="harvester_data_shrinker/shrinker_reversed_k3.00000_l1.0.dat"
-blowup_file2="harvester_data_expander/expander_k3.00000_l1.0.dat"
+    sort -n -t '_' -k2  | awk 'NR % 200 == 1' | head -n $mtot  )
 startx=0.1
 starty=0.1
 stopx=0.9
@@ -22,19 +20,6 @@ xrange="50"
 yrange="1.2*pi"
 size_mult=1.
 T=$(awk 'BEGIN {max=0} {if($2 > max) max=$2} END {printf("%.15E\n",max)}' $logfile)
-
-tempfile1=$(tempfile)
-tempfile2=$(tempfile)
-# tempfile2="temp2.dat"
-tempfile3=$(tempfile)
-# tempfile3="temp3.dat"
-
-# select the first possible shrinker and
-./extract_block.awk -v block=1 $blowup_file1 | awk '/^[0-9]/ {print}' > $tempfile1
-
-# echo "$snapshot_files"
-# # less $tempfile1
-# exit 0
 
 echo "" > plotter.gp
 echo "set terminal postscript enhanced color size 7,7" >> plotter.gp
@@ -51,6 +36,7 @@ for snap in $snapshot_files; do
     s=$(awk '/s = /{printf("%.0f",$4)}' $snap)
     du=$(awk '/du = /{printf("%.0f",$4)}' $snap)
     # T_t=$(echo "scale=20; $T-$t|bc")
+    echo $t
 
     # echo "set logscale x 10" >> plotter.gp
     echo "set parametric" >> plotter.gp
@@ -84,8 +70,9 @@ for snap in $snapshot_files; do
     fi
 
     # echo "set title \"t=$t\" offset screen -$sizex/$mcols, screen -($sizey+.1)/$mrows font \"Times-Roman,10\"" >> plotter.gp
-    echo -ne "plot \"$snap\" u ((1.+.5*sin(\$1))*sin(\$2)):((1.+.5*sin(\$1))*cos(\$2)) t\"\" w l lw 2," >> plotter.gp
+    echo -ne "plot \"$snap\" u ((1.+.5*sin(\$1))*sin(\$2/sin(\$1))):((1.+.5*sin(\$1))*cos(\$2/sin(\$1))) t\"\" w l lw 2," >> plotter.gp
     echo -ne " sin(t),cos(t)\n" >> plotter.gp
+    # echo -ne "plot \"$snap\" w l"
 
     # echo -ne "\"$blowup_file1\" t\"\" w l," >> plotter.gp
     # echo -ne "\"$blowup_file2\" u 1:(pi-\$2) t\"\" w l\n" >> plotter.gp
@@ -98,4 +85,4 @@ echo "unset multiplot" >> plotter.gp
 
 ./snapshot_to_multiplot.gp
 ps2pdf graphics/snapshot_to_multiplot.ps graphics/snapshot_to_multiplot.pdf
-# evince graphics/snapshot_to_multiplot.ps
+evince graphics/snapshot_to_multiplot.ps

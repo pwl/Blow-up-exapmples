@@ -7,7 +7,7 @@ double mm_A=0.;
 double mm_u
 ( double x )
 {
-  /* return sin(x)+x; */
+  /* return sin(x)+3.*x; */
   return 2*atan (5*tan (x/2.)) +
  sin (2*atan (5*tan (x/2.)))*(1 +
     exp (-pow ((-4*PI)/5. + 2*atan (5*tan (x/2.)), 2))*

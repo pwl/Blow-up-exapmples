@@ -32,22 +32,23 @@ void snapshot_step ( void * solver, void * module )
 	  D1( ui, xi, 0, N ) );
   fprintf(file,"# g = %.15G\n", g );
 
-  fprintf(file,"%.15G %.15G %.15G %.15G\n",
-     0., 0., D1(ui,xi,0,N), 0., g);
-
   /* fprintf(file,"%.15G %.15G %.15G %.15G\n", */
-  /* 	  0., D1(ui,xi,0,N), D1(ui,xi,0,N), 0., g); */
+  /*    0., 0., D1(ui,xi,0,N), 0., g); */
+
+  fprintf(file,"%.15G %.15G %.15G %.15G\n",
+  	  0., D1(ui,xi,0,N), D1(ui,xi,0,N), 0., g);
 
 
-  for( i=1; i<N; i++)
+  for( i=1; i<N-1; i++)
     {
       u=ui[i];
       x=xi[i];
       /* obliczenie pochodnych w punkcie "i" */
       du=D1(ui,xi,i,N);
       ddu=D2(ui,xi,i,N);
-      dudt=ddu+(k-1.)/x*du-(k-1.)/2.*sin(2.*u)/x/x;
+      /* dudt=ddu+(k-1.)/x*du-(k-1.)/2.*sin(2.*u)/x/x; */
       /* dudt=ddu-sin(2.*u/x)/x; */
+      dudt=0.;
       /* fprintf(f,"%f %f\n",s->params->basis->collocation_points[i],s->state->f[i]); */
       fprintf
 	(file,"%.15G %.15G %.15G %.15G %.15G\n",
@@ -56,8 +57,8 @@ void snapshot_step ( void * solver, void * module )
 	 );
     }
 
-  /* (file,"%.15G %.15G %.15G %.15G\n", */
-  /*    PI, -D1(ui,xi,N-1,N), D1(ui,xi,0,N), 0., g); */
+  (file,"%.15G %.15G %.15G %.15G\n",
+     PI, -D1(ui,xi,N-1,N), D1(ui,xi,0,N), 0., g);
 
 
   fclose(file);
