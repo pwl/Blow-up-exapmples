@@ -32,14 +32,14 @@ void snapshot_step ( void * solver, void * module )
 	  D1( ui, xi, 0, N ) );
   fprintf(file,"# g = %.15G\n", g );
 
-  /* fprintf(file,"%.15G %.15G %.15G %.15G\n", */
-  /*    0., 0., D1(ui,xi,0,N), 0., g); */
-
   fprintf(file,"%.15G %.15G %.15G %.15G\n",
-  	  0., D1(ui,xi,0,N), D1(ui,xi,0,N), 0., g);
+     0., 0., D1(ui,xi,0,N), 0., g);
+
+  /* fprintf(file,"%.15G %.15G %.15G %.15G\n", */
+  /* 	  0., D1(ui,xi,0,N), D1(ui,xi,0,N), 0., g); */
 
 
-  for( i=1; i<N-1; i++)
+  for( i=1; i<N; i++)
     {
       u=ui[i];
       x=xi[i];
@@ -57,8 +57,8 @@ void snapshot_step ( void * solver, void * module )
 	 );
     }
 
-  (file,"%.15G %.15G %.15G %.15G\n",
-     PI, -D1(ui,xi,N-1,N), D1(ui,xi,0,N), 0., g);
+  /* (file,"%.15G %.15G %.15G %.15G\n", */
+  /*    PI, -D1(ui,xi,N-1,N), D1(ui,xi,0,N), 0., g); */
 
 
   fclose(file);

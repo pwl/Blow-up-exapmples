@@ -10,12 +10,12 @@ DIRS = $(patsubst %/,%,$(wildcard */))
 default: $(OBJECTS)
 
 project: $(DIRS) $(OBJECTS)
-	@ar rs $(ARCHIVE) $(OBJECTS)
+	ar rs $(ARCHIVE) $(OBJECTS)
 	@rm -f $(OBJECTS)
 
 # compiles all the .c files into .o files
 $(OBJECTS): %.o: %.c %.h
-	@$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
+	$(CC) $(FLAGS) -I $(INCLUDES) -c -o $@ $<
 
 # OBJECTS are temporarly made .PHONY
 .PHONY: clean $(DIRS) #$(OBJECTS)

@@ -29,7 +29,7 @@ RM = /bin/rm -f
 project: $(DIRS)
 
 harmonic: harmonic_mm.o $(DIRS) $(REQUIRED)
-	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_mm.o $(ARCHIVE) $(REQUIRED) -o $@
+	$(CC) $(FLAGS) $(LIBS) -I $(INCLUDES) harmonic_mm.o $(REQUIRED) $(ARCHIVE) -o $@
 
 run:	harmonic
 	$(RM) log/{snapshot,movie}/*

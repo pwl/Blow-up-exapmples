@@ -11,10 +11,10 @@ int main ( void )
 {
   ODE_solver * s;
   int M = 10, K = 0, i;
-  int N = 200/* 2*(M+K)+1 */;
+  int N = 150/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
   H_DOUBLE x0 = 0., x1 = PI, x;
-  H_DOUBLE t_error = 1.e-10;
+  H_DOUBLE t_error = 1.e-13;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
   gsl_matrix * D = gsl_matrix_alloc(N,N);
@@ -55,9 +55,10 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  ODE_modules_add ( s, ODE_module_plot_init( 1. ) );
+  /* ODE_modules_add ( s, ODE_module_plot_init( 0. ) ); */
+  /* ODE_modules_add ( s, ODE_module_plot_dt_init( 0. ) ); */
   /* modul do drukowania w konsoli czasu symulacji */
-  /* ODE_modules_add ( s, ODE_module_print_time_init ( .01 ) ); */
+  ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) );
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
      informacji dot. funkcji, w kolejnosci sa to:
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
@@ -123,7 +124,7 @@ int main ( void )
     s->state->f[i+1+N]=x;
   }
 
-  /* mm_setup_mesh( s->state->f+1+N, N ); */
+  mm_setup_mesh( s->state->f+1+N, N );
 
   for ( i = 0; i < N; i++ ) {
     x=s->state->f[i+1+N];
@@ -220,12 +221,13 @@ void ODE_set ( void * solver,
   }
 
   /* printf ("%.5G\n",.01*dt*D1(ui,xi,0,N)/D1(f+1,xi,0,N)); */
-  gt = .01*(fabs(D1(ui,xi,0,N)/D1(f+1,xi,0,N))); /* gt=alpha*du/dx/(d2u/dxdt)|x=0 */
-  epsilon = sqrt(1.e2*gt);/* min(max(1.e-5,1.e2*gt),1.e-1); */
+  gt = .01*(fabs(D1(ui,xi,0,N))+1.)/(fabs(D1(f+1,xi,0,N))+1.); /* gt=alpha*du/dx/(d2u/dxdt)|x=0 */
+  epsilon = sqrt(1.e4*gt);/* min(max(1.e-5,1.e2*gt),1.e-1); */
 
-  if( gt*dt < 1.e-15)
+  if( gt < 1.e-14)
     {
       printf("STOP: gt*dt = %.5G < 1.e-15\n", gt*dt);
+      printf("STOP: gt = %.5G < 1.e-15\n", gt);
       s->state->status = SOLVER_STATUS_STOP;
       return;
     }
@@ -301,7 +303,7 @@ double bisection_wrapper(double A, void * p)
     s->state->f[i+1+N]=x;
   }
 
-  /* mm_setup_mesh( s->state->f+1+N, N ); */
+  mm_setup_mesh( s->state->f+1+N, N );
 
   for ( i = 0; i < N; i++ ) {
     x=s->state->f[i+1+N];

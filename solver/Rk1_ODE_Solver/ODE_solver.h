@@ -5,6 +5,7 @@
 #include "Rk1_ODE_Solver/modules/plot_sin.h"
 #include "Rk1_ODE_Solver/modules/plot_x.h"
 #include "Rk1_ODE_Solver/modules/plot.h"
+#include "Rk1_ODE_Solver/modules/plot_dt.h"
 #include "Rk1_ODE_Solver/modules/initial_function.h"
 #include "Rk1_ODE_Solver/modules/print_time.h"
 #include "Rk1_ODE_Solver/modules/info_1.h"

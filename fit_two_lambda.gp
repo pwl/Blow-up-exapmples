@@ -2,24 +2,14 @@
 
 FIT_LIMIT=1.e-15
 
-file="fit_two_lambda.dat"
+load "plotter.gp"
 
-A1=1.
-A2=.1
-A3=100.
-L1=.5
-L2=1.63
-L3=2.7
+f(t,ur,urt)=log(abs(.5*(ur-2.*(T-t)*urt))*sqrt(abs(T-t)))
+# f(t,ur,urt)=1/2*(ur)
+s(t)=-log(abs(T-t))
 
-f(y)=log(abs(A1*exp(y*L1)+A2*exp(y*L2))+A3*exp(y*L3))
-f(y)=log(abs(A1*exp(y*L1)+A2*exp(y*L2)))
-f(y)=log(abs(A1*exp(y*L1)))
+plot file u (s($2)):(f($2,$5,$9)) w l
 
-plot [-7:] file u (log(abs($1))):(log(abs($2))) w l, f(x)
+fit [35:] A*x+B file u (s($2)):(f($2,$5,$9)) via A,B
 
-fit [-7:-4] f(x) file u (log(abs($1))):(log(abs($2))) via A1, L1
-
-# plot file u (log(abs($1))):(log(abs($2))-f(log(abs($1)))) w l
-
-#fit [-10:0] f(x) file u (log(abs($1))):(log(abs($2))) via A1, A2, L1, L2
-
+replot A*x+B
