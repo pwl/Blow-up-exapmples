@@ -1,8 +1,8 @@
 #!/bin/bash
 
 mplotx=
-snapshot_dir="log/snapshot_Convergence_to_f1/"
-logfile="log/info_1/log000_Convergence_to_f1.dat"
+snapshot_dir="log/snapshot/"
+logfile="log/info_1/log000.dat"
 snapshot_dir="log/snapshot/"
 logfile="log/info_1/log000.dat"
 snapshot_name="*.dat"
@@ -11,7 +11,7 @@ mcols=3
 mtot=$((mcols*mrows))
 mspace=$((mtot))
 snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
-    sort -n -t'_' -k2 | awk 'NR % 1500 == 1' | head -n$mtot|awk 'NR%1==0 {print}')
+    sort -n -t'_' -k2 | awk 'NR % 1646 == 1' | head -n$mtot|awk 'NR%1==0 {print}')
 blowup_file1="harvester_data_shrinker/shrinker_k3.00000_l1.0.dat"
 # blowup_file2="harvester_data_shrinker/eigen_k3.00000_l1.0_i1.dat"
 blowup_file2="harvester_data_expander/expander_k3.00000_l1.0.dat"

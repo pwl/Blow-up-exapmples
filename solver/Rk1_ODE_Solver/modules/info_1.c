@@ -34,10 +34,19 @@ void info_1_step ( void * solver, void * module )
   H_DOUBLE dx = /* D1_at_0(u,x); */D1(u,x,0,N);
   H_DOUBLE ddx = D2(u,x,0,N);
   H_DOUBLE dddx = D3_at_0(u,x);
-  H_DOUBLE min = 1.;
+  H_DOUBLE min = 1., du,ddu;
   H_DOUBLE d2fdtdx = D1(df+1,x,0,N);
   FILE * file;
 
+  s->params->Dtemp[0][0][0]=0.;
+  for( int i = 1; i <= 5; i++ )
+    {
+      du=D1(u,x,i,N);
+      ddu=D2(u,x,i,N);
+      s->params->Dtemp[0][0][i]=ddu+2./x[i]*du-sin(2.*u[i])/x[i]/x[i];
+    }
+
+  d2fdtdx = D1(s->params->Dtemp[0][0],x,0,N);
 
   file = fopen ( data->fileNames[0], "a" );
   fprintf( file, "%.20G %.20G %.20G %.20G %.20G %.20G %.20G %.20G %.20G %.20G %.20G\n",
