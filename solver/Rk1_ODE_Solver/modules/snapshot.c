@@ -46,9 +46,9 @@ void snapshot_step ( void * solver, void * module )
       /* obliczenie pochodnych w punkcie "i" */
       du=D1(ui,xi,i,N);
       ddu=D2(ui,xi,i,N);
-      /* dudt=ddu+(k-1.)/x*du-(k-1.)/2.*sin(2.*u)/x/x; */
+      dudt=ddu+(k-1.)/x*du-(k-1.)/2.*sin(2.*u)/x/x;
       /* dudt=ddu-sin(2.*u/x)/x; */
-      dudt=0.;
+      /* dudt=0.; */
       /* fprintf(f,"%f %f\n",s->params->basis->collocation_points[i],s->state->f[i]); */
       fprintf
 	(file,"%.15G %.15G %.15G %.15G %.15G\n",
