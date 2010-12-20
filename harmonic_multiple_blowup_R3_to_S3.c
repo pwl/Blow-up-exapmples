@@ -15,7 +15,7 @@ int main ( void )
   int N = 150, i;
   H_DOUBLE T =1.e11;
   H_DOUBLE x0 = 0., x1 = PI, x, du, ddu;
-  H_DOUBLE t_error = 1.e-11;
+  H_DOUBLE t_error = 1.e-12;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
   const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
   gsl_matrix * D = gsl_matrix_alloc(N,N);
@@ -67,7 +67,7 @@ int main ( void )
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
   ODE_modules_add ( s, ODE_module_info_1_init( .01, N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
-  ODE_modules_add ( s, ODE_module_snapshot_init( 1. ));
+  ODE_modules_add ( s, ODE_module_snapshot_init( .01 ));
   /* ODE_modules_add ( s, ODE_module_bisection_3_init( .001 )); */
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 
@@ -79,7 +79,7 @@ int main ( void )
     s->state->f[i+1+N]=x;
   }
 
-  /* mm_setup_mesh( s->state->f+1+N, N ); */
+  mm_setup_mesh( s->state->f+1+N, N );
 
   for ( i = 0; i < N; i++ ) {
     x=s->state->f[i+1+N];
@@ -161,10 +161,10 @@ void ODE_set ( void * solver,
   /* gt=.0002; */
 
 
-  gt+=1.e-12;
+  gt+=.02*1e-8;
 
 
-  epsilon = 1.e2*sqrt(gt)+.5e-1;
+  epsilon = 1.e2*sqrt(gt)+.5e0;
 
   /* if( gt < 1.e-14 ) */
   /*   { */
@@ -205,7 +205,7 @@ void M_calc ( double * u, double * x, double * M, int N )
       /* assert( !isnan(M[i]) ); */
       /* assert( M[i] >= 0 ); */
     }
-  M_smoothen ( M, mtemp, N, 5., 5 );
+  /* M_smoothen ( M, mtemp, N, 5., 5 ); */
 }
 
 void M_smoothen ( double * M, double * Mtemp, int N, double gamma, int ip )

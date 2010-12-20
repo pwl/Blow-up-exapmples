@@ -1,8 +1,8 @@
 #!/bin/bash
 
 mplotx=
-snapshot_dir="log/snapshot_single_blow-up_R3_to_R3/"
-logfile="log/info_1/log000_single_blow-up_R3_to_R3.dat"
+snapshot_dir="log/snapshot/"
+logfile="log/info_1/log000.dat"
 # snapshot_dir="log/snapshot/"
 # logfile="log/info_1/log000.dat"
 snapshot_name="*.dat"
@@ -11,7 +11,7 @@ mcols=3
 mtot=$((mcols*mrows))
 mspace=$((mtot))
 snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
-    sort -n -t '_' -k2 | awk 'NR > 700' | awk 'NR % 100 == 1' | head -n $mtot  )
+    sort -n -t '_' -k2 | awk 'NR >= 112283' | awk 'NR % 1 == 0' | head -n $mtot  )
 # snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
 #     sort -n -t'_' -k2 | awk 'NR % 1646 == 1' | head -n$mtot|awk 'NR%1==0 {print}')
 blowup_file1="harvester_data_shrinker/shrinker_k3.00000_l1.0.dat"
@@ -23,7 +23,10 @@ stopx=0.9
 stopy=0.9
 size_mult=1.
 T=$(awk 'BEGIN {max=0} {if($2 > max) max=$2} END {printf("%.20f",max)}' $logfile)
-T="0.01574053748"
+# T="0.03422252893490725090"
+T=0.0342192725392
+T=0.034219272539
+T=0.034219246515
 # T=0.328077505829169
 # T=0.328077505829110
 # T=0.328075426868397

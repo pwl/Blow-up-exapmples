@@ -11,7 +11,7 @@ mcols=3
 mtot=$((mcols*mrows))
 mspace=$((mtot))
 snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
-    sort -n -t'_' -k2 | awk 'NR % 1646 == 1' | head -n$mtot|awk 'NR%1==0 {print}')
+    sort -n -t'_' -k2 | awk 'NR % 150 == 0' | tail -n$mtot|awk 'NR%1==0 {print}')
 blowup_file1="harvester_data_shrinker/shrinker_k3.00000_l1.0.dat"
 # blowup_file2="harvester_data_shrinker/eigen_k3.00000_l1.0_i1.dat"
 blowup_file2="harvester_data_expander/expander_k3.00000_l1.0.dat"
@@ -24,6 +24,8 @@ T=$(awk 'BEGIN {max=0} {if($2 > max) max=$2} END {printf("%.20f",max)}' $logfile
 # T=0.328077505829169
 # T=0.328077505829110
 # T=0.328075426868397
+
+# echo $snapshot_files; exit 0
 
 rm -f plotter.gp
 
