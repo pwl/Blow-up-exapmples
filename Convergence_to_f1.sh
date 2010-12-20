@@ -1,10 +1,10 @@
 #!/bin/bash
 
 mplotx=
-snapshot_dir="log/snapshot/"
-logfile="log/info_1/log000.dat"
-snapshot_dir="log/snapshot/"
-logfile="log/info_1/log000.dat"
+snapshot_dir="log/snapshot_Convergence_to_f1/"
+logfile="log/info_1/log000_Convergence_to_f1.dat"
+# snapshot_dir="log/snapshot/"
+# logfile="log/info_1/log000.dat"
 snapshot_name="*.dat"
 mrows=3
 mcols=3
@@ -25,12 +25,7 @@ T=$(awk 'BEGIN {max=0} {if($2 > max) max=$2} END {printf("%.20f",max)}' $logfile
 # T=0.328077505829110
 # T=0.328075426868397
 
-cat << EOF > plotter.gp
-set terminal postscript enhanced size 7,7
-set output "graphics/Convergence_to_f1.ps"
-# set label "Convergence to the blow-up profile" at screen 0.3, 0.95 font "Times-Roman,10"
-set multiplot title ""
-EOF
+rm -f plotter.gp
 
 i=0
 
@@ -41,50 +36,27 @@ for snap in $snapshot_files; do
     gprint=$(awk '/g = /{printf("%1.2E\n",$4)}' $snap)
     s=$(awk '/s = /{printf("%.0f",$4)}' $snap)
     du=$(awk '/du = /{printf("%.0f",$4)}' $snap)
-    T_t=$(echo "scale=20; $T-$t"|bc| awk '{printf("%.2E",$1)}')
+    T_t=$(echo "scale=20; $T-$t"|bc|\
+awk '{e=int(log($1)/log(10.))-1.; printf("%.1f\\cdot 10^{%i}",10.**(-e)*$1,e)}')
 
-    echo "set logscale x 10" >> plotter.gp
-    echo "set key off" >> plotter.gp
-    # switch margins off
-    echo "set rmargin 0" >> plotter.gp
-    echo "set lmargin 0" >> plotter.gp
-    echo "set tmargin 0" >> plotter.gp
-    echo "set bmargin 0" >> plotter.gp
-    # setup plot size and position
-    sizex=$(echo "scale=20;$size_mult*($stopx-$startx)/$mrows"|bc)
-    sizey=$(echo "scale=20;$size_mult*($stopy-$starty)/$mcols"|bc)
-    echo "set size $sizex,$sizey" >> plotter.gp
-    orx=$(echo "a=($i%$mrows);scale=20;$startx+a*$sizex"|bc)
-    ory=$(echo "a=($i/$mrows);scale=20;$stopy-(a+1)*$sizey"|bc)
-    echo "set origin $orx,$ory" >> plotter.gp
 
-    # setup the tics for picture in the lower left corner
-    # echo "unset format" >> plotter.gp
-    echo "unset tics" >> plotter.gp
-    # echo "set grid" >> plotter.gp
+    echo "set origin mod($i,$mrows)*width,-floor($i/$mrows)*height" >> plotter.gp
+
     tics=$(echo "($i%$mrows==0) && (($i/$mcols)+1==$mrows)"|bc)
-    echo "unset xlabel" >> plotter.gp
-    echo "unset ylabel" >> plotter.gp
-    if [ $tics -eq 1 ]; then
-    	echo "set tics nomirror in" >> plotter.gp
-	echo 'set ytics (0,  "{/Symbol p}" pi)' >> plotter.gp
-	echo 'set xtics (1e-2, 1,  1e2, 1e4)' >> plotter.gp
-	echo "set xlabel \"y\"" >> plotter.gp
-	echo "set ylabel \"u(t,(T-t)^{1/2}y)\" rotate offset screen .05*$sizex, 0." >> plotter.gp
-	echo 'set format x "10^{%L}"' >> plotter.gp
-    fi
 
-    echo "set title \"T-t=$T_t\" offset screen .05*$sizex, screen -1.0*$sizey font \"Times-Roman,10\"" >> plotter.gp
+#echo "set title \"T-t=$T_t\" offset screen .05*$sizex, screen -1.0*$sizey font \"Times-Roman,10\"" >> plotter.gp
     # echo -ne "plot [:pi] [ 0:pi ] \"$snap\" u (\$1/sqrt(abs($T-$t))):1 w l lw 2," >> plotter.gp
-    echo -ne "plot [1e-2:1e4] [0:pi] \"$snap\" u (\$1/sqrt(abs($T-$t))):2 w l lw 2," >> plotter.gp
-    echo -ne "\"$blowup_file1\" u 1:(\$1<10?\$2:1/0) index 0 w l lt 2 lw 1, pi w l lt 3 lw 1, x>10?pi/2+0.573141133043885:1/0 w l lt 2 lw 1 \n" >> plotter.gp
+    echo 'set label 1 "\footnotesize{$T-t='$T_t'$}" graph 1e-1, graph 2.1' >> plotter.gp
+    echo -ne "plot \"$snap\" u (\$1/sqrt(abs($T-$t))):2 w l lw 2," >> plotter.gp
+    echo -ne "\"$blowup_file1\" index 0 select (\$1 < 10) w l lt 2 lw 1," >> plotter.gp
+    echo -ne "b1 select (x > 10) w l lt 2 lw 1\n" >> plotter.gp
+# , pi w l lt 3 lw 1, x>10?b1:1/0 w l lt 2 lw 1 \n
 
     i=$((i+1))
 done
 
-echo "unset multiplot" >> plotter.gp
 
 chmod a+x plotter.gp
-gnuplot plotter.gp
-ps2pdf graphics/Convergence_to_f1.ps graphics/Convergence_to_f1.pdf
-evince graphics/Convergence_to_f1.ps
+rm -f graphics/Convergence_to_f1.eps
+pyxplot Convergence_to_f1.gp
+# okular graphics/Convergence_to_f1.eps
