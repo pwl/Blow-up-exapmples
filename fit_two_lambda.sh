@@ -1,7 +1,7 @@
 #!/bin/bash
 
-snapshot_dir="log/snapshot"
-logfile="log/info_1/log000.dat"
+snapshot_dir="log/snapshot_fit_two_lambda/"
+logfile="log/info_1/log000_fit_two_lambda.dat"
 snapshot_name="*.dat"
 # snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
 #     sort -n -t'_' -k2  | awk 'NR % 100 == 0 && NR >= 0' ) #|head -n20 )
@@ -20,10 +20,11 @@ echo 'file="'$logfile'"' >> plotter.gp
 echo 'mod_file="'$mod_file'"' >> plotter.gp
 echo 'snap1="'$snap1'"' >> plotter.gp
 echo 'snap2="'$snap2'"' >> plotter.gp
-echo 't1="'$t1'"' >> plotter.gp
-echo 't2="'$t2'"' >> plotter.gp
+echo 't1='$t1 >> plotter.gp
+echo 't2='$t2 >> plotter.gp
 
 # fit the parameters
-gnuplot -persist fit_two_lambda.gp
+#gnuplot -persist fit_two_lambda.gp
+pyxplot fit_two_lambda.gp
 
 # less mode_coef.dat
