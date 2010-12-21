@@ -10,8 +10,11 @@ mrows=3
 mcols=3
 mtot=$((mcols*mrows))
 mspace=$((mtot))
-snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
-    sort -n -t'_' -k2 | awk 'NR % 150 == 0' | tail -n$mtot|awk 'NR%1==0 {print}')
+snapshot_files=$(find $snapshot_dir -name "$snapshot_name" \
+    | sort -rn -t'_' -k2 \
+    | awk 'BEGIN {s=350;st=1150} (NR >= s+3*st && ((NR - s) % 1700 == 0) ||  NR == s || NR == s + st + 930 || NR == s + 2*st )' \
+    | head -n$mtot \
+    | tac )
 blowup_file1="harvester_data_shrinker/shrinker_k3.00000_l1.0.dat"
 # blowup_file2="harvester_data_shrinker/eigen_k3.00000_l1.0_i1.dat"
 blowup_file2="harvester_data_expander/expander_k3.00000_l1.0.dat"
@@ -20,10 +23,12 @@ starty=0.1
 stopx=0.9
 stopy=0.9
 size_mult=1.
-T=$(awk 'BEGIN {max=0} {if($2 > max) max=$2} END {printf("%.20f",max)}' $logfile)
+# T=$(awk 'BEGIN {max=0} {if($2 > max) max=$2} END {printf("%.20f",max)}' $logfile)
 # T=0.328077505829169
 # T=0.328077505829110
 # T=0.328075426868397
+T=0.0342225289353554
+# T=0.0342225289354
 
 # echo $snapshot_files; exit 0
 
