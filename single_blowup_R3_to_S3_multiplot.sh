@@ -13,8 +13,6 @@ mspace=$((mtot))
 #     | sort -n -t '_' -k2 \
 #     | awk '(NR == 110500 || NR == 111391 || NR == 112283 || NR == 112284 || NR == 114067 || NR > 114067 && NR % 10000 == 0)' \
 #     | head -n $mtot  )
-# snapshot_files=$(find $snapshot_dir -name "$snapshot_name" |
-#     sort -n -t'_' -k2 | awk 'NR % 1646 == 1' | head -n$mtot|awk 'NR%1==0 {print}')
 blowup_file1="harvester_data_shrinker/shrinker_k3.00000_l1.0.dat"
 # blowup_file2="harvester_data_shrinker/eigen_k3.00000_l1.0_i1.dat"
 blowup_file2="harvester_data_expander/expander_k3.00000_l1.0.dat"
@@ -40,7 +38,7 @@ snapshot_files=$(find /tmp/snap -name "*.dat" | sort -n -t '_' -k2)
 
 rm -f plotter.gp
 
-i=0
+i=1
 
 for snap in $snapshot_files; do
 
@@ -51,14 +49,15 @@ for snap in $snapshot_files; do
     du=$(awk '/du = /{printf("%.0f",$4)}' $snap)
     T_t=$(echo "scale=20; $T-$t"|bc|\
 awk '{e=int(log($1<0?-$1:$1)/log(10.))-1.; printf("%.1f\\cdot 10^{%i}",10.**(-e)*$1,e)}')
+    echo "T_t$i=\"$T_t\"" >> plotter.gp
 
-    echo "set origin mod($i,$mrows)*width,-floor($i/$mrows)*height" >> plotter.gp
+    echo "set origin (mod($i-1,$mrows)+.25)*width,($mrows+1)*height-floor(($i-1)/$mrows)*height" >> plotter.gp
 
     tics=$(echo "($i%$mrows==0) && (($i/$mcols)+1==$mrows)"|bc)
 
 #echo "set title \"T-t=$T_t\" offset screen .05*$sizex, screen -1.0*$sizey font \"Times-Roman,10\"" >> plotter.gp
     # echo -ne "plot [:pi] [ 0:pi ] \"$snap\" u (\$1/sqrt(abs($T-$t))):1 w l lw 2," >> plotter.gp
-    echo 'set label 1 "\footnotesize{$T-t='$T_t'$}" graph .9, graph 0.1' >> plotter.gp
+    echo 'set label 1 "\footnotesize{$'$T_t'$}" graph lposx, graph lposy' >> plotter.gp
     echo -ne "plot \"$snap\" u (\$1/sqrt(abs($T-$t))):(\$2/\$1) select (\$1>0) w l lw 2," >> plotter.gp
     echo -ne "\"$blowup_file1\" index 0 select (\$1 < 10) w l lt 2 lw 1," >> plotter.gp
     echo -ne "\"$blowup_file2\" u 1:(pi-\$2) index 0 select (\$1 < 10) w l lt 2 lw 1," >> plotter.gp
@@ -73,4 +72,5 @@ done
 # chmod a+x plotter.gp
 # rm -f graphics/.eps
 pyxplot single_blowup_R3_to_S3_multiplot.gp
+eps2eps graphics/single_blowup_R3_to_S3_multiplot{,_opt}.eps
 # okular graphics/Convergence_to_f1.eps

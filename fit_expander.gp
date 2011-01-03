@@ -14,16 +14,17 @@ A=1.
 B=1.
 g(x)=A*x+B
 
-fit [10:15] g(x) withouterrors file u (s($2)):(f($2,$5,$9)) every 500 via A,B
+# fit [10:15] g(x) withouterrors file u (s($2)):(f($2,$5,$9)) every 500 via A,B
 
 # set xlabel "$-\ln(T-t)$"
 # set ylabel "$\ln\left(\lambda_1c_1(T-t)^{\lambda_1}\right)$"
 # set key right top
 
-# set output "graphics/first_mode_fit.eps"
+set output "graphics/fit_expander.eps"
 
-# plot [10:15] file u (s($2)):(f($2,$5,$9)) every 2500 w p pt 8 ps .7 t "Numerical data"
+plot file u (s($2)):(f($2,$5,$9)) every 250 w l pt 8 ps .7 t "Numerical data"
 # replot A*x+B w l lt 2 t "Linear fit"
+quit
 
 L1 = abs(A)
 C1 = abs(exp(B)/A)
@@ -46,7 +47,7 @@ print -log(T-t1)
 # plot [0:4] snap2 u ($1/sqrt(T-t2)):(-($1*$3-2.*(T-t2)*$4)) every 3 w p pt 8 ps .7 t "Numerical data",\
 #      mod_file u 1:(2*L1*C1exp_t2*$4) index 1 w l lt 2 t "$c_1(T-t)^{\lambda_1}v_1(y)$"
 
-set output "graphics/fit_lambda.eps"
+set output "graphics/fit_expander_lambda.eps"
 
 set multiplot
 clear
@@ -59,8 +60,7 @@ plot [10:15] file u (s($2)):(f($2,$5,$9)) every 2500 w p pt 8 ps .7 t "Numerical
 replot A*x+B w l lt 2 t "Linear fit"
 
 set origin 11+2,2
-set yrange [:2.5e-3]
-set ytics ( -2e-3, 0 , 2e-3 )
+set yrange [:4e-3]
 set xlabel "$y$"
 set ylabel "$f_1(y)-u(t,r)$"
 set key left bottom

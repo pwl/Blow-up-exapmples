@@ -34,7 +34,7 @@ T=0.0342225289353554
 
 rm -f plotter.gp
 
-i=0
+i=1
 
 for snap in $snapshot_files; do
 
@@ -45,15 +45,15 @@ for snap in $snapshot_files; do
     du=$(awk '/du = /{printf("%.0f",$4)}' $snap)
     T_t=$(echo "scale=20; $T-$t"|bc|\
 awk '{e=int(log($1)/log(10.))-1.; printf("%.1f\\cdot 10^{%i}",10.**(-e)*$1,e)}')
+    echo "T_t$i=\"$T_t\"" >> plotter.gp
 
-
-    echo "set origin mod($i,$mrows)*width,-floor($i/$mrows)*height" >> plotter.gp
-
+    # echo "set origin mod($i,$mrows)*width,-floor($i/$mrows)*height" >> plotter.gp
+    echo "set origin (mod($i-1,$mrows)+.25)*width,($mrows+1)*height-floor(($i-1)/$mrows)*height" >> plotter.gp
     tics=$(echo "($i%$mrows==0) && (($i/$mcols)+1==$mrows)"|bc)
 
 #echo "set title \"T-t=$T_t\" offset screen .05*$sizex, screen -1.0*$sizey font \"Times-Roman,10\"" >> plotter.gp
     # echo -ne "plot [:pi] [ 0:pi ] \"$snap\" u (\$1/sqrt(abs($T-$t))):1 w l lw 2," >> plotter.gp
-    echo 'set label 1 "\footnotesize{$T-t='$T_t'$}" graph 1e-1, graph 2.1' >> plotter.gp
+    echo 'set label 1 "\footnotesize{$'$T_t'$}" graph 1e-1, graph 2.1' >> plotter.gp
     echo -ne "plot \"$snap\" u (\$1/sqrt(abs($T-$t))):2 w l lw 2," >> plotter.gp
     echo -ne "\"$blowup_file1\" index 0 select (\$1 < 10) w l lt 2 lw 1," >> plotter.gp
     echo -ne "b1 select (x > 10) w l lt 2 lw 1\n" >> plotter.gp
@@ -67,3 +67,4 @@ chmod a+x plotter.gp
 rm -f graphics/Convergence_to_f1.eps
 pyxplot Convergence_to_f1.gp
 # okular graphics/Convergence_to_f1.eps
+eps2eps graphics/Convergence_to_f1{,_opt}.eps

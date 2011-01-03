@@ -2,11 +2,11 @@
 
 set xlabel "r"
 set ylabel "u(t,r)"
-set xrange [1.e-6:pi]
-set yrange [0:pi]
-set ytics (0, "{/Symbol p}/2" pi/2, "{/Symbol p}" pi, "{/Symbol p}/2+b_1" pi/2+0.573141133043885)
+# set xrange [1.e-6:pi]
+# set yrange [0:pi]
+# set ytics (0, "{/Symbol p}/2" pi/2, "{/Symbol p}" pi, "{/Symbol p}/2+b_1" pi/2+0.573141133043885)
 set grid ytics
-set logscale x 10
+# set logscale x 10
 
 # set xrange [ -2:2 ];
 # set yrange [ -2:2 ];

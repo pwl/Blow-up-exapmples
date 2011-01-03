@@ -66,7 +66,7 @@ main (void)
   	      1.e100,
   	      3.,
   	      RIPPER_EXP,
-  	      1,
+  	      4,
   	      results,
   	      0.,
   	      fevol_shrinker,
@@ -99,7 +99,7 @@ main (void)
 	      /* 	      k, l, i, pow(-1,i)*results[i] ); */
 	      /* fprintf(common_data,"%.2f  %.2f  %i   %.15G   %.15G\n", */
 	      /* 	      k, l, i, results[i], fevol_shrinker_reverse(results[i],0,NULL,NULL)); */
-  	      solve_eigenproblem(results[i], i+1, 4, fevol_shrinker_eigenproblem);
+  	      solve_eigenproblem(results[i], 1, 4, fevol_shrinker_eigenproblem);
 	      /* fevol_shrinker(results[i], 1, shrinkerfile_name, NULL ); */
 	    }
 

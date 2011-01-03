@@ -24,13 +24,17 @@ set multiplot
 
 load "plotter.gp"
 
-# setup the first plot
-set item 1 x1label "$y$"
-set item 1 y1label "$u\left(t,y\sqrt{T-t}\right)$"
-set item 1 x1tics ("$10^{-2}$" 1e-2, "$1$" 1, "$10^2$" 1e2, "$10^4$" 1e4)
+# print a nice label on the first plot
+set item 1 label 1 "\footnotesize{$T-t=%s$}"%(T_t1) graph 1e-1, graph 2.1
+
+# setup the lower left
+set item 7 axis x bottom
+set item 7 x1label "$y$"
+set item 7 y1label "$u(t,r)$"
+set item 7 x1tics ("$10^{-2}$" 1e-2, "$1$" 1, "$10^2$" 1e2, "$10^4$" 1e4)
 # set item 1 x1format "$10^{%s}$"%(log(x)/log(10))
-set item 1 y1tics ("0" 0, "$b_1$" b1, "$\pi$" pi)
-set item 1 grid y1
+set item 7 y1tics ("0" 0, "$b_1$" b1, "$\pi$" pi)
+set item 7 grid y1
 
 set display
 
