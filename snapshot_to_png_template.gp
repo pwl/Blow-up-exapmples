@@ -1,30 +1,43 @@
 #!/usr/bin/gnuplot -persist
 
-set xlabel "r"
-set ylabel "u(t,r)"
-# set xrange [1.e-6:pi]
-# set yrange [0:pi]
-# set ytics (0, "{/Symbol p}/2" pi/2, "{/Symbol p}" pi, "{/Symbol p}/2+b_1" pi/2+0.573141133043885)
-set grid ytics
-# set logscale x 10
 
-# set xrange [ -2:2 ];
-# set yrange [ -2:2 ];
-# set trange [ 0:2*pi ];
-# set size square;
 set nokey
-# set noxtic; set noytic;
-# unset border;
-# unset grid;
+set term png monochrome antialias dpi 200
+load plotter.gp
 
-set object 1 rect from screen 0, 0, 0 to screen 1, 1, 0 behind
-set object 1 rect fc  rgb "white"  fillstyle solid 1.0
+# plot 1
 
-# set logscale x 10
-set term svg dynamic enhanced# size 800,600
-set key off
-# set ytics ("0" 0, "pi" pi, "2pi" 2*pi, "3pi" 3*pi, "4pi" 4*pi)
-# set ytics ("0" 0, "pi" pi, "2pi" 2*pi)
-set grid
+set xlabel "$\log(\tan(\theta/2))$"
+set ylabel "$U(t,\theta)$"
+set xrange [-10:10]
+set yrange [0:3*pi]
+set ytics (0, "$\pi$" pi, "$2\pi$" 2*pi, "$3\pi$" 3*pi)
+set grid y
+lposx=3.
+lposy=1.
 
-load "plotter.gp"
+set output "movie_1/%010i.png"%(i)
+
+set label 1 "$t=%.3f$"%(t) lposx, lposy
+plot f u (log(tan($1/2))):2 every ::1 w l
+
+# plot 2
+
+
+# height=width
+lposx=-.3
+lposy=-1.4
+
+set size square #width, height
+set trange [ 0:2*pi ]
+set noaxis x y
+set nokey
+set notics
+set nogrid
+set xrange [-1.6:1.6]
+set yrange [-1.6:1.6]
+
+set output "movie_2/%010i.png"%(i)
+
+set label 1 "$t=%.3f$"%(t) lposx, lposy
+plot parametric sin(t):cos(t) w l lw 1 lt 2, f u ((1.+.3*sin($1))*sin($2)):((1.+.3*sin($1))*cos($2)) w l lw 2 lt 1

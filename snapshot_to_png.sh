@@ -14,43 +14,28 @@ files=$(cat choice2.dat)
 # echo $files > choice2.dat
 # exit 0
 
-mkdir -p movie
-rm -f movie/*
+mkdir -p movie_{1,2}
+for m in movie_{1,2}; do
+    rm -f $m/*
+done
 
 TRIGGER="1"
 i=1;
 
 for f in $files; do
-    # t=$(awk '/t = /{print $4; exit}' $f)
+
     t=$(awk '/t = /{printf("%.10f",$4); exit}' $f)
-    g=$(awk '/g = /{print $4; exit}' $f)
-    s=$(awk '/s = /{printf("%.0f",$4); exit}' $f)
-    timer=$s
-
-    # TRIGGER=$(echo "scale=20;$timer>=$T_LAST"|bc)
-    # echo $T_LAST $DT $t
-    # echo "scale=20;$t>$T_LAST"|bc
-    cmd="plot"			# initialize cmd
-    echo "" > plotter.gp	# clear the temporary file
-    output=$(printf "movie/m_%010i.svg\n" $i)	# output file name
-    i=$((i+1))
-    	# echo "$output"
-    title="Blow-up for harmonic maps heat flow\\nt=$t" # graph title
-    cmd="set title \"$title\"; $cmd"	      # set the title
-    cmd="set output \"$output\"; $cmd" # set the output file
-        # cmd="$cmd \"$f\" u (log(tan(\$1/2.))):(\$2/sin(\$1)) every ::1::$nmb w lp" # the plot
-    cmd="$cmd \"$f\" u (log(tan(\$1/2.))):2 w lp" # the plot
-    	# cmd="$cmd \"$f\" u ((1.+.3*sin(\$1))*sin(\$2)):((1.+.3*sin(\$1))*cos(\$2)) t\"\" w l lw 2, sin(t),cos(t)"
-    	# cmd="$cmd \"$f\" u ((1.+.5*sin(\$1))*sin(\$2)):((1.+.5*sin(\$1))*cos(\$2)) t\"\" w l lw 3, sin(t),cos(t)"
-    	# cmd="$cmd \"$f\" w l lw 2" # the plot
+    echo "t=$t;i=$i;f=\"$f\"" > plotter.gp # data for pyxplot script
     echo "t = $t"		 # some output for user
-    echo "$cmd" > plotter.gp # echo the command to the temporary file
-    ./snapshot_to_png_template.gp # execute the template (it loads the temporary file)
-    rsvg -f png $output ${output%%.svg}.png
-    rm -f $output
-
+    pyxplot snapshot_to_png_template.gp # execute the template (it
+					# loads data through
+					# plotter.gp)
+    i=$((i+1))
 done
 
-./make_movie.sh
+for m in movie_{1,2}; do
+    ./make_movie.sh $m
+    # rm -f $m/*
+done
 # rm movie/*.png
-mplayer movie.avi -loop 0
+# mplayer movie.avi -loop 0
