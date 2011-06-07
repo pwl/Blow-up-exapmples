@@ -9,13 +9,13 @@
 
 #define PI					3.14159265358979323846	/* pi */
 
-#define STEPPER					gsl_odeiv_step_rk8pd
+#define STEPPER					gsl_odeiv_step_rkf45
 #define STEPPER_ERROR				1.e-13
-#define T_MAX					1.e2
+#define T_MAX					1.
 #define PRINT_DT				1.e-7
 #define PRINT_DT_RATIO				1.1
-#define T0					1.e-7 /* -7. */
-#define H0					1.e-10
+#define T0					1.e-2 /* -7. */
+#define H0					1.e-14
 #define RIPPER_BISEC_EPSILON			1.e-15
 #define HARVESTER_DATA_DIR			"harvester_data_shrinker/"
 #define PROFILE_FILE_PREFIX			"shrinker"
@@ -186,6 +186,19 @@ func_shrinker_regularized (double t, const double y[], double f[],
 
 double
 fevol_shrinker_regularized (double A, int print, char * filename, void * param);
+
+int
+func_ym_shrinker_eigenproblem (double t, const double y[], double f[],
+			       void *params);
+double
+  fevol_ym_shrinker_eigenproblem (double L, int print, char * filename, void * p);
+
+int
+func_ym_shrinker_reverse (double t, const double y[], double f[],
+			  void *params);
+
+double
+fevol_ym_shrinker_reverse (double A, int print, char * filename, void * p);
 
 
 #endif /* _SHOOTING_H_ */

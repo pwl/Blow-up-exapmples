@@ -1,7 +1,7 @@
 #ifndef _UNIVERSAL_H_
 #define _UNIVERSAL_H_
 
-#include "fftw3.h"
+#include "fftw.h"
 #include "Spectral/structs.h"
 
 

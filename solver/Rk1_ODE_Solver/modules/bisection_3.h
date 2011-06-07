@@ -2,6 +2,7 @@
 #define _BISECTION_3_H_
 
 #include "../ODE_structs.h"
+#include "../../../mm_distribute_points.h"
 
 /* data specific to this module */
 typedef struct
@@ -18,6 +19,8 @@ void bisection_3_step ( void * solver, void * module );
 void bisection_3_stop ( void * solver, void * module );
 
 void bisection_3_data_free ( void * solver, void * module );
+
+double bisection_max( double * v, int n);
 
 /* module init function, can be programmed to take any arguments,
    and is called by the user */

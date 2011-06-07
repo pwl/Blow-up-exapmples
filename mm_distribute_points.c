@@ -1,27 +1,27 @@
 #include "mm_distribute_points.h"
 
 
-double mm_A=0.;
+double mm_A;
 
 
 double mm_u
 ( double x )
 {
-  return sin(x)+x;
+  return mm_A*sin(x)+x/PI*PI/10.;
   /* return (exp (pow (x, 2))*sin (x))/300.; */
 }
 
 double mm_du
 ( double x )
 {
-  return cos(x);
+  return mm_A*cos(x)+.1;
   /* return (exp (pow (x, 2))*(cos (x) + 2*x*sin (x)))/300.; */
 }
 
 double mm_ddu
 ( double x )
 {
-  return -sin(x);
+  return -mm_A*sin(x);
   /* return (exp (pow (x, 2))*(sin (x) + 4*x*(cos (x) + x*sin (x))))/300.; */
 }
 

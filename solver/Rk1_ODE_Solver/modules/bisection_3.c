@@ -24,12 +24,13 @@ void bisection_3_step ( void * solver, void * module )
 
   /* if any of the bisection conditions are met, save the bisection
      result and stop the evolution */
-  if( u[1]/x[1] > 30. )
+  if( 1./((fabs(u[1]/x[1])+1.)*pow(s->state->df[0]*100.,2.*0.630601937481871)) > 1000. && *s->state->t > 30. )
     {
       data->result = 1.;
       s->state->status = SOLVER_STATUS_STOP;
     }
-  else if ( u[1]/x[1] < 2. /* && u[N-2]/(x1-x[N-2]) > PI/2. */ )
+  /* else if ( u[1]/x[1] < mm_du(0.)/2. /\* && u[N-2]/(x1-x[N-2]) > PI/2. *\/ ) */
+  else if ( bisection_max(u,N) < PI/2. /* && u[N-2]/(x1-x[N-2]) > PI/2. */ )
     {
       data->result = -1.;
       s->state->status = SOLVER_STATUS_STOP;
@@ -73,3 +74,15 @@ ODE_module * ODE_module_bisection_3_init( H_DOUBLE dt )
 
   return m;
 }
+
+double bisection_max( double * v, int n)
+{
+  double max = 0.;
+  int i = 0;
+
+  for( i = 0; i < n; i++ )
+    if(v[i] > max)
+      max = v[i];
+  return max;
+}
+

@@ -3,7 +3,7 @@
 #			#
 
 export SHELL = /bin/bash
-export CC = cc
+export CC = icc
 export CFLAGS = -fopenmp -ansi -pedantic -Wall --std=c99 -Wno-unused
        # -Wpointer-arith -Wcast-qual -Wcast-align\
        # -Wwrite-strings -Wnested-externs\
@@ -18,7 +18,7 @@ export LIBS = -lm -lgsl -lgslcblas # -lfftw3
 export ARCHIVE = $(PWD)/libyapdes.a
 export MAKEFILES = $(PWD)/Makefile.common
 export INCLUDES = $(PWD)/solver
-export SHOOTING_OBJECTS = shooting1 shooting2 shooting3 shooting4
+export SHOOTING_OBJECTS = shooting1 shooting2 shooting3 shooting4 shooting5
 DIRS = "solver"
 RM = /bin/rm -f
 # $(patsubst %/,%,$(wildcard */))

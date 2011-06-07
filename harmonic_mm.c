@@ -4,19 +4,19 @@ gsl_matrix * D_inv, * C;
 double * m, *mtemp;
 gsl_vector * fx, * fu, * ftmp;
 
-double k=3.;
+double k=8.;
 extern double mm_A;
 
 int main ( void )
 {
   ODE_solver * s;
   int M = 10, K = 0, i;
-  int N = 150/* 2*(M+K)+1 */;
+  int N = 50/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
   H_DOUBLE x0 = 0., x1 = PI, x;
   H_DOUBLE t_error = 1.e-8;
   h_basis_functions * basis = h_basis_finite_difference_5_function_init();
-  const gsl_odeiv_step_type * stepper = gsl_odeiv_step_gear1;
+  const gsl_odeiv_step_type * stepper = gsl_odeiv_step_rkf45;
   gsl_matrix * D = gsl_matrix_alloc(N,N);
   gsl_permutation * p = gsl_permutation_alloc(N);
   FILE * file;
@@ -55,15 +55,15 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  ODE_modules_add ( s, ODE_module_plot_init( 1. ) );
+  /* ODE_modules_add ( s, ODE_module_plot_init( 1. ) ); */
   /* modul do drukowania w konsoli czasu symulacji */
-  /* ODE_modules_add ( s, ODE_module_print_time_init ( .01 ) ); */
+  ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) );
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
      informacji dot. funkcji, w kolejnosci sa to:
      tau, t, u[1], x[1], du(0,tau)/dx, g, *dtau, 0. */
   ODE_modules_add ( s, ODE_module_info_1_init( .01, N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
-  ODE_modules_add ( s, ODE_module_snapshot_init( 1. ));
+  /* ODE_modules_add ( s, ODE_module_snapshot_init( 1. )); */
   /* ODE_modules_add ( s, ODE_module_bisection_3_init( .001 )); */
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 
@@ -116,7 +116,8 @@ int main ( void )
   /* sym: N=400, x0=0, x1=PI, T=5.*/
   /* A=2.10669393489537526420; */
 
-  mm_A=1.;
+  mm_A=1.55129424574719898263;
+  /* mm_A=PI; */
 
   for ( i = 0; i < N; i++ ) {
     x=i*(x1-x0)/(N-1);
@@ -134,7 +135,7 @@ int main ( void )
 
   ODE_solve ( s );
 
-  /* bisec(0.,2.,10.e-15,0., */
+  /* bisec(0.,PI,10.e-15,0., */
   /* 	bisection_wrapper,(void*)s); */
 
   /* file = fopen ( "test.dat", "w" ); */
@@ -220,7 +221,7 @@ void ODE_set ( void * solver,
   }
 
   /* printf ("%.5G\n",.01*dt*D1(ui,xi,0,N)/D1(f+1,xi,0,N)); */
-  gt = .01*(fabs(D1(ui,xi,0,N)/D1(f+1,xi,0,N))); /* gt=alpha*du/dx/(d2u/dxdt)|x=0 */
+  gt = .01*(fabs(D1(ui,xi,0,N))+1.)/(fabs(D1(f+1,xi,0,N))+1.); /* gt=alpha*du/dx/(d2u/dxdt)|x=0 */
   epsilon = sqrt(1.e2*gt);/* min(max(1.e-5,1.e2*gt),1.e-1); */
 
   if( gt*dt < 1.e-15)
@@ -457,6 +458,7 @@ double bisection_wrapper(double A, void * p)
   double x1 = s->params->basis->params->x1;
   double x,A1,B1;
   int i, N = (s->params->Nx-1)/2;
+  FILE * file;
 
   s->state->f[0]=0.;
   /* s->state->t[0]=0.; */
@@ -476,12 +478,21 @@ double bisection_wrapper(double A, void * p)
     x=s->state->f[i+1+N];
     s->state->f[i+1]=mm_u(x);
   }
+  *(s->state->t) = 0.;
+  *(s->state->dt) = 1.e-10;
+  s->state->f[0] = 0.;
   /* for ( i = 0; i < N; i++ ) { */
   /*   x=i*(x1-x0)/(N-1); */
   /*   s->state->f[i+1+N]=x; */
   /*   s->state->f[i+1]=x+A*sin(2.*x); */
   /*   /\* s->state->f[i+1]=A*sin(x); *\/ */
   /* } */
+
+  file = fopen ( "test.dat", "w" );
+  for ( i = 0; i < N; i++ )
+    fprintf(file, "%i %.15G %.15G\n", i, s->state->f[i+1+N], s->state->f[i+1]);
+
+  fclose( file );
 
   s->state->status = SOLVER_STATUS_OK;
 
@@ -518,7 +529,7 @@ bisec(double A0,
 
   while( 2.*(A1-A0)/fabs(A1+A0) > e) /* relative error measure */
     {
-      printf( "%03i, A=%.20f, delta/A=%.1E\r",
+      printf( "%03i, A=%.20f, delta/A=%.1E\n",
 	      i++, .5*(A0+A1), 2.*(A1-A0)/(A0+A1) );
 
       f = fevol(.5*(A0+A1), param ) - val;

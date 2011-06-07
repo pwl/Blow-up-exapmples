@@ -18,7 +18,7 @@
 
 
 ODE_solver * ODE_solver_malloc ( void );
-
+/*  */
 ODE_solver * ODE_solver_init ( int N,
 			       int rk,
 			       H_DOUBLE T,

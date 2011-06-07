@@ -172,15 +172,15 @@ void plot_step ( void * solver, void * module )
   /* 		   s->state->f, */
   /* 		   s->params->Nx, */
   /* 		   title ); */
-  /* gnuplot_plot_xy( plotter, */
-  /* 		   s->params->Dtemp[0][1]+1, */
-  /* 		   s->params->Dtemp[0][0]+1, */
-  /* 		   N-2, */
-  /* 		   title ); */
-  gnuplot_plot_x( plotter,
-  		  s->state->f/* +1+N */,
-  		  N*2+1,
-  		  title );
+  gnuplot_plot_xy( plotter,
+  		   s->params->Dtemp[0][1],
+  		   s->params->Dtemp[0][0],
+  		   N-1,
+  		   title );
+  /* gnuplot_plot_x( plotter, */
+  /* 		  s->state->f/\* +1+N *\/, */
+  /* 		  N*2+1, */
+  /* 		  title ); */
 
 }
 
