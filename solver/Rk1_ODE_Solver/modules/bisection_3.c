@@ -6,6 +6,8 @@ void bisection_3_init ( void * solver, void * module )
   ODE_solver * s = (ODE_solver*)solver;
   bisection_3_module_data * data = (bisection_3_module_data*)m->data;
 
+  data->gold = 0.;
+  data->told = 0.;
   data->result = 0.;
 }
 
@@ -19,22 +21,35 @@ void bisection_3_step ( void * solver, void * module )
   H_DOUBLE * f = s->state->f;
   H_DOUBLE * u = f+1;
   H_DOUBLE * x = f+1+N;
+  H_DOUBLE t = s->state->f[0], told = data->told;
+  H_DOUBLE g = (s->state->df[0]);
+  H_DOUBLE dx = D1_at_0(u,x);/* D1(u,x,0,N); */
   double x1 = s->params->basis->params->x1;
+  H_DOUBLE gold = data->gold;
+  H_DOUBLE dgdt = fabs((g - gold)/(t-told));
+
+  data->gold = g;
+  data->told = t;
+
+  /* printf("-log(g)=%.10G\n", -log(g)); */
+  /* printf("1/dgdt=%.10G\n",1./dgdt/100.); */
 
 
   /* if any of the bisection conditions are met, save the bisection
      result and stop the evolution */
-  if( 1./((fabs(u[1]/x[1])+1.)*pow(s->state->df[0]*100.,2.*0.630601937481871)) > 1000. && *s->state->t > 30. )
+  if ( bisection_max(u,N) < PI/2. /* && u[N-2]/(x1-x[N-2]) > PI/2. */ )
+    {
+      data->result = -1.;
+      s->state->status = SOLVER_STATUS_STOP;
+    }
+  /* if( 1./((fabs(u[1]/x[1])+1.)*pow(s->state->df[0]*100.,2.*0.630601937481871)) > 1000. && *s->state->t > 30. ) */
+  else if (-log(g) > 15. && 1./dgdt < 100. )
     {
       data->result = 1.;
       s->state->status = SOLVER_STATUS_STOP;
     }
   /* else if ( u[1]/x[1] < mm_du(0.)/2. /\* && u[N-2]/(x1-x[N-2]) > PI/2. *\/ ) */
-  else if ( bisection_max(u,N) < PI/2. /* && u[N-2]/(x1-x[N-2]) > PI/2. */ )
-    {
-      data->result = -1.;
-      s->state->status = SOLVER_STATUS_STOP;
-    }
+
 }
 
 void bisection_3_stop ( void * solver, void * module )

@@ -55,7 +55,7 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  /* ODE_modules_add ( s, ODE_module_plot_init( 1. ) ); */
+  ODE_modules_add ( s, ODE_module_plot_init( 10. ) );
   /* modul do drukowania w konsoli czasu symulacji */
   ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) );
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
@@ -64,7 +64,7 @@ int main ( void )
   ODE_modules_add ( s, ODE_module_info_1_init( .01, N ) );
   /* modul wpisywania profili fcji do katalogu log/snapshot */
   /* ODE_modules_add ( s, ODE_module_snapshot_init( 1. )); */
-  /* ODE_modules_add ( s, ODE_module_bisection_3_init( .001 )); */
+  ODE_modules_add ( s, ODE_module_bisection_3_init( .001 ));
   /* ODE_modules_add ( s, ODE_module_movie_maker_init( 0.) ); */
 
   /* inicjalizacja danych poczatkowych */
@@ -116,7 +116,7 @@ int main ( void )
   /* sym: N=400, x0=0, x1=PI, T=5.*/
   /* A=2.10669393489537526420; */
 
-  mm_A=1.55129424574719898263;
+  /* mm_A=1.55129424574719898263; */
   /* mm_A=PI; */
 
   for ( i = 0; i < N; i++ ) {
@@ -133,10 +133,10 @@ int main ( void )
 
   s->state->f[0]=0.;
 
-  ODE_solve ( s );
+  /* ODE_solve ( s ); */
 
-  /* bisec(0.,PI,10.e-15,0., */
-  /* 	bisection_wrapper,(void*)s); */
+  bisec(0.,PI,10.e-15,0.,
+  	bisection_wrapper,(void*)s);
 
   /* file = fopen ( "test.dat", "w" ); */
   /* for ( i = 0; i < N; i++ ) */

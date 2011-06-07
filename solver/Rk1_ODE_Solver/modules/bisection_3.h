@@ -8,6 +8,7 @@
 typedef struct
 {
   H_DOUBLE f_max, f_min, result;
+  H_DOUBLE gold,told;
   int i_max, i_min;
 } bisection_3_module_data;
 
