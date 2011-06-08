@@ -11,7 +11,7 @@ int main ( void )
 {
   ODE_solver * s;
   int M = 10, K = 0, i;
-  int N = 50/* 2*(M+K)+1 */;
+  int N = 100/* 2*(M+K)+1 */;
   H_DOUBLE T =1.e10;
   H_DOUBLE x0 = 0., x1 = PI, x;
   H_DOUBLE t_error = 1.e-8;
@@ -55,7 +55,7 @@ int main ( void )
      argument to odstęp (mierzony czasem obliczeniowym) w jakim mają
      być wywoływane kolejne moduły */
   /* modul do wizualizacji wykresu fcji w czasie rzeczywistym */
-  /* ODE_modules_add ( s, ODE_module_plot_init( 10. ) ); */
+  ODE_modules_add ( s, ODE_module_plot_init( 1. ) );
   /* modul do drukowania w konsoli czasu symulacji */
   ODE_modules_add ( s, ODE_module_print_time_init ( .0 ) );
   /* modul do wpisywania do pliku log/info_1/log001.dat szeregu
@@ -117,6 +117,7 @@ int main ( void )
   /* A=2.10669393489537526420; */
 
   /* mm_A=1.55129424574719898263; */
+  mm_A=1.5534147065977;
   /* mm_A=PI; */
 
   for ( i = 0; i < N; i++ ) {
@@ -133,10 +134,10 @@ int main ( void )
 
   s->state->f[0]=0.;
 
-  /* ODE_solve ( s ); */
+  ODE_solve ( s );
 
-  bisec(0.,PI,10.e-15,0.,
-  	bisection_wrapper,(void*)s);
+  /* bisec(0.,PI,10.e-15,0., */
+  /* 	bisection_wrapper,(void*)s); */
 
   /* file = fopen ( "test.dat", "w" ); */
   /* for ( i = 0; i < N; i++ ) */
